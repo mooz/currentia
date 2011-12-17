@@ -1,0 +1,19 @@
+# -*- python -*-
+
+subdirs = ""
+
+def options(opt):
+    opt.recurse(subdirs)
+
+def configure(conf):
+    conf.recurse(subdirs)
+
+def build(bld):
+    bld.program(
+      source   = "server.cpp",
+      target   = "currentiaserver",
+      includes = ". ../../"
+      # use      = "currentia"
+    )
+
+    bld.recurse(subdirs)
