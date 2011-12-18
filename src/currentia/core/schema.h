@@ -38,8 +38,6 @@ namespace currentia {
     public:
         // TODO: use builder pattern? (e.g., builder.add_attribute(xx).add_attribute(yy).build())
         Schema(long id): id_(id) {
-            attributes_ = attributes_t();
-            attributes_index_ = attributes_index_t();
         }
 
         int add_attribute(std::string name, enum Type type) {
