@@ -17,7 +17,7 @@ namespace currentia {
         NUMBER_OF_TYPES
     };
 
-    // util
+    // util (TODO: this is not appropriate place for this function)
     std::string type2string(enum Type type) {
         switch (type) {
         case TYPE_INT:

@@ -1,3 +1,5 @@
 #!/bin/sh
 
-CC="ccache clang" CXX="ccache clang++" waf configure && waf build
+export CC="ccahe clang"
+export CXX="ccache clang++"
+waf configure && waf build
