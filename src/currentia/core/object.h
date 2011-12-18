@@ -5,10 +5,12 @@
 
 #include <sstream>
 #include <string>
-#include <tr1/memory>
+
+#include "currentia/core/pointer.h"
+#include "currentia/core/operator/comparator.h"
 
 namespace currentia {
-    enum Type {
+    enum ObjectType {
         TYPE_INT,
         TYPE_FLOAT,
         TYPE_STRING,
@@ -18,7 +20,7 @@ namespace currentia {
     };
 
     // util (TODO: this is not appropriate place for this function)
-    std::string type2string(enum Type type) {
+    std::string type2string(enum ObjectType type) {
         switch (type) {
         case TYPE_INT:
             return std::string("TYPE_INT");
@@ -42,9 +44,31 @@ namespace currentia {
         typedef std::tr1::shared_ptr<std::string> string_ptr_t;
         typedef std::tr1::shared_ptr<char*> blob_ptr_t;
 
-        enum Type type;         // TODO: make it const (immutable)
+        enum ObjectType type;         // TODO: make it const (immutable)
 
     private:
+        template <typename T>
+        inline bool generic_compare(T& x, T& y, enum ComparatorType comparator) {
+            switch (comparator) {
+            case COMPARATOR_EQUAL:              // ==
+                return x == y;
+            case COMPARATOR_NOT_EQUAL:          // !=
+                return x != y;
+            case COMPARATOR_LESS_THAN:          // <
+                return x < y;
+            case COMPARATOR_LESS_THAN_EQUAL:    // <=
+                return x <= y;
+            case COMPARATOR_GREATER_THAN:       // >
+                return x > y;
+            case COMPARATOR_GREATER_THAN_EQUAL: // >=
+                return x >= y;
+            default:
+                return false;
+            }
+        }
+
+    public:
+        // TODO: make it private
         // TODO: union is preferred, but smart pointers are not allowed in `union`
         // (such objects who have constructor and destructor in union are supproted from C++11)
         struct Holder {
@@ -54,7 +78,6 @@ namespace currentia {
             blob_ptr_t   blob_ptr;
         } holder_;
 
-    public:
         Object(int int_number): type(TYPE_INT) {
             holder_.int_number = int_number;
         }
@@ -97,6 +120,36 @@ namespace currentia {
             }
 
             return ss.str();
+        }
+
+        bool compare(Object& target, enum ComparatorType comparator) {
+            bool comparison_result = false;
+
+            switch (type) {
+            case TYPE_INT:
+                comparison_result = generic_compare(holder_.int_number,
+                                                    target.holder_.int_number,
+                                                    comparator);
+                break;
+            case TYPE_FLOAT:
+                comparison_result = generic_compare(holder_.float_number,
+                                                    target.holder_.float_number,
+                                                    comparator);
+                break;
+            case TYPE_STRING:
+                // compare deeply
+                comparison_result = generic_compare(*(holder_.string_ptr),
+                                                    *(target.holder_.string_ptr),
+                                                    comparator);
+                break;
+            case TYPE_BLOB:
+                // TODO: implement BLOB object comparison
+                break;
+            default:
+                break;
+            }
+
+            return comparison_result;
         }
 
         // immutable

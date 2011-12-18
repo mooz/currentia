@@ -4,6 +4,7 @@
 #define CURRENTIA_SCHEMA_H__
 
 #include "currentia/core/object.h"
+#include "currentia/core/pointer.h"
 
 #include <map>
 #include <vector>
@@ -13,10 +14,10 @@
 
 namespace currentia {
     struct Attribute {
-        std::string name;
-        enum Type   type;
+        std::string     name;
+        enum ObjectType type;
 
-        Attribute(std::string name, enum Type type):
+        Attribute(std::string name, enum ObjectType type):
             name(name),
             type(type) {
         }
@@ -31,16 +32,18 @@ namespace currentia {
 
     private:
         long id_;                /* ID of the stream */
-        attributes_t attributes_;
-        attributes_index_t attributes_index_;
         // TODO: give relation name
 
     public:
+        // TODO: make them private
+        attributes_t attributes_;
+        attributes_index_t attributes_index_;
+
         // TODO: use builder pattern? (e.g., builder.add_attribute(xx).add_attribute(yy).build())
         Schema(long id): id_(id) {
         }
 
-        int add_attribute(std::string name, enum Type type) {
+        int add_attribute(std::string name, enum ObjectType type) {
             attributes_.push_back(Attribute(name, type));
             // TODO: check if this schema already has attribute with given name
             size_t current_size = this->size();

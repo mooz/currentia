@@ -1,4 +1,5 @@
 #include "currentia/core/tuple.h"
+#include "currentia/core/operator/selection.h"
 
 #include <iostream>
 

@@ -5,10 +5,10 @@
 
 #include "currentia/core/schema.h"
 #include "currentia/core/object.h"
+#include "currentia/core/pointer.h"
 
 #include <sstream>              // string_stream
 #include <vector>
-#include <tr1/memory>           // shared_ptr
 
 namespace currentia {
     class Tuple {
@@ -17,12 +17,12 @@ namespace currentia {
         // typedef std::tr1::shared_ptr<std::vector<Object> > data_ptr_t;
         typedef std::vector<Object> data_t;
 
-        static Tuple::ptr_t create(Schema::ptr_t schema, data_t data) {
-            if (!schema->validate_data(data)) {
+        static Tuple::ptr_t create(Schema::ptr_t schema_ptr, data_t data) {
+            if (!schema_ptr->validate_data(data)) {
                 return Tuple::ptr_t(); // NULL pointer
             }
 
-            return Tuple::ptr_t(new Tuple(schema, data));
+            return Tuple::ptr_t(new Tuple(schema_ptr, data));
         }
 
         std::string toString() const {
@@ -41,14 +41,19 @@ namespace currentia {
             return ss.str();
         }
 
+        // inline long get_column_number(std::string attribute_name) {
+        //     return schema_ptr_->
+        // }
+
+        // TODO: make it private
+        Schema::ptr_t schema_ptr_;
+        data_t data_;
+
     private:
-        Tuple(Schema::ptr_t schema, data_t data) {
-            schema_ = schema;
+        Tuple(Schema::ptr_t schema_ptr, data_t data) {
+            schema_ptr_ = schema_ptr;
             data_ = data;
         }
-
-        Schema::ptr_t schema_;
-        data_t data_;
     };
 }
 
