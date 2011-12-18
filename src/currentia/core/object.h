@@ -45,7 +45,8 @@ namespace currentia {
         enum Type type;         // TODO: make it const (immutable)
 
     private:
-        // TODO: union is preferred, but smart pointers are not allowed in union
+        // TODO: union is preferred, but smart pointers are not allowed in `union`
+        // (such objects who have constructor and destructor in union are supproted from C++11)
         struct Holder {
             int          int_number;
             double       float_number;
@@ -54,23 +55,23 @@ namespace currentia {
         } holder_;
 
     public:
-        Object(int int_number) : type(TYPE_INT) {
+        Object(int int_number): type(TYPE_INT) {
             holder_.int_number = int_number;
         }
 
-        Object(double float_number) : type(TYPE_FLOAT) {
+        Object(double float_number): type(TYPE_FLOAT) {
             holder_.int_number = float_number;
         }
 
-        Object(string_ptr_t string_ptr) : type(TYPE_STRING) {
+        Object(string_ptr_t string_ptr): type(TYPE_STRING) {
             holder_.string_ptr = string_ptr;
         }
 
-        Object(const char* raw_string) : type(TYPE_STRING) {
+        Object(const char* raw_string): type(TYPE_STRING) {
             holder_.string_ptr = string_ptr_t(new std::string(raw_string));
         }
 
-        Object(blob_ptr_t blob_ptr) : type(TYPE_BLOB) {
+        Object(blob_ptr_t blob_ptr): type(TYPE_BLOB) {
             holder_.blob_ptr = blob_ptr;
         }
 
