@@ -8,8 +8,8 @@
 #include "currentia/core/schema.h"
 
 #include "currentia/core/operator/operator.h"
-#include "currentia/core/operator/selection.h"
-#include "currentia/core/operator/projection.h"
+#include "currentia/core/operator/operator-selection.h"
+#include "currentia/core/operator/operator-projection.h"
 
 #include <unistd.h>
 #include <stdlib.h>
