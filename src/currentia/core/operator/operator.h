@@ -10,12 +10,12 @@ namespace currentia {
     class Operator {
     public:
         // input / output
-        Stream::ptr_t input_stream_;
-        Stream::ptr_t output_stream_;
+        Stream::ptr_t input_stream_ptr_;
+        Stream::ptr_t output_stream_ptr_;
 
         // open
-        Operator(Stream::ptr_t input_stream):
-            input_stream_(input_stream) {
+        Operator(Stream::ptr_t input_stream_ptr):
+            input_stream_ptr_(input_stream_ptr) {
         };
 
         // get next tuple from input stream and process
