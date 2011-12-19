@@ -90,6 +90,10 @@ namespace currentia {
             holder_.string_ptr = string_ptr;
         }
 
+        Object(std::string& string): type(TYPE_STRING) {
+            holder_.string_ptr = string_ptr_t(new std::string(string));
+        }
+
         Object(const char* raw_string): type(TYPE_STRING) {
             holder_.string_ptr = string_ptr_t(new std::string(raw_string));
         }
