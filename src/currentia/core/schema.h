@@ -5,6 +5,7 @@
 
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
+#include "currentia/core/thread.h"
 
 #include <map>
 #include <vector>
@@ -33,6 +34,8 @@ namespace currentia {
     private:
         long id_;                /* ID of the stream */
         // TODO: give relation name
+        pthread_mutex_t schema_lock_;
+        bool is_schema_freezed_;
 
     public:
         // TODO: make them private
@@ -40,14 +43,31 @@ namespace currentia {
         attributes_index_t attributes_index_;
 
         // TODO: use builder pattern? (e.g., builder.add_attribute(xx).add_attribute(yy).build())
-        Schema(long id): id_(id) {
+        Schema(long id = 0):
+            id_(id),
+            is_schema_freezed_(false) {
+            pthread_mutex_init(&schema_lock_, NULL);
+        }
+
+        void freeze() {
+            pthread_mutex_lock(&schema_lock_);
+            is_schema_freezed_ = true;
+            pthread_mutex_unlock(&schema_lock_);
         }
 
         int add_attribute(std::string name, enum ObjectType type) {
-            attributes_.push_back(Attribute(name, type));
+            pthread_mutex_lock(&schema_lock_);
+
+            if (!is_schema_freezed_)
+                attributes_.push_back(Attribute(name, type));
+
             // TODO: check if this schema already has attribute with given name
             size_t current_size = this->size();
-            attributes_index_[name] = current_size - 1;
+
+            if (!is_schema_freezed_)
+                attributes_index_[name] = current_size - 1;
+
+            pthread_mutex_unlock(&schema_lock_);
 
             return current_size;
         }
