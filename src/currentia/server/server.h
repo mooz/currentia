@@ -9,6 +9,7 @@
 
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/selection.h"
+#include "currentia/core/operator/projection.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -71,7 +72,13 @@ namespace currentia {
                                         std::string("Age"),
                                         Object(10));
 
-            while (Tuple::ptr_t tuple_ptr = selection.next()) {
+            ProjectionOperator::target_attribute_names_t attribute_names;
+            attribute_names.push_back(std::string("Age"));
+            attribute_names.push_back(std::string("Name"));
+
+            ProjectionOperator projection(stream_ptr_, attribute_names);
+
+            while (Tuple::ptr_t tuple_ptr = projection.next()) {
                 std::cout << "Got => " << tuple_ptr->toString() << std::endl;
             }
         }
