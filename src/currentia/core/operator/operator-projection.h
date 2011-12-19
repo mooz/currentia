@@ -15,6 +15,22 @@ namespace currentia {
         typedef std::list<std::string> target_attribute_names_t;
         typedef std::vector<int> target_attribute_indices_t;
 
+        OperatorProjection(Operator::ptr_t parent_operator_ptr,
+                           target_attribute_names_t target_attribute_names):
+            target_attribute_names_(target_attribute_names) {
+            parent_operator_ptr_ = parent_operator_ptr;
+            old_schema_ptr_ = parent_operator_ptr_->output_schema_ptr_;
+            build_new_schema_and_indices();
+
+            output_schema_ptr_ = new_schema_ptr_;
+        }
+
+        Tuple::ptr_t next() {
+            while (Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next())
+                return project_attributes(target_tuple_ptr);
+            return Tuple::ptr_t(); // NULL
+        }
+
     private:
         target_attribute_names_t target_attribute_names_;
         target_attribute_indices_t target_attribute_indices_;
@@ -55,21 +71,6 @@ namespace currentia {
             }
 
             return Tuple::create(new_schema_ptr_, data);
-        }
-
-    public:
-        OperatorProjection(Stream::ptr_t input_stream_ptr,
-                           target_attribute_names_t target_attribute_names):
-            Operator(input_stream_ptr),
-            target_attribute_names_(target_attribute_names) {
-            old_schema_ptr_ = input_stream_ptr_->schema_ptr_;
-            build_new_schema_and_indices();
-        }
-
-        Tuple::ptr_t next() {
-            while (Tuple::ptr_t target_tuple_ptr = input_stream_ptr_->dequeue())
-                return project_attributes(target_tuple_ptr);
-            return Tuple::ptr_t(); // NULL
         }
     };
 }

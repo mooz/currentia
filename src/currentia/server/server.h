@@ -10,6 +10,7 @@
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-projection.h"
+#include "currentia/core/operator/operator-stream-adapter.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -67,7 +68,9 @@ namespace currentia {
         }
 
         void process() {
-            OperatorSelection selection(stream_ptr_,
+            OperatorStreamAdapter adapter(stream_ptr_);
+
+            OperatorSelection selection(Operator::ptr_t(&adapter),
                                         COMPARATOR_LESS_THAN,
                                         std::string("Age"),
                                         Object(10));
@@ -76,7 +79,7 @@ namespace currentia {
             attribute_names.push_back(std::string("Age"));
             attribute_names.push_back(std::string("Name"));
 
-            OperatorProjection projection(stream_ptr_, attribute_names);
+            OperatorProjection projection(Operator::ptr_t(&selection), attribute_names);
 
             while (Tuple::ptr_t tuple_ptr = projection.next()) {
                 std::cout << "Got => " << tuple_ptr->toString() << std::endl;

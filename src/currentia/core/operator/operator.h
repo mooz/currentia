@@ -5,21 +5,24 @@
 
 #include "currentia/core/tuple.h"
 #include "currentia/core/stream.h"
+#include "currentia/core/schema.h"
+#include "currentia/core/pointer.h"
 
 namespace currentia {
     class Operator {
     public:
-        // input / output
-        Stream::ptr_t input_stream_ptr_;
-        Stream::ptr_t output_stream_ptr_;
+        typedef std::tr1::shared_ptr<Operator> ptr_t;
 
-        // open
-        Operator(Stream::ptr_t input_stream_ptr):
-            input_stream_ptr_(input_stream_ptr) {
-        };
+        Schema::ptr_t output_schema_ptr_;
+        Operator::ptr_t parent_operator_ptr_;
 
         // get next tuple from input stream and process
         virtual Tuple::ptr_t next() = 0; // blocking operator
+
+        // Operator(Schema::ptr_t& output_schema_ptr, Operator::ptr_t& parent_operator_ptr):
+        //     output_schema_ptr_(output_schema_ptr),
+        //     parent_operator_ptr_(parent_operator_ptr) {
+        // }
     };
 }
 
