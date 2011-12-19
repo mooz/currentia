@@ -109,10 +109,10 @@ namespace currentia {
                 ss << "FLOAT(" << holder_.float_number << ")";
                 break;
             case TYPE_STRING:
-                ss << "STRING(" << *holder_.string_ptr  << ")";
+                ss << "STRING(\"" << *holder_.string_ptr  << "\")";
                 break;
             case TYPE_BLOB:
-                ss << "BLOB(" << holder_.blob_ptr << ")";
+                ss << "BLOB(<#" << holder_.blob_ptr << ">)";
                 break;
             default:
                 ss << "UNKNOWN()";
