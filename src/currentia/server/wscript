@@ -12,8 +12,8 @@ def build(bld):
     bld.program(
       source   = "server.cpp",
       target   = "currentiaserver",
-      includes = ". ../../"
-      # use      = "currentia"
+      includes = ". ../../",
+      lib      = ["pthread"],
     )
 
     bld.recurse(subdirs)
