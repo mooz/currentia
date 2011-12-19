@@ -7,6 +7,9 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/schema.h"
 
+#include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/selection.h"
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <sstream>
@@ -63,8 +66,13 @@ namespace currentia {
         }
 
         void process() {
-            while (Tuple::ptr_t tuple_ptr = stream_ptr_->dequeue()) {
-                std::cout << "Got tuple!" << std::endl;
+            SelectionOperator selection(stream_ptr_,
+                                        COMPARATOR_LESS_THAN,
+                                        std::string("Age"),
+                                        Object(10));
+
+            while (Tuple::ptr_t tuple_ptr = selection.next()) {
+                std::cout << "Got => " << tuple_ptr->toString() << std::endl;
             }
         }
     };
