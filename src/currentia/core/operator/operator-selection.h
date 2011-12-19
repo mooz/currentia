@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_SELECTION_H__
-#define CURRENTIA_SELECTION_H__
+#ifndef CURRENTIA_OPERATOR_SELECTION_H__
+#define CURRENTIA_OPERATOR_SELECTION_H__
 
 #include "currentia/core/tuple.h"
 #include "currentia/core/stream.h"
@@ -11,7 +11,7 @@
 #include "currentia/core/operator/comparator.h"
 
 namespace currentia {
-    class SelectionOperator: public Operator {
+    class OperatorSelection: public Operator {
         // TODO: support condition from multiple comparision (AND, OR, BETWEEN, ...)
         enum ComparatorType comparator_;
         std::string target_attribute_name_;
@@ -20,7 +20,7 @@ namespace currentia {
     public:
         // created from visitor pattern?
         // TODO: think about the way of construction from declarative queries
-        SelectionOperator(Stream::ptr_t input_stream_ptr,
+        OperatorSelection(Stream::ptr_t input_stream_ptr,
                           enum ComparatorType comparator,
                           std::string target_attribute_name,
                           Object comparator_value):
@@ -57,4 +57,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_SELECTION_H__ */
+#endif  /* ! CURRENTIA_OPERATOR_SELECTION_H__ */

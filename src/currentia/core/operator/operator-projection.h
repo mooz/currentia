@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_PROJECTION_H__
-#define CURRENTIA_PROJECTION_H__
+#ifndef CURRENTIA_OPERATOR_PROJECTION_H__
+#define CURRENTIA_OPERATOR_PROJECTION_H__
 
 #include "currentia/core/tuple.h"
 #include "currentia/core/stream.h"
@@ -10,7 +10,7 @@
 #include "currentia/core/operator/operator.h"
 
 namespace currentia {
-    class ProjectionOperator: public Operator {
+    class OperatorProjection: public Operator {
     public:
         typedef std::list<std::string> target_attribute_names_t;
         typedef std::vector<int> target_attribute_indices_t;
@@ -58,7 +58,7 @@ namespace currentia {
         }
 
     public:
-        ProjectionOperator(Stream::ptr_t input_stream_ptr,
+        OperatorProjection(Stream::ptr_t input_stream_ptr,
                            target_attribute_names_t target_attribute_names):
             Operator(input_stream_ptr),
             target_attribute_names_(target_attribute_names) {
@@ -74,4 +74,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_PROJECTION_H__ */
+#endif  /* ! CURRENTIA_OPERATOR_PROJECTION_H__ */

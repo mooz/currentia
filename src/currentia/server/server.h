@@ -67,16 +67,16 @@ namespace currentia {
         }
 
         void process() {
-            SelectionOperator selection(stream_ptr_,
+            OperatorSelection selection(stream_ptr_,
                                         COMPARATOR_LESS_THAN,
                                         std::string("Age"),
                                         Object(10));
 
-            ProjectionOperator::target_attribute_names_t attribute_names;
+            OperatorProjection::target_attribute_names_t attribute_names;
             attribute_names.push_back(std::string("Age"));
             attribute_names.push_back(std::string("Name"));
 
-            ProjectionOperator projection(stream_ptr_, attribute_names);
+            OperatorProjection projection(stream_ptr_, attribute_names);
 
             while (Tuple::ptr_t tuple_ptr = projection.next()) {
                 std::cout << "Got => " << tuple_ptr->toString() << std::endl;
