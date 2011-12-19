@@ -16,6 +16,7 @@ namespace currentia {
         enum ComparatorType comparator_;
         std::string target_attribute_name_;
         Object comparator_value_;
+        Operator::ptr_t parent_operator_ptr_;
 
     public:
         // created from visitor pattern?

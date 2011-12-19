@@ -14,7 +14,6 @@ namespace currentia {
         typedef std::tr1::shared_ptr<Operator> ptr_t;
 
         Schema::ptr_t output_schema_ptr_;
-        Operator::ptr_t parent_operator_ptr_;
 
         // get next tuple from input stream and process
         virtual Tuple::ptr_t next() = 0; // blocking operator

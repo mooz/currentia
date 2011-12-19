@@ -17,7 +17,6 @@ namespace currentia {
         OperatorStreamAdapter(Stream::ptr_t input_stream_ptr):
             input_stream_ptr_(input_stream_ptr) {
             output_schema_ptr_ = input_stream_ptr->schema_ptr_;
-            parent_operator_ptr_ = Operator::ptr_t(); // NULL
         }
 
         Tuple::ptr_t next() {

@@ -11,6 +11,8 @@
 
 namespace currentia {
     class OperatorProjection: public Operator {
+        Operator::ptr_t parent_operator_ptr_;
+
     public:
         typedef std::list<std::string> target_attribute_names_t;
         typedef std::vector<int> target_attribute_indices_t;
