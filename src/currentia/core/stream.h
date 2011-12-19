@@ -6,9 +6,9 @@
 #include "currentia/core/schema.h"
 #include "currentia/core/tuple.h"
 #include "currentia/core/pointer.h"
+#include "currentia/core/thread.h"
 
 #include <list>
-#include <pthread.h>
 
 namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
@@ -19,30 +19,55 @@ namespace currentia {
     private:
         Schema::ptr_t schema_ptr_;
         std::list<Tuple::ptr_t> tuple_ptrs_;
-        pthread_mutex_t mutex;
+
+        pthread_mutex_t mutex_;
+        pthread_cond_t reader_wait_;
+
+        inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
+            Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
+            tuple_ptrs_.pop_back();
+            return tuple_ptr;
+        }
 
     public:
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {
-            pthread_mutex_init(&mutex, NULL);
+            // initialize values for thread synchronization
+            pthread_mutex_init(&mutex_, NULL);
+            pthread_cond_init(&reader_wait_, NULL);
         }
 
         void enqueue(Tuple::ptr_t tuple_ptr) {
-            pthread_mutex_lock(&mutex);
+            pthread_mutex_lock(&mutex_);
 
             tuple_ptrs_.push_front(tuple_ptr);
+            // tell arrival of a tuple to waiting threads
+            pthread_cond_broadcast(&reader_wait_);
 
-            pthread_mutex_unlock(&mutex);
+            pthread_mutex_unlock(&mutex_);
         }
 
         // blocking
         Tuple::ptr_t dequeue() {
-            pthread_mutex_lock(&mutex);
+            return dequeue_timed_wait(NULL);
+        }
 
-            Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
-            tuple_ptrs_.pop_back();
+        // timeout version
+        Tuple::ptr_t dequeue_timed_wait(const struct timespec* timeout) {
+            pthread_mutex_lock(&mutex_);
 
-            pthread_mutex_unlock(&mutex);
+            while (tuple_ptrs_.empty()) {
+                // wait for the next tuple arrival to the queue
+                if (timeout && !pthread_cond_timedwait(&reader_wait_, &mutex_, timeout)) {
+                    return Tuple::ptr_t(); // NULL
+                } else {
+                    pthread_cond_wait(&reader_wait_, &mutex_);
+                }
+            }
+
+            Tuple::ptr_t tuple_ptr = dequeue_a_tuple_ptr_();
+
+            pthread_mutex_unlock(&mutex_);
 
             return tuple_ptr;
         }
