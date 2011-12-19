@@ -55,6 +55,10 @@ namespace currentia {
             pthread_mutex_unlock(&schema_lock_);
         }
 
+        int add_attribute(Attribute& attribute) {
+            return add_attribute(attribute.name, attribute.type);
+        }
+
         int add_attribute(std::string name, enum ObjectType type) {
             pthread_mutex_lock(&schema_lock_);
 
