@@ -8,6 +8,8 @@
 #include "currentia/core/schema.h"
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <sstream>
 
 namespace currentia {
     // Helper functions
@@ -26,9 +28,15 @@ namespace currentia {
     {
         // inefficient! (copy constructor of data_t runs many times)
         Tuple::data_t data;
-        data.push_back(Object("John Smith"));
-        data.push_back(Object(23));
-        data.push_back(Object(10000));
+
+        std::stringstream name_ss;
+        static int number = 0;
+        name_ss << "John Smith-" << (++number);
+        std::string name = name_ss.str();
+
+        data.push_back(Object(name));
+        data.push_back(Object(rand() % 20 + 5));
+        data.push_back(Object(rand() % 10000));
 
         return Tuple::create(schema_ptr, data);
     }
