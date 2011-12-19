@@ -10,6 +10,7 @@
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-projection.h"
+#include "currentia/core/operator/operator-join.h"
 #include "currentia/core/operator/operator-stream-adapter.h"
 
 #include <unistd.h>
@@ -50,18 +51,21 @@ namespace currentia {
     class Server {
         Schema::ptr_t schema_ptr_;
         Stream::ptr_t stream_ptr_;
+        Stream::ptr_t stream2_ptr_;
 
     public:
         typedef std::tr1::shared_ptr<Server> ptr_t;
 
         Server(Schema::ptr_t schema):
             schema_ptr_(schema),
-            stream_ptr_(new Stream(schema)) {
+            stream_ptr_(new Stream(schema)),
+            stream2_ptr_(new Stream(schema)) {
         }
 
         void listen() {
             while (true) {
                 stream_ptr_->enqueue(create_tuple(schema_ptr_));
+                stream2_ptr_->enqueue(create_tuple(schema_ptr_));
                 // std::cout << "Listen!" << std::endl;
                 sleep(1);
             }
@@ -69,7 +73,9 @@ namespace currentia {
 
         void process() {
             OperatorStreamAdapter adapter(stream_ptr_);
+            OperatorStreamAdapter adapter2(stream2_ptr_);
 
+#if 0
             OperatorSelection selection(Operator::ptr_t(&adapter),
                                         COMPARATOR_LESS_THAN,
                                         std::string("Age"),
@@ -80,8 +86,16 @@ namespace currentia {
             attribute_names.push_back(std::string("Name"));
 
             OperatorProjection projection(Operator::ptr_t(&selection), attribute_names);
+#endif
 
-            while (Tuple::ptr_t tuple_ptr = projection.next()) {
+            OperatorJoin join(Operator::ptr_t(&adapter),
+                              Operator::ptr_t(&adapter2),
+                              COMPARATOR_EQUAL,
+                              std::string("Age"),
+                              1,
+                              1);
+
+            while (Tuple::ptr_t tuple_ptr = join.next()) {
                 std::cout << "Got => " << tuple_ptr->toString() << std::endl;
             }
         }
