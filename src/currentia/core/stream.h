@@ -17,7 +17,6 @@ namespace currentia {
         typedef std::tr1::shared_ptr<Stream> ptr_t;
 
     private:
-        Schema::ptr_t schema_ptr_;
         std::list<Tuple::ptr_t> tuple_ptrs_;
 
         pthread_mutex_t mutex_;
@@ -30,6 +29,9 @@ namespace currentia {
         }
 
     public:
+        // TOOD: make it immutable (but used in projection operator implementation)
+        Schema::ptr_t schema_ptr_;
+
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {
             // initialize values for thread synchronization
