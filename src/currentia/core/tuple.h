@@ -41,10 +41,6 @@ namespace currentia {
             return ss.str();
         }
 
-        // inline long get_column_number(std::string attribute_name) {
-        //     return schema_ptr_->
-        // }
-
         // TODO: make it private
         Schema::ptr_t schema_ptr_;
         data_t data_;
