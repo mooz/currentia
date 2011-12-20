@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_server_H__
-#define CURRENTIA_server_H__
+#ifndef CURRENTIA_SERVER_H__
+#define CURRENTIA_SERVER_H__
 
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
@@ -112,4 +112,4 @@ namespace currentia {
     }
 }
 
-#endif  /* ! CURRENTIA_server_H__ */
+#endif  /* ! CURRENTIA_SERVER_H__ */
