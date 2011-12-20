@@ -22,9 +22,9 @@ namespace currentia {
     Schema::ptr_t create_schema()
     {
         Schema::ptr_t schema_ptr(new Schema());
-        schema_ptr->add_attribute("Name", TYPE_STRING);
-        schema_ptr->add_attribute("Age", TYPE_INT);
-        schema_ptr->add_attribute("Income", TYPE_INT);
+        schema_ptr->add_attribute("Name", Object::STRING);
+        schema_ptr->add_attribute("Age", Object::INT);
+        schema_ptr->add_attribute("Income", Object::INT);
         schema_ptr->freeze();
 
         return schema_ptr;
@@ -77,7 +77,7 @@ namespace currentia {
 
 #if 0
             OperatorSelection selection(Operator::ptr_t(&adapter),
-                                        COMPARATOR_LESS_THAN,
+                                        Comparator::LESS_THAN,
                                         std::string("Age"),
                                         Object(10));
 
@@ -90,7 +90,7 @@ namespace currentia {
 
             OperatorJoin join(Operator::ptr_t(&adapter),
                               Operator::ptr_t(&adapter2),
-                              COMPARATOR_EQUAL,
+                              Comparator::EQUAL,
                               std::string("Age"),
                               1,
                               1);

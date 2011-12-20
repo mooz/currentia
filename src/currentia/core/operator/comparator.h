@@ -4,14 +4,16 @@
 #define CURRENTIA_COMPARATOR_H__
 
 namespace currentia {
-    enum ComparatorType {
-        COMPARATOR_EQUAL,              // ==
-        COMPARATOR_NOT_EQUAL,          // !=
-        COMPARATOR_LESS_THAN,          // <
-        COMPARATOR_LESS_THAN_EQUAL,    // <=
-        COMPARATOR_GREATER_THAN,       // >
-        COMPARATOR_GREATER_THAN_EQUAL, // >=
-    };
+    namespace Comparator {
+        enum Type {
+            EQUAL,              // ==
+            NOT_EQUAL,          // !=
+            LESS_THAN,          // <
+            LESS_THAN_EQUAL,    // <=
+            GREATER_THAN,       // >
+            GREATER_THAN_EQUAL, // >=
+        };
+    }
 }
 
 #endif  /* ! CURRENTIA_COMPARATOR_H__ */

@@ -8,21 +8,23 @@
 #include "currentia/core/object.h"
 
 #include "currentia/core/operator/operator.h"
-#include "currentia/core/operator/comparator.h"
+#include "currentia/core/operator/condition.h"
 
 namespace currentia {
     class OperatorSelection: public Operator {
         // TODO: support condition from multiple comparision (AND, OR, BETWEEN, ...)
-        enum ComparatorType comparator_;
+
+        Comparator::Type comparator_;
         std::string target_attribute_name_;
         Object comparator_value_;
+
         Operator::ptr_t parent_operator_ptr_;
 
     public:
         // created from visitor pattern?
         // TODO: think about the way of construction from declarative queries
         OperatorSelection(Operator::ptr_t parent_operator_ptr,
-                          enum ComparatorType comparator,
+                          Comparator::Type comparator,
                           std::string target_attribute_name,
                           Object comparator_value):
             comparator_(comparator),

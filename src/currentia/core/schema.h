@@ -16,9 +16,9 @@
 namespace currentia {
     struct Attribute {
         std::string     name;
-        enum ObjectType type;
+        Object::Type type;
 
-        Attribute(std::string name, enum ObjectType type):
+        Attribute(std::string name, Object::Type type):
             name(name),
             type(type) {
         }
@@ -59,7 +59,7 @@ namespace currentia {
             return add_attribute(attribute.name, attribute.type);
         }
 
-        int add_attribute(std::string name, enum ObjectType type) {
+        int add_attribute(std::string name, Object::Type type) {
             pthread_mutex_lock(&schema_lock_);
 
             if (!is_schema_freezed_)
@@ -95,9 +95,9 @@ namespace currentia {
             for (; data_iter != data.end(); ++data_iter, ++attr_iter) {
                 if (data_iter->type != attr_iter->type) {
                     std::cerr <<
-                        "schema expected '" << type2string(attr_iter->type) <<
+                        "schema expected '" << Object::type2string(attr_iter->type) <<
                         "' for column " << attr_number <<
-                        ", but got '" << type2string(data_iter->type) << "'." << std::endl;
+                        ", but got '" << Object::type2string(data_iter->type) << "'." << std::endl;
                     return false;
                 }
                 attr_number++;

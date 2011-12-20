@@ -13,7 +13,7 @@
 namespace currentia {
     class OperatorJoin: public Operator {
         // TODO: support condition from multiple comparision (AND, OR)
-        enum ComparatorType comparator_;
+        Comparator::Type comparator_;
         std::string target_attribute_name_;
 
         Operator::ptr_t parent_left_operator_ptr_;
@@ -59,7 +59,7 @@ namespace currentia {
     public:
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
                      Operator::ptr_t parent_right_operator_ptr,
-                     enum ComparatorType comparator,
+                     Comparator::Type comparator,
                      std::string target_attribute_name,
                      int window_width,
                      int slide_width):

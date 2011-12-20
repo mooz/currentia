@@ -5,38 +5,23 @@
 
 #include <sstream>
 #include <string>
+#include <iostream>
 
 #include "currentia/core/pointer.h"
 #include "currentia/core/operator/comparator.h"
 
 namespace currentia {
-    enum ObjectType {
-        TYPE_INT,
-        TYPE_FLOAT,
-        TYPE_STRING,
-        TYPE_BLOB,
-        //
-        NUMBER_OF_TYPES
-    };
-
-    // util (TODO: this is not appropriate place for this function)
-    std::string type2string(enum ObjectType type) {
-        switch (type) {
-        case TYPE_INT:
-            return std::string("TYPE_INT");
-        case TYPE_FLOAT:
-            return std::string("TYPE_FLOAT");
-        case TYPE_STRING:
-            return std::string("TYPE_STRING");
-        case TYPE_BLOB:
-            return std::string("TYPE_BLOB");
-        default:
-            return std::string("TYPE_UNKNOWN");
-        }
-    }
-
     class Object {
     public:
+        enum Type {
+            INT,
+            FLOAT,
+            STRING,
+            BLOB,
+            //
+            NUMBER_OF_TYPES
+        };
+
         typedef std::tr1::shared_ptr<Object> ptr_t;
 
         // typedef int int_number_t;
@@ -44,23 +29,23 @@ namespace currentia {
         typedef std::tr1::shared_ptr<std::string> string_ptr_t;
         typedef std::tr1::shared_ptr<char*> blob_ptr_t;
 
-        enum ObjectType type;         // TODO: make it const (immutable)
+        enum Type type;         // TODO: make it const (immutable)
 
     private:
         template <typename T>
-        inline bool generic_compare(T& x, T& y, enum ComparatorType comparator) {
+        inline bool generic_compare(T& x, T& y, Comparator::Type comparator) {
             switch (comparator) {
-            case COMPARATOR_EQUAL:              // ==
+            case Comparator::EQUAL:              // ==
                 return x == y;
-            case COMPARATOR_NOT_EQUAL:          // !=
+            case Comparator::NOT_EQUAL:          // !=
                 return x != y;
-            case COMPARATOR_LESS_THAN:          // <
+            case Comparator::LESS_THAN:          // <
                 return x < y;
-            case COMPARATOR_LESS_THAN_EQUAL:    // <=
+            case Comparator::LESS_THAN_EQUAL:    // <=
                 return x <= y;
-            case COMPARATOR_GREATER_THAN:       // >
+            case Comparator::GREATER_THAN:       // >
                 return x > y;
-            case COMPARATOR_GREATER_THAN_EQUAL: // >=
+            case Comparator::GREATER_THAN_EQUAL: // >=
                 return x >= y;
             default:
                 return false;
@@ -78,27 +63,27 @@ namespace currentia {
             blob_ptr_t   blob_ptr;
         } holder_;
 
-        Object(int int_number): type(TYPE_INT) {
+        Object(int int_number): type(INT) {
             holder_.int_number = int_number;
         }
 
-        Object(double float_number): type(TYPE_FLOAT) {
+        Object(double float_number): type(FLOAT) {
             holder_.int_number = float_number;
         }
 
-        Object(string_ptr_t string_ptr): type(TYPE_STRING) {
+        Object(string_ptr_t string_ptr): type(STRING) {
             holder_.string_ptr = string_ptr;
         }
 
-        Object(std::string& string): type(TYPE_STRING) {
+        Object(std::string& string): type(STRING) {
             holder_.string_ptr = string_ptr_t(new std::string(string));
         }
 
-        Object(const char* raw_string): type(TYPE_STRING) {
+        Object(const char* raw_string): type(STRING) {
             holder_.string_ptr = string_ptr_t(new std::string(raw_string));
         }
 
-        Object(blob_ptr_t blob_ptr): type(TYPE_BLOB) {
+        Object(blob_ptr_t blob_ptr): type(BLOB) {
             holder_.blob_ptr = blob_ptr;
         }
 
@@ -106,16 +91,16 @@ namespace currentia {
             std::stringstream ss;
 
             switch (type) {
-            case TYPE_INT:
+            case INT:
                 ss << "INT(" << holder_.int_number << ")";
                 break;
-            case TYPE_FLOAT:
+            case FLOAT:
                 ss << "FLOAT(" << holder_.float_number << ")";
                 break;
-            case TYPE_STRING:
+            case STRING:
                 ss << "STRING(\"" << *holder_.string_ptr  << "\")";
                 break;
-            case TYPE_BLOB:
+            case BLOB:
                 ss << "BLOB(<#" << holder_.blob_ptr << ">)";
                 break;
             default:
@@ -126,27 +111,36 @@ namespace currentia {
             return ss.str();
         }
 
-        bool compare(Object& target, enum ComparatorType comparator) {
+        bool compare(Object& target, Comparator::Type comparator) {
             bool comparison_result = false;
 
+            if (type != target.type) {
+                std::cerr << "Warning: comparing imcompatible type \""
+                          << type2string(type)
+                          << "\" and \""
+                          << type2string(target.type) << "\" " << std::endl;
+                // TODO: implement smart casting
+                return false;
+            }
+
             switch (type) {
-            case TYPE_INT:
+            case INT:
                 comparison_result = generic_compare(holder_.int_number,
                                                     target.holder_.int_number,
                                                     comparator);
                 break;
-            case TYPE_FLOAT:
+            case FLOAT:
                 comparison_result = generic_compare(holder_.float_number,
                                                     target.holder_.float_number,
                                                     comparator);
                 break;
-            case TYPE_STRING:
+            case STRING:
                 // compare deeply
                 comparison_result = generic_compare(*(holder_.string_ptr),
                                                     *(target.holder_.string_ptr),
                                                     comparator);
                 break;
-            case TYPE_BLOB:
+            case BLOB:
                 // TODO: implement BLOB object comparison
                 break;
             default:
@@ -156,7 +150,20 @@ namespace currentia {
             return comparison_result;
         }
 
-        // immutable
+        static std::string type2string(Object::Type type) {
+            switch (type) {
+            case INT:
+                return std::string("TYPE_INT");
+            case FLOAT:
+                return std::string("TYPE_FLOAT");
+            case STRING:
+                return std::string("TYPE_STRING");
+            case BLOB:
+                return std::string("TYPE_BLOB");
+            default:
+                return std::string("TYPE_UNKNOWN");
+            }
+        }
     };
 }
 
