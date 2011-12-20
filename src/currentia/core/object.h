@@ -67,7 +67,7 @@ namespace currentia {
         }
 
         Object(double float_number): type(FLOAT) {
-            holder_.int_number = float_number;
+            holder_.float_number = float_number;
         }
 
         Object(string_ptr_t string_ptr): type(STRING) {
