@@ -26,6 +26,7 @@ namespace currentia {
         int slide_width_;
 
         void build_new_schema() {
+#if 0
             joined_schema_ptr_ = Schema::ptr_t(new Schema());
 
             Schema::attributes_t left_attributes = parent_left_operator_ptr_->
@@ -54,6 +55,7 @@ namespace currentia {
             }
 
             joined_schema_ptr_->freeze();
+#endif
         }
 
     public:
@@ -79,6 +81,7 @@ namespace currentia {
         }
 
         Tuple::ptr_t next() {
+#if 0
             while (true) {
                 Tuple::ptr_t left_tuple_ptr = parent_left_operator_ptr_->next();
                 Tuple::ptr_t right_tuple_ptr = parent_right_operator_ptr_->next();
@@ -104,6 +107,7 @@ namespace currentia {
 
                 return Tuple::create(joined_schema_ptr_, joined_data);
             }
+#endif
 
             return Tuple::ptr_t(); // NULL
         }

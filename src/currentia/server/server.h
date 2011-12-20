@@ -67,35 +67,50 @@ namespace currentia {
                 stream_ptr_->enqueue(create_tuple(schema_ptr_));
                 stream2_ptr_->enqueue(create_tuple(schema_ptr_));
                 // std::cout << "Listen!" << std::endl;
-                sleep(1);
+                // sleep(1);
             }
         }
 
         void process() {
             OperatorStreamAdapter adapter(stream_ptr_);
             OperatorStreamAdapter adapter2(stream2_ptr_);
-
-#if 0
-            OperatorSelection selection(Operator::ptr_t(&adapter),
+            Operator* output_ptr = NULL;
+#if 1
+            Condition::ptr_t condition1(
+                new ConditionComparator(std::string("Age"),
                                         Comparator::LESS_THAN,
-                                        std::string("Age"),
-                                        Object(10));
+                                        Object(10))
+                );
+
+            Condition::ptr_t condition2(
+                new ConditionComparator(std::string("Income"),
+                                        Comparator::GREATER_THAN,
+                                        Object(2000))
+                );
+
+            Condition::ptr_t condition1_and_2(
+                new ConditionConjunctive(condition1, condition2, ConditionConjunctive::AND)
+                );
+
+            OperatorSelection selection(Operator::ptr_t(&adapter), condition1_and_2);
 
             OperatorProjection::target_attribute_names_t attribute_names;
             attribute_names.push_back(std::string("Age"));
             attribute_names.push_back(std::string("Name"));
 
             OperatorProjection projection(Operator::ptr_t(&selection), attribute_names);
-#endif
-
+            output_ptr = &projection;
+#else
             OperatorJoin join(Operator::ptr_t(&adapter),
                               Operator::ptr_t(&adapter2),
                               Comparator::EQUAL,
                               std::string("Age"),
                               1,
                               1);
+            output_ptr = &join;
+#endif
 
-            while (Tuple::ptr_t tuple_ptr = join.next()) {
+            while (Tuple::ptr_t tuple_ptr = output_ptr->next()) {
                 std::cout << "Got => " << tuple_ptr->toString() << std::endl;
             }
         }
