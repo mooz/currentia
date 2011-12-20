@@ -5,17 +5,23 @@
 
 #include "currentia/core/pointer.h"
 #include "currentia/core/object.h"
+#include "currentia/core/tuple.h"
 #include "currentia/core/operator/comparator.h"
+
+#include <list>
 
 namespace currentia {
     class Condition {
     public:
         typedef std::tr1::shared_ptr<Condition> ptr_t;
 
-        virtual bool eval() = 0;
+        // for selection
+        virtual bool check(Tuple::ptr_t tuple_ptr) = 0;
+        // for join
+        // virtual bool check(std::list<Tuple::ptr_t> tuple_ptrs) = 0;
     };
 
-    class ConditionConjunctive {
+    class ConditionConjunctive: public Condition {
     public:
         // Conjunctive
         enum Type {
@@ -40,34 +46,36 @@ namespace currentia {
             right_condition_(right_condition) {
         }
 
-        bool eval() {
+        bool check(Tuple::ptr_t tuple) {
             switch (type_) {
             case ConditionConjunctive::AND:
-                return left_condition_->eval() && right_condition_->eval();
+                return left_condition_->check(tuple) && right_condition_->check(tuple);
             case ConditionConjunctive::OR:
-                return left_condition_->eval() || right_condition_->eval();
+                return left_condition_->check(tuple) || right_condition_->check(tuple);
             }
         }
     };
 
     // Comparator
 
-    class ConditionComparator {
-        Comparator::Type type_;
-        Object left_object_;
-        Object right_object_;
+    class ConditionComparator: public Condition {
+        std::string target_attribute_name_;
+        Comparator::Type comparator_type_;
+        Object condition_value_;
 
     public:
-        ConditionComparator(Comparator::Type type,
-                            Object left_object,
-                            Object right_object):
-            type_(type),
-            left_object_(left_object),
-            right_object_(right_object) {
+        ConditionComparator(std::string target_attribute_name,
+                            Comparator::Type comparator_type,
+                            Object condition_value):
+            target_attribute_name_(target_attribute_name),
+            comparator_type_(comparator_type),
+            condition_value_(condition_value) {
         }
 
-        bool eval() {
-            return left_object_.compare(right_object_, type_);
+        bool check(Tuple::ptr_t tuple_ptr) {
+            Object target_value = tuple_ptr->
+                                  get_value_by_attribute_name(target_attribute_name_);
+            return target_value.compare(condition_value_, comparator_type_);
         }
     };
 }

@@ -15,7 +15,7 @@
 
 namespace currentia {
     struct Attribute {
-        std::string     name;
+        std::string  name;
         Object::Type type;
 
         Attribute(std::string name, Object::Type type):
@@ -76,7 +76,20 @@ namespace currentia {
             return current_size;
         }
 
-        bool has_attribute(std::string name) const {
+        inline
+        int get_attribute_index_by_name(std::string& attribute_name) {
+            // assert(has_attribute(attribute_name));
+            return attributes_index_[attribute_name];
+        }
+
+        inline
+        Attribute get_attribute_by_name(std::string& attribute_name) {
+            // assert(has_attribute(attribute_name));
+            int attribute_index = get_attribute_index_by_name(attribute_name);
+            return attributes_[attribute_index];
+        }
+
+        bool has_attribute(std::string& name) const {
             return attributes_index_.find(name) != attributes_index_.end();
         }
 

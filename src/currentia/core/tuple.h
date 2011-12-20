@@ -41,11 +41,21 @@ namespace currentia {
             return ss.str();
         }
 
-        // TODO: make it private
-        Schema::ptr_t schema_ptr_;
-        data_t data_;
+        inline
+        Object get_value_by_index(int attribute_index) {
+            return data_[attribute_index];
+        }
+
+        inline
+        Object get_value_by_attribute_name(std::string& attribute_name) {
+            int attribute_index = schema_ptr_->get_attribute_index_by_name(attribute_name);
+            return get_value_by_index(attribute_index);
+        }
 
     private:
+        data_t data_;
+        Schema::ptr_t schema_ptr_;
+
         Tuple(Schema::ptr_t schema_ptr, data_t data) {
             schema_ptr_ = schema_ptr;
             data_ = data;

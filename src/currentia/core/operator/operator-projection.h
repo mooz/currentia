@@ -69,7 +69,7 @@ namespace currentia {
 
             for (; iter != target_attribute_indices_.end(); ++iter) {
                 int attribute_index = *iter;
-                data.push_back(Object(target_tuple_ptr->data_[attribute_index]));
+                data.push_back(target_tuple_ptr->get_value_by_index(attribute_index));
             }
 
             return Tuple::create(new_schema_ptr_, data);
