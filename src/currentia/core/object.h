@@ -52,8 +52,6 @@ namespace currentia {
             }
         }
 
-    public:
-        // TODO: make it private
         // TODO: union is preferred, but smart pointers are not allowed in `union`
         // (such objects who have constructor and destructor in union are supproted from C++11)
         struct Holder {
@@ -63,6 +61,7 @@ namespace currentia {
             blob_ptr_t   blob_ptr;
         } holder_;
 
+    public:
         Object(int int_number): type(INT) {
             holder_.int_number = int_number;
         }

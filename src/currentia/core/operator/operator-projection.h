@@ -21,12 +21,16 @@ namespace currentia {
                            target_attribute_names_t target_attribute_names):
             target_attribute_names_(target_attribute_names) {
             parent_operator_ptr_ = parent_operator_ptr;
-            old_schema_ptr_ = parent_operator_ptr_->output_schema_ptr_;
+            old_schema_ptr_ = parent_operator_ptr_->get_output_schema_ptr();
             build_new_schema_and_indices();
-
-            output_schema_ptr_ = new_schema_ptr_;
         }
 
+        inline
+        Schema::ptr_t get_output_schema_ptr() {
+            return new_schema_ptr_;
+        }
+
+        inline
         Tuple::ptr_t next() {
             while (Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next())
                 return project_attributes(target_tuple_ptr);
@@ -49,12 +53,11 @@ namespace currentia {
                 std::string target_attribute_name = *iter;
 
                 int target_attribute_index_in_original_schema =
-                    old_schema_ptr_->attributes_index_[target_attribute_name];
+                    old_schema_ptr_->get_attribute_index_by_name(target_attribute_name);
                 target_attribute_indices_.push_back(target_attribute_index_in_original_schema);
 
                 Attribute original_attribute =
-                    old_schema_ptr_->
-                    attributes_[target_attribute_index_in_original_schema];
+                    old_schema_ptr_->get_attribute_by_index(target_attribute_index_in_original_schema);
 
                 new_schema_ptr_->add_attribute(original_attribute.name, original_attribute.type);
             }

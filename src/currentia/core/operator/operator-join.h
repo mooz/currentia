@@ -71,7 +71,11 @@ namespace currentia {
             parent_right_operator_ptr_ = parent_right_operator_ptr;
             // build new schema and index
             build_new_schema();
-            output_schema_ptr_ = joined_schema_ptr_;
+        }
+
+        inline
+        Schema::ptr_t get_output_schema_ptr() {
+            return joined_schema_ptr_;
         }
 
         Tuple::ptr_t next() {

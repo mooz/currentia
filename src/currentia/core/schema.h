@@ -31,17 +31,7 @@ namespace currentia {
         typedef std::vector<Attribute> attributes_t;
         typedef std::map<std::string, int> attributes_index_t;
 
-    private:
-        long id_;                /* ID of the stream */
-        // TODO: give relation name
-        pthread_mutex_t schema_lock_;
-        bool is_schema_freezed_;
-
     public:
-        // TODO: make them private
-        attributes_t attributes_;
-        attributes_index_t attributes_index_;
-
         // TODO: use builder pattern? (e.g., builder.add_attribute(xx).add_attribute(yy).build())
         Schema(long id = 0):
             id_(id),
@@ -89,6 +79,11 @@ namespace currentia {
             return attributes_[attribute_index];
         }
 
+        inline
+        Attribute get_attribute_by_index(int attribute_index) {
+            return attributes_[attribute_index];
+        }
+
         bool has_attribute(std::string& name) const {
             return attributes_index_.find(name) != attributes_index_.end();
         }
@@ -118,6 +113,15 @@ namespace currentia {
 
             return true;
         }
+
+    private:
+        long id_;
+        // TODO: give relation name
+        pthread_mutex_t schema_lock_;
+        bool is_schema_freezed_;
+
+        attributes_t attributes_;
+        attributes_index_t attributes_index_;
     };
 }
 

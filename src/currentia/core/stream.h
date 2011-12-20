@@ -16,22 +16,6 @@ namespace currentia {
     public:
         typedef std::tr1::shared_ptr<Stream> ptr_t;
 
-    private:
-        std::list<Tuple::ptr_t> tuple_ptrs_;
-
-        pthread_mutex_t mutex_;
-        pthread_cond_t reader_wait_;
-
-        inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
-            Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
-            tuple_ptrs_.pop_back();
-            return tuple_ptr;
-        }
-
-    public:
-        // TOOD: make it immutable (but used in projection operator implementation)
-        Schema::ptr_t schema_ptr_;
-
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {
             // initialize values for thread synchronization
@@ -71,6 +55,29 @@ namespace currentia {
 
             pthread_mutex_unlock(&mutex_);
 
+            return tuple_ptr;
+        }
+
+        // Used by projection operator
+        // TODO: returning private pointer is not a good habit
+        //       deeply clone?
+        inline
+        Schema::ptr_t get_schema_ptr() const {
+            schema_ptr_->freeze();
+            return schema_ptr_;
+        }
+
+    private:
+        Schema::ptr_t schema_ptr_;
+
+        std::list<Tuple::ptr_t> tuple_ptrs_;
+
+        pthread_mutex_t mutex_;
+        pthread_cond_t reader_wait_;
+
+        inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
+            Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
+            tuple_ptrs_.pop_back();
             return tuple_ptr;
         }
     };

@@ -14,15 +14,22 @@ namespace currentia {
     class OperatorSelection: public Operator {
         Condition::ptr_t condition_ptr_;
         Operator::ptr_t parent_operator_ptr_;
+        Schema::ptr_t output_schema_ptr_;
 
     public:
         OperatorSelection(Operator::ptr_t parent_operator_ptr,
                           Condition::ptr_t condition_ptr):
             condition_ptr_(condition_ptr) {
             parent_operator_ptr_ = parent_operator_ptr;
-            output_schema_ptr_ = parent_operator_ptr_->output_schema_ptr_;
+            output_schema_ptr_ = parent_operator_ptr_->get_output_schema_ptr();
         }
 
+        inline
+        Schema::ptr_t get_output_schema_ptr() {
+            return output_schema_ptr_;
+        }
+
+        inline
         Tuple::ptr_t next() {
             while (Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next()) {
                 if (condition_ptr_->check(target_tuple_ptr))
