@@ -75,7 +75,7 @@ namespace currentia {
             OperatorStreamAdapter adapter(stream_ptr_);
             OperatorStreamAdapter adapter2(stream2_ptr_);
             Operator* output_ptr = NULL;
-#if 1
+#if 0
             Condition::ptr_t condition1(
                 new ConditionConstantComparator(std::string("Age"),
                                                 Comparator::LESS_THAN,
@@ -101,12 +101,18 @@ namespace currentia {
             OperatorProjection projection(Operator::ptr_t(&selection), attribute_names);
             output_ptr = &projection;
 #else
+            Condition::ptr_t condition(
+                new ConditionAttributeComparator(
+                    std::string("Income"),
+                    Comparator::EQUAL,
+                    std::string("Income")
+                    )
+                );
+
             OperatorJoin join(Operator::ptr_t(&adapter),
                               Operator::ptr_t(&adapter2),
-                              Comparator::EQUAL,
-                              std::string("Age"),
-                              1,
-                              1);
+                              condition,
+                              1, 1);
             output_ptr = &join;
 #endif
 

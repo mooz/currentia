@@ -8,71 +8,54 @@
 #include "currentia/core/object.h"
 
 #include "currentia/core/operator/operator.h"
-#include "currentia/core/operator/comparator.h"
+#include "currentia/core/operator/condition.h"
 
 namespace currentia {
     class OperatorJoin: public Operator {
-        // TODO: support condition from multiple comparision (AND, OR)
-        Comparator::Type comparator_;
-        std::string target_attribute_name_;
+        ConditionAttributeComparator::ptr_t attribute_comparator_;
 
         Operator::ptr_t parent_left_operator_ptr_;
         Operator::ptr_t parent_right_operator_ptr_;
-        long ignore_right_column_index;
 
         Schema::ptr_t joined_schema_ptr_;
 
         int window_width_;
         int slide_width_;
 
-        void build_new_schema() {
-#if 0
-            joined_schema_ptr_ = Schema::ptr_t(new Schema());
+        std::vector<Tuple::ptr_t> left_synopsis_;
+        int left_synopsis_index_;
+        std::vector<Tuple::ptr_t> right_synopsis_;
+        int right_synopsis_index_;
 
-            Schema::attributes_t left_attributes = parent_left_operator_ptr_->
-                                                   output_schema_ptr_->
-                                                   attributes_;
-            Schema::attributes_t right_attributes = parent_right_operator_ptr_->
-                                                    output_schema_ptr_->
-                                                    attributes_;
+        Schema::ptr_t build_joined_schema_() {
+            return concat_schemas(
+                parent_left_operator_ptr_->get_output_schema_ptr(),
+                parent_right_operator_ptr_->get_output_schema_ptr()
+            );
+        }
 
-            Schema::attributes_t::iterator left_iter = left_attributes.begin();
-            for (; left_iter != left_attributes.end(); left_iter++) {
-                joined_schema_ptr_->add_attribute(*left_iter);
-            }
-
-            ignore_right_column_index = -1;
-            int loop_count = 0;
-            Schema::attributes_t::iterator right_iter = right_attributes.begin();
-            for (; right_iter != right_attributes.end(); right_iter++) {
-                if ((*right_iter).name != target_attribute_name_) {
-                    // if it is not the target attribute
-                    joined_schema_ptr_->add_attribute(*right_iter);
-                } else {
-                    ignore_right_column_index = loop_count;
-                }
-                loop_count++;
-            }
-
-            joined_schema_ptr_->freeze();
-#endif
+        void init_synopsis_() {
+            left_synopsis_.resize(window_width_);
+            right_synopsis_.resize(window_width_);
+            left_synopsis_index_ = 0;
+            right_synopsis_index_ = 0;
         }
 
     public:
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
                      Operator::ptr_t parent_right_operator_ptr,
-                     Comparator::Type comparator,
-                     std::string target_attribute_name,
+                     ConditionAttributeComparator::ptr_t attribute_comparator,
                      int window_width,
                      int slide_width):
-            comparator_(comparator),
-            target_attribute_name_(target_attribute_name),
+            attribute_comparator_(attribute_comparator),
             window_width_(window_width) {
             // init
             parent_left_operator_ptr_ = parent_left_operator_ptr;
             parent_right_operator_ptr_ = parent_right_operator_ptr;
+            // init synopsises
+            init_synopsis_();
             // build new schema and index
-            build_new_schema();
+            joined_schema_ptr_ = build_joined_schema_();
         }
 
         inline
@@ -81,33 +64,13 @@ namespace currentia {
         }
 
         Tuple::ptr_t next() {
-#if 0
             while (true) {
                 Tuple::ptr_t left_tuple_ptr = parent_left_operator_ptr_->next();
                 Tuple::ptr_t right_tuple_ptr = parent_right_operator_ptr_->next();
-
-                Tuple::data_t left_data = left_tuple_ptr->data_;
-                Tuple::data_t right_data = right_tuple_ptr->data_;
-
-                Tuple::data_t joined_data;
-
-                Tuple::data_t::iterator left_data_iter = left_data.begin();
-                for (; left_data_iter != left_data.end(); ++left_data_iter) {
-                    joined_data.push_back(*left_data_iter);
-                }
-
-                int loop_count = 0;
-                Tuple::data_t::iterator right_data_iter = right_data.begin();
-                for (; right_data_iter != right_data.end(); ++right_data_iter) {
-                    if (loop_count != ignore_right_column_index) {
-                        joined_data.push_back(*right_data_iter);
-                    }
-                    loop_count++;
-                }
+                Tuple::data_t joined_data = concat_data(left_tuple_ptr, right_tuple_ptr);
 
                 return Tuple::create(joined_schema_ptr_, joined_data);
             }
-#endif
 
             return Tuple::ptr_t(); // NULL
         }
