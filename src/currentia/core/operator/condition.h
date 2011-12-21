@@ -35,8 +35,6 @@ namespace currentia {
         Condition::ptr_t left_condition_;
         Condition::ptr_t right_condition_;
 
-        ConditionConjunctive::Type comparator_;
-
     public:
         ConditionConjunctive(Condition::ptr_t left_condition,
                              Condition::ptr_t right_condition,

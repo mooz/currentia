@@ -16,7 +16,7 @@ namespace currentia {
         // get next tuple from input stream and process
         virtual Tuple::ptr_t next() = 0; // blocking operator
 
-        virtual inline Schema::ptr_t get_output_schema_ptr() = 0;
+        virtual Schema::ptr_t get_output_schema_ptr() = 0;
     };
 }
 
