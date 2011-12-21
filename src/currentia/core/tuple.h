@@ -9,6 +9,7 @@
 
 #include <sstream>              // string_stream
 #include <vector>
+#include <ctime>
 
 namespace currentia {
     class Tuple {
@@ -22,7 +23,7 @@ namespace currentia {
                 return Tuple::ptr_t(); // NULL pointer
             }
 
-            return Tuple::ptr_t(new Tuple(schema_ptr, data));
+            return Tuple::ptr_t(new Tuple(schema_ptr, data, time(NULL)));
         }
 
         std::string toString() const {
@@ -61,13 +62,20 @@ namespace currentia {
             return new_data;
         }
 
+        inline
+        time_t get_arrived_time() {
+            return arrived_time_;
+        }
+
     private:
         data_t data_;
         Schema::ptr_t schema_ptr_;
+        time_t arrived_time_; // system timestamp
 
-        Tuple(Schema::ptr_t schema_ptr, data_t data) {
+        Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time) {
             schema_ptr_ = schema_ptr;
             data_ = data;
+            arrived_time_ = arrived_time;
         }
     };
 }

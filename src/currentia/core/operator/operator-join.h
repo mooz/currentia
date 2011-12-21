@@ -12,43 +12,24 @@
 
 namespace currentia {
     class OperatorJoin: public Operator {
-        ConditionAttributeComparator::ptr_t attribute_comparator_;
-
-        Operator::ptr_t parent_left_operator_ptr_;
-        Operator::ptr_t parent_right_operator_ptr_;
-
-        Schema::ptr_t joined_schema_ptr_;
-
-        int window_width_;
-        int slide_width_;
-
-        std::vector<Tuple::ptr_t> left_synopsis_;
-        int left_synopsis_index_;
-        std::vector<Tuple::ptr_t> right_synopsis_;
-        int right_synopsis_index_;
-
-        Schema::ptr_t build_joined_schema_() {
-            return concat_schemas(
-                parent_left_operator_ptr_->get_output_schema_ptr(),
-                parent_right_operator_ptr_->get_output_schema_ptr()
-            );
-        }
-
-        void init_synopsis_() {
-            left_synopsis_.resize(window_width_);
-            right_synopsis_.resize(window_width_);
-            left_synopsis_index_ = 0;
-            right_synopsis_index_ = 0;
-        }
-
     public:
+        struct Window {
+            enum Type {
+                PHYSICAL,
+                LOGICAL
+            };
+
+            Window::Type type;
+            long width;
+            long slide;
+        };
+
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
+                     Window left_window,
                      Operator::ptr_t parent_right_operator_ptr,
-                     ConditionAttributeComparator::ptr_t attribute_comparator,
-                     int window_width,
-                     int slide_width):
-            attribute_comparator_(attribute_comparator),
-            window_width_(window_width) {
+                     Window right_window,
+                     ConditionAttributeComparator::ptr_t attribute_comparator):
+            attribute_comparator_(attribute_comparator) {
             // init
             parent_left_operator_ptr_ = parent_left_operator_ptr;
             parent_right_operator_ptr_ = parent_right_operator_ptr;
@@ -73,6 +54,35 @@ namespace currentia {
             }
 
             return Tuple::ptr_t(); // NULL
+        }
+
+    private:
+        ConditionAttributeComparator::ptr_t attribute_comparator_;
+
+        Operator::ptr_t parent_left_operator_ptr_;
+        Window left_window_;
+        std::vector<Tuple::ptr_t> left_synopsis_;
+        int left_synopsis_index_;
+
+        Operator::ptr_t parent_right_operator_ptr_;
+        Window right_window_;
+        std::vector<Tuple::ptr_t> right_synopsis_;
+        int right_synopsis_index_;
+
+        Schema::ptr_t joined_schema_ptr_;
+
+        Schema::ptr_t build_joined_schema_() {
+            return concat_schemas(
+                parent_left_operator_ptr_->get_output_schema_ptr(),
+                parent_right_operator_ptr_->get_output_schema_ptr()
+            );
+        }
+
+        void init_synopsis_() {
+            left_synopsis_.resize(left_window_.width);
+            right_synopsis_.resize(right_window_.width);
+            left_synopsis_index_ = 0;
+            right_synopsis_index_ = 0;
         }
     };
 }
