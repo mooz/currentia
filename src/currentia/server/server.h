@@ -77,15 +77,15 @@ namespace currentia {
             Operator* output_ptr = NULL;
 #if 1
             Condition::ptr_t condition1(
-                new ConditionComparator(std::string("Age"),
-                                        Comparator::LESS_THAN,
-                                        Object(10))
+                new ConditionConstantComparator(std::string("Age"),
+                                                Comparator::LESS_THAN,
+                                                Object(10))
                 );
 
             Condition::ptr_t condition2(
-                new ConditionComparator(std::string("Income"),
-                                        Comparator::GREATER_THAN,
-                                        Object(2000))
+                new ConditionConstantComparator(std::string("Income"),
+                                                Comparator::GREATER_THAN,
+                                                Object(2000))
                 );
 
             Condition::ptr_t condition1_and_2(
