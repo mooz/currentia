@@ -75,14 +75,14 @@ namespace currentia {
         }
 
     private:
-        data_t data_;
         Schema::ptr_t schema_ptr_;
+        data_t data_;
         time_t arrived_time_; // system timestamp
 
-        Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time) {
-            schema_ptr_ = schema_ptr;
-            data_ = data;
-            arrived_time_ = arrived_time;
+        Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time):
+            schema_ptr_(schema_ptr),
+            data_(data),
+            arrived_time_(arrived_time) {
         }
     };
 }
