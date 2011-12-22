@@ -61,7 +61,7 @@ namespace currentia {
                     read_count = window_.stride; // read a tuple ${stride of sliding window} times
                 }
 
-                for (int i = 0; i < window_.stride; ++i) {
+                for (int i = 0; i < read_count; ++i) {
                     tuples_[get_next_index_()] = target_operator->next();
                 }
             }
