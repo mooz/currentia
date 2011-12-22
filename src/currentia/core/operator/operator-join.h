@@ -95,6 +95,18 @@ namespace currentia {
                 }
             }
 
+            std::string toString() {
+                std::stringstream ss;
+                std::vector<Tuple::ptr_t>::iterator iter = tuples_.begin();
+
+                int i = 0;
+                for (; iter < tuples_.end(); ++iter) {
+                    ss << "[" << i++ << "] " << (*iter)->toString() << std::endl;
+                }
+
+                return ss.str();
+            }
+
         private:
             inline long get_next_index_() {
                 return index_++ % window_.width;
