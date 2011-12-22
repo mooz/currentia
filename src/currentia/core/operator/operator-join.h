@@ -15,18 +15,20 @@ namespace currentia {
     public:
         struct Window {
             enum Type {
-                PHYSICAL,
-                LOGICAL
+                LOGICAL,
+                PHYSICAL
             };
 
-            Window(long width, long slide, Window::Type type = LOGICAL):
+            Window(long width, long stride, Window::Type type = LOGICAL):
                 width(width),
-                slide(slide),
+                stride(stride),
                 type(type) {
+                if (stride < 1)
+                    stride = 1;
             }
 
             long width;
-            long slide;
+            long stride;
             Window::Type type;
         };
 
@@ -36,7 +38,68 @@ namespace currentia {
                 index_(0) {
             }
 
+            // read tuples to prepare for next join
+            void read_tuples_for_next_join(Operator::ptr_t& target_operator) {
+                switch (window_.type) {
+                case Window::LOGICAL:
+                    return read_tuples_for_next_join_logical(target_operator);
+                case Window::PHYSICAL:
+                    // TODO: support physical window (is it possible in pull-style processing?)
+                    return read_tuples_for_next_join_physical(target_operator);
+                }
+            }
+
+            inline void read_tuples_for_next_join_logical(Operator::ptr_t& target_operator) {
+                long tuples_count = tuples_.size();
+                long read_count;
+
+                if (tuples_count != window_.width) {
+                    // this is the first time
+                    read_count = window_.width;
+                    tuples_.resize(window_.width);
+                } else {
+                    read_count = window_.stride; // read a tuple ${stride of sliding window} times
+                }
+
+                for (int i = 0; i < window_.stride; ++i) {
+                    tuples_[get_next_index_()] = target_operator->next();
+                }
+            }
+
+            inline void read_tuples_for_next_join_physical(Operator::ptr_t& target_operator) {
+                // not implemented yet
+            }
+
+            typedef std::vector<Tuple::ptr_t> tuples_t;
+            typedef std::list<Tuple::ptr_t> join_results_t;
+
+            friend inline void
+            join_synopsis(Synopsis& left_synopsis,
+                          Synopsis& right_synopsis,
+                          Schema::ptr_t& joined_schema_ptr,
+                          ConditionAttributeComparator::ptr_t& condition,
+                          join_results_t* results) {
+                tuples_t left_tuples = left_synopsis.tuples_;
+                tuples_t right_tuples = right_synopsis.tuples_;
+
+                tuples_t::iterator left_iter = left_tuples.begin();
+                tuples_t::iterator right_iter = right_tuples.begin();
+
+                // For now, just conduct a nested-loop join
+                for (; left_iter != left_tuples.end(); ++left_iter) {
+                    for (; right_iter != right_tuples.end(); ++right_iter) {
+                        if (condition->check(*left_iter, *right_iter)) {
+                            results->push_back(Tuple::create(joined_schema_ptr, concat_data(*left_iter, *right_iter)));
+                        }
+                    }
+                }
+            }
+
         private:
+            inline long get_next_index_() {
+                return index_++ % window_.width;
+            }
+
             std::vector<Tuple::ptr_t> tuples_;
             Window window_;
             long index_;
@@ -66,16 +129,23 @@ namespace currentia {
             return joined_schema_ptr_;
         }
 
+        std::list<Tuple::ptr_t> remained_join_results_;
         Tuple::ptr_t next() {
-            while (true) {
-                Tuple::ptr_t left_tuple_ptr = parent_left_operator_ptr_->next();
-                Tuple::ptr_t right_tuple_ptr = parent_right_operator_ptr_->next();
-                Tuple::data_t joined_data = concat_data(left_tuple_ptr, right_tuple_ptr);
+            if (remained_join_results_.size() == 0) {
+                left_synopsis_.read_tuples_for_next_join(parent_left_operator_ptr_);
+                right_synopsis_.read_tuples_for_next_join(parent_right_operator_ptr_);
 
-                return Tuple::create(joined_schema_ptr_, joined_data);
+                // Now, do JOIN
+                join_synopsis(left_synopsis_, right_synopsis_,
+                              joined_schema_ptr_,
+                              attribute_comparator_,
+                              &remained_join_results_);
             }
 
-            return Tuple::ptr_t(); // NULL
+            // return a tuple from remained result
+            Tuple::ptr_t next_tuple = remained_join_results_.front();
+            remained_join_results_.pop_front();
+            return next_tuple;
         }
 
     private:
