@@ -18,12 +18,19 @@ namespace currentia {
         // typedef std::tr1::shared_ptr<std::vector<Object> > data_ptr_t;
         typedef std::vector<Object> data_t;
 
-        static Tuple::ptr_t create(Schema::ptr_t schema_ptr, data_t data) {
+        static Tuple::ptr_t create(Schema::ptr_t schema_ptr,
+                                   data_t data) {
+            return Tuple::create(schema_ptr, data, time(NULL));
+        }
+
+        static Tuple::ptr_t create(Schema::ptr_t schema_ptr,
+                                   data_t data,
+                                   time_t arrived_time) {
             if (!schema_ptr->validate_data(data)) {
                 return Tuple::ptr_t(); // NULL pointer
             }
 
-            return Tuple::ptr_t(new Tuple(schema_ptr, data, time(NULL)));
+            return Tuple::ptr_t(new Tuple(schema_ptr, data, arrived_time));
         }
 
         std::string toString() const {
