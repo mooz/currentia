@@ -110,14 +110,16 @@ namespace currentia {
                 );
 
             OperatorJoin join(Operator::ptr_t(&adapter),
+                              OperatorJoin::Window(5, 1),
                               Operator::ptr_t(&adapter2),
-                              condition,
-                              1, 1);
+                              OperatorJoin::Window(10, 2),
+                              condition);
             output_ptr = &join;
 #endif
 
             while (Tuple::ptr_t tuple_ptr = output_ptr->next()) {
-                std::cout << "Got => " << tuple_ptr->toString() << std::endl;
+                std::cout << "Got => " << tuple_ptr->toString()
+                          << " at " << tuple_ptr->get_arrived_time() << std::endl;
             }
         }
     };
