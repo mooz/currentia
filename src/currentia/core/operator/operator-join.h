@@ -19,9 +19,27 @@ namespace currentia {
                 LOGICAL
             };
 
-            Window::Type type;
+            Window(long width, long slide, Window::Type type = LOGICAL):
+                width(width),
+                slide(slide),
+                type(type) {
+            }
+
             long width;
             long slide;
+            Window::Type type;
+        };
+
+        struct Synopsis {
+            Synopsis(Window &window):
+                window_(window),
+                index_(0) {
+            }
+
+        private:
+            std::vector<Tuple::ptr_t> tuples_;
+            Window window_;
+            long index_;
         };
 
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
@@ -29,12 +47,16 @@ namespace currentia {
                      Operator::ptr_t parent_right_operator_ptr,
                      Window right_window,
                      ConditionAttributeComparator::ptr_t attribute_comparator):
+            left_window_(left_window),
+            right_window_(right_window),
+            // init synopsises
+            left_synopsis_(Synopsis(left_window_)),
+            right_synopsis_(Synopsis(right_window_)),
+            // set attribute comparator
             attribute_comparator_(attribute_comparator) {
-            // init
+            // save pointers
             parent_left_operator_ptr_ = parent_left_operator_ptr;
             parent_right_operator_ptr_ = parent_right_operator_ptr;
-            // init synopsises
-            init_synopsis_();
             // build new schema and index
             joined_schema_ptr_ = build_joined_schema_();
         }
@@ -57,17 +79,16 @@ namespace currentia {
         }
 
     private:
-        ConditionAttributeComparator::ptr_t attribute_comparator_;
-
         Operator::ptr_t parent_left_operator_ptr_;
-        Window left_window_;
-        std::vector<Tuple::ptr_t> left_synopsis_;
-        int left_synopsis_index_;
-
         Operator::ptr_t parent_right_operator_ptr_;
+
+        Window left_window_;
         Window right_window_;
-        std::vector<Tuple::ptr_t> right_synopsis_;
-        int right_synopsis_index_;
+
+        Synopsis left_synopsis_;
+        Synopsis right_synopsis_;
+
+        ConditionAttributeComparator::ptr_t attribute_comparator_;
 
         Schema::ptr_t joined_schema_ptr_;
 
@@ -76,13 +97,6 @@ namespace currentia {
                 parent_left_operator_ptr_->get_output_schema_ptr(),
                 parent_right_operator_ptr_->get_output_schema_ptr()
             );
-        }
-
-        void init_synopsis_() {
-            left_synopsis_.resize(left_window_.width);
-            right_synopsis_.resize(right_window_.width);
-            left_synopsis_index_ = 0;
-            right_synopsis_index_ = 0;
         }
     };
 }
