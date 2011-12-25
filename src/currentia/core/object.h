@@ -33,7 +33,7 @@ namespace currentia {
 
     private:
         template <typename T>
-        inline bool generic_compare(T& x, T& y, Comparator::Type comparator) {
+        bool generic_compare_(T& x, T& y, Comparator::Type comparator) {
             switch (comparator) {
             case Comparator::EQUAL:              // ==
                 return x == y;
@@ -124,20 +124,20 @@ namespace currentia {
 
             switch (type) {
             case INT:
-                comparison_result = generic_compare(holder_.int_number,
-                                                    target.holder_.int_number,
-                                                    comparator);
+                comparison_result = generic_compare_(holder_.int_number,
+                                                     target.holder_.int_number,
+                                                     comparator);
                 break;
             case FLOAT:
-                comparison_result = generic_compare(holder_.float_number,
-                                                    target.holder_.float_number,
-                                                    comparator);
+                comparison_result = generic_compare_(holder_.float_number,
+                                                     target.holder_.float_number,
+                                                     comparator);
                 break;
             case STRING:
                 // compare deeply
-                comparison_result = generic_compare(*(holder_.string_ptr),
-                                                    *(target.holder_.string_ptr),
-                                                    comparator);
+                comparison_result = generic_compare_(*(holder_.string_ptr),
+                                                     *(target.holder_.string_ptr),
+                                                     comparator);
                 break;
             case BLOB:
                 // TODO: implement BLOB object comparison
