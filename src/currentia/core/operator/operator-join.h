@@ -6,6 +6,7 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/object.h"
+#include "currentia/core/window.h"
 
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/condition.h"
@@ -13,25 +14,6 @@
 namespace currentia {
     class OperatorJoin: public Operator {
     public:
-        struct Window {
-            enum Type {
-                LOGICAL,
-                PHYSICAL
-            };
-
-            Window(long width, long stride, Window::Type type = LOGICAL):
-                width(width),
-                stride(stride),
-                type(type) {
-                if (stride < 1)
-                    stride = 1;
-            }
-
-            long width;
-            long stride;
-            Window::Type type;
-        };
-
         struct Synopsis {
             Synopsis(Window &window):
                 window_(window),

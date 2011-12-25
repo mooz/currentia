@@ -110,9 +110,9 @@ namespace currentia {
                 );
 
             OperatorJoin join(Operator::ptr_t(&adapter),
-                              OperatorJoin::Window(5, 1),
+                              Window(5, 1),
                               Operator::ptr_t(&adapter2),
-                              OperatorJoin::Window(10, 2),
+                              Window(10, 2),
                               condition);
             output_ptr = &join;
 #endif
