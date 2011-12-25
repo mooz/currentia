@@ -43,7 +43,7 @@ namespace currentia {
 
         std::list<Tuple::ptr_t> remained_join_results_;
         Tuple::ptr_t next() {
-            while (remained_join_results_.size() == 0) {
+            while (remained_join_results_.empty()) {
                 left_synopsis_.read_next_tuples(parent_left_operator_ptr_);
                 right_synopsis_.read_next_tuples(parent_right_operator_ptr_);
 
