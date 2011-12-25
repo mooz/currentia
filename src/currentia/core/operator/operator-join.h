@@ -10,95 +10,11 @@
 
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/condition.h"
+#include "currentia/core/operator/synopsis.h"
 
 namespace currentia {
     class OperatorJoin: public Operator {
     public:
-        struct Synopsis {
-            Synopsis(Window &window):
-                window_(window),
-                index_(0) {
-            }
-
-            // read tuples to prepare for next join
-            void read_tuples_for_next_join(Operator::ptr_t& target_operator) {
-                switch (window_.type) {
-                case Window::LOGICAL:
-                    return read_tuples_for_next_join_logical(target_operator);
-                case Window::PHYSICAL:
-                    // TODO: support physical window (is it possible in pull-style processing?)
-                    return read_tuples_for_next_join_physical(target_operator);
-                }
-            }
-
-            inline void read_tuples_for_next_join_logical(Operator::ptr_t& target_operator) {
-                long tuples_count = tuples_.size();
-                long read_count;
-
-                if (tuples_count != window_.width) {
-                    // this is the first time
-                    read_count = window_.width;
-                    tuples_.resize(window_.width);
-                } else {
-                    read_count = window_.stride; // read a tuple ${stride of sliding window} times
-                }
-
-                for (int i = 0; i < read_count; ++i) {
-                    tuples_[get_next_index_()] = target_operator->next();
-                }
-            }
-
-            inline void read_tuples_for_next_join_physical(Operator::ptr_t& target_operator) {
-                // not implemented yet
-            }
-
-            typedef std::vector<Tuple::ptr_t> tuples_t;
-            typedef std::list<Tuple::ptr_t> join_results_t;
-
-            friend inline void
-            join_synopsis(Synopsis& left_synopsis,
-                          Synopsis& right_synopsis,
-                          Schema::ptr_t& joined_schema_ptr,
-                          ConditionAttributeComparator::ptr_t& condition,
-                          join_results_t* results) {
-                tuples_t left_tuples = left_synopsis.tuples_;
-                tuples_t right_tuples = right_synopsis.tuples_;
-
-                tuples_t::iterator left_iter = left_tuples.begin();
-                tuples_t::iterator right_iter = right_tuples.begin();
-
-                // For now, just conduct a nested-loop join
-                for (; left_iter != left_tuples.end(); ++left_iter) {
-                    for (; right_iter != right_tuples.end(); ++right_iter) {
-                        if (condition->check(*left_iter, *right_iter)) {
-                            results->push_back(Tuple::create(joined_schema_ptr, concat_data(*left_iter, *right_iter)));
-                        }
-                    }
-                }
-            }
-
-            std::string toString() {
-                std::stringstream ss;
-                std::vector<Tuple::ptr_t>::iterator iter = tuples_.begin();
-
-                int i = 0;
-                for (; iter < tuples_.end(); ++iter) {
-                    ss << "[" << i++ << "] " << (*iter)->toString() << std::endl;
-                }
-
-                return ss.str();
-            }
-
-        private:
-            inline long get_next_index_() {
-                return index_++ % window_.width;
-            }
-
-            std::vector<Tuple::ptr_t> tuples_;
-            Window window_;
-            long index_;
-        };
-
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
                      Window left_window,
                      Operator::ptr_t parent_right_operator_ptr,
@@ -123,17 +39,16 @@ namespace currentia {
             return joined_schema_ptr_;
         }
 
+        typedef std::list<Tuple::ptr_t> join_results_t;
+
         std::list<Tuple::ptr_t> remained_join_results_;
         Tuple::ptr_t next() {
             while (remained_join_results_.size() == 0) {
-                left_synopsis_.read_tuples_for_next_join(parent_left_operator_ptr_);
-                right_synopsis_.read_tuples_for_next_join(parent_right_operator_ptr_);
+                left_synopsis_.read_next_tuples(parent_left_operator_ptr_);
+                right_synopsis_.read_next_tuples(parent_right_operator_ptr_);
 
                 // Now, do JOIN
-                join_synopsis(left_synopsis_, right_synopsis_,
-                              joined_schema_ptr_,
-                              attribute_comparator_,
-                              &remained_join_results_);
+                join_synopsis_();
             }
 
             // return a tuple from remained result
@@ -161,6 +76,33 @@ namespace currentia {
                 parent_left_operator_ptr_->get_output_schema_ptr(),
                 parent_right_operator_ptr_->get_output_schema_ptr()
             );
+        }
+
+        inline void
+        join_synopsis_() {
+            Synopsis::const_iterator left_iter = left_synopsis_.begin();
+            Synopsis::const_iterator right_iter = right_synopsis_.begin();
+
+            Synopsis::const_iterator left_iter_end = left_synopsis_.end();
+            Synopsis::const_iterator right_iter_end = right_synopsis_.end();
+
+#if 0
+            std::cout << "Left Synopsis\n" << left_synopsis_.toString() << std::endl;
+            std::cout << "Right Synopsis\n" << right_synopsis_.toString() << std::endl;
+            std::cout.flush();
+#endif
+
+            // For now, just conduct a nested-loop join
+            for (; left_iter != left_iter_end; ++left_iter) {
+                for (; right_iter != right_iter_end; ++right_iter) {
+                    if (attribute_comparator_->check(*left_iter, *right_iter)) {
+                        remained_join_results_.push_back(
+                            Tuple::create(joined_schema_ptr_,
+                                          concat_data(*left_iter, *right_iter))
+                        );
+                    }
+                }
+            }
         }
     };
 }
