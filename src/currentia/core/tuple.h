@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_TUPLE_H__
-#define CURRENTIA_TUPLE_H__
+#ifndef CURRENTIA_TUPLE_H_
+#define CURRENTIA_TUPLE_H_
 
 #include "currentia/core/schema.h"
 #include "currentia/core/object.h"
@@ -87,4 +87,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_TUPLE_H__ */
+#endif  /* ! CURRENTIA_TUPLE_H_ */

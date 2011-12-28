@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_WINDOW_H__
-#define CURRENTIA_WINDOW_H__
+#ifndef CURRENTIA_WINDOW_H_
+#define CURRENTIA_WINDOW_H_
 
 namespace currentia {
     class Window {
@@ -25,4 +25,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_WINDOW_H__ */
+#endif  /* ! CURRENTIA_WINDOW_H_ */

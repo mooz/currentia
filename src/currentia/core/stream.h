@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_STREAM_H__
-#define CURRENTIA_STREAM_H__
+#ifndef CURRENTIA_STREAM_H_
+#define CURRENTIA_STREAM_H_
 
 #include "currentia/core/schema.h"
 #include "currentia/core/tuple.h"
@@ -83,4 +83,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_STREAM_H__ */
+#endif  /* ! CURRENTIA_STREAM_H_ */

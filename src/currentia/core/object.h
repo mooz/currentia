@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_OBJECT_H__
-#define CURRENTIA_OBJECT_H__
+#ifndef CURRENTIA_OBJECT_H_
+#define CURRENTIA_OBJECT_H_
 
 #include <sstream>
 #include <string>
@@ -166,4 +166,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_OBJECT_H__ */
+#endif  /* ! CURRENTIA_OBJECT_H_ */

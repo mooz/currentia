@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_CONDITION_H__
-#define CURRENTIA_CONDITION_H__
+#ifndef CURRENTIA_CONDITION_H_
+#define CURRENTIA_CONDITION_H_
 
 #include "currentia/core/pointer.h"
 #include "currentia/core/object.h"
@@ -122,4 +122,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_CONDITION_H__ */
+#endif  /* ! CURRENTIA_CONDITION_H_ */

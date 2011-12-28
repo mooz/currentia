@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_SYNOPSIS_H__
-#define CURRENTIA_SYNOPSIS_H__
+#ifndef CURRENTIA_SYNOPSIS_H_
+#define CURRENTIA_SYNOPSIS_H_
 
 #include <vector>
 
@@ -83,4 +83,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_SYNOPSIS_H__ */
+#endif  /* ! CURRENTIA_SYNOPSIS_H_ */

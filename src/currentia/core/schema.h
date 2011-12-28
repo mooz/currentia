@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_SCHEMA_H__
-#define CURRENTIA_SCHEMA_H__
+#ifndef CURRENTIA_SCHEMA_H_
+#define CURRENTIA_SCHEMA_H_
 
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
@@ -176,4 +176,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_SCHEMA_H__ */
+#endif  /* ! CURRENTIA_SCHEMA_H_ */

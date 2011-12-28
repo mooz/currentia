@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_COMPARATOR_H__
-#define CURRENTIA_COMPARATOR_H__
+#ifndef CURRENTIA_COMPARATOR_H_
+#define CURRENTIA_COMPARATOR_H_
 
 namespace currentia {
     namespace Comparator {
@@ -16,4 +16,4 @@ namespace currentia {
     }
 }
 
-#endif  /* ! CURRENTIA_COMPARATOR_H__ */
+#endif  /* ! CURRENTIA_COMPARATOR_H_ */

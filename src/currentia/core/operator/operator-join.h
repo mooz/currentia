@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_OPERATOR_JOIN_H__
-#define CURRENTIA_OPERATOR_JOIN_H__
+#ifndef CURRENTIA_OPERATOR_JOIN_H_
+#define CURRENTIA_OPERATOR_JOIN_H_
 
 #include "currentia/core/tuple.h"
 #include "currentia/core/stream.h"
@@ -107,4 +107,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_OPERATOR_JOIN_H__ */
+#endif  /* ! CURRENTIA_OPERATOR_JOIN_H_ */
