@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "core server"
+subdirs = "core server query"
 
 def options(opt):
     opt.recurse(subdirs)
