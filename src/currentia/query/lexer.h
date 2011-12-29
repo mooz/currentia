@@ -290,7 +290,7 @@ namespace currentia {
 
             if (peek_next_char_() != '.')
                 return INTEGER;
-            get_next_char_();
+            number_string_.push_back(get_next_char_());
             while (is_number(peek_next_char_()))
                 number_string_.push_back(get_next_char_());
 
