@@ -116,6 +116,10 @@ namespace currentia {
             return EOF;
         }
 
+        static bool is_token_conjunctive(Token token) {
+            return token == AND || token == OR;
+        }
+
         static bool is_alphabet(int c) {
             return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
         }
@@ -191,6 +195,10 @@ namespace currentia {
 
         const std::string& get_latest_string() {
             return string_string_;
+        }
+
+        long get_current_line_number() {
+            return line_number_;
         }
 
     private:
