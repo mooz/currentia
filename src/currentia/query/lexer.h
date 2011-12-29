@@ -30,12 +30,17 @@ namespace currentia {
             STREAM,                 // "STREAM"
             // }}} DDL --------------------------------
 
-            // names
+            // identifier
             NAME,                   // [a-zA-Z_][a-zA-Z0-9_]*
+
+            // string
+            STRING,                 // "[\"]*"
+
             // numbers
             INTEGER,                // [0-9]
             FLOAT,                  // [0-9].[0-9]*
-            // others
+
+            // symbols
             COMMA,                  // ","
             DOT,                    // "."
             LPAREN,                 // "("
@@ -46,6 +51,7 @@ namespace currentia {
             LESS_THAN_EQUAL,        // "<="
             GREATER_THAN,           // ">"
             GREATER_THAN_EQUAL,     // ">="
+
             // error
             UNKNOWN,
             EOF,
@@ -66,6 +72,8 @@ namespace currentia {
                     return EOF;
 
                 switch (next_char) {
+                case '"':
+                    return rule_string_();
                 case ',':
                     return rule_comma_();
                 case '.':
@@ -150,6 +158,8 @@ namespace currentia {
                 return "OR";
             case NAME:
                 return "NAME";
+            case STRING:
+                return "STRING";
             case INTEGER:
                 return "INTEGER";
             case FLOAT:
@@ -189,6 +199,10 @@ namespace currentia {
 
         const std::string& get_latest_number() {
             return number_string_;
+        }
+
+        const std::string& get_latest_string() {
+            return string_string_;
         }
 
     private:
@@ -274,6 +288,38 @@ namespace currentia {
                 name_string_.push_back(get_next_char_());
 
             return NAME;
+        }
+
+        std::string string_string_;
+        enum Token rule_string_() {
+            string_string_.clear();
+
+            if (peek_next_char_() != '"')
+                throw error_message_("Expected '\"'");
+            get_next_char_();
+
+            bool escaped = false;
+            while (is_char_available_()) {
+                // We do not need peeking
+                char next_char = get_next_char_();
+
+                if (escaped) {
+                    // EOF_SIGN may be pushed into string_string_
+                    // but it'll be discarded by unterminated string error
+                    string_string_.push_back(next_char);
+                    escaped = false;
+                } else {
+                    if (next_char == '"') {
+                        return STRING;
+                    } else if (next_char == '\\') {
+                        escaped = true;
+                    } else {
+                        string_string_.push_back(next_char);
+                    }
+                }
+            }
+
+            throw error_message_("Unterminated string");
         }
 
         std::string number_string_;
