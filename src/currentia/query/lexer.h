@@ -61,17 +61,17 @@ namespace currentia {
 
         Lexer(std::istream* stream_ptr):
             stream_ptr_(stream_ptr),
-            line_number_(1) {
+            line_number_(1),
+            cursor_point_(0) {
         }
 
         enum Token next_token() {
-            while (is_char_available_()) {
+            while (true) {
                 char next_char = peek_next_char_();
-                // std::cout << "next char [" << next_char << "]" << std::endl;
-                if (!is_char_available_())
-                    return EOF;
 
                 switch (next_char) {
+                case EOF_SIGN:
+                    return EOF;
                 case '"':
                     return rule_string_();
                 case ',':
@@ -112,8 +112,6 @@ namespace currentia {
 
                 throw error_message_(std::string("Unknown character ") + next_char);
             }
-
-            return EOF;
         }
 
         static bool is_token_conjunctive(Token token) {
@@ -201,16 +199,32 @@ namespace currentia {
             return line_number_;
         }
 
+        long get_current_cursor_point() {
+            return cursor_point_;
+        }
+
+        template <typename Stream>
+        void print_error_point(Stream& stream = std::cout) {
+            stream << current_line_ << std::endl;
+            for (int i = 0; i < cursor_point_ - 1; ++i)
+                stream << '_';
+            stream << '^';
+        }
+
     private:
         std::istream* stream_ptr_;
+
         long line_number_;
+        long cursor_point_;
+        std::string current_line_;
 
         typedef std::list<char> char_buffer_t;
         char_buffer_t next_char_buffer_;
 
         std::string error_message_(std::string message) {
             std::stringstream ss;
-            ss << "line "<< line_number_ << ": " << message;
+            ss << "line "<< line_number_ << ": " << message << std::endl;
+            print_error_point(ss);
             return ss.str();
         }
 
@@ -231,15 +245,25 @@ namespace currentia {
             return std::toupper(next_char);
         }
 
-        int peek_next_char_() {
-            if (next_char_buffer_.empty()) {
-                int next_char = get_next_char_();
-                if (!stream_ptr_->good())
-                    return EOF_SIGN;  // XXX
-                enqueue_next_char_buffer_(next_char);
-                if (next_char == '\n')
-                    line_number_++;
+        void do_read_one_char() {
+            int next_char = get_next_char_();
+            if (!stream_ptr_->good())
+                next_char = EOF_SIGN;
+            enqueue_next_char_buffer_(next_char);
+
+            if (next_char == '\n') {
+                current_line_.erase();
+                line_number_++;
+                cursor_point_ = 0;
+            } else {
+                current_line_.push_back(next_char);
+                cursor_point_++;
             }
+        }
+
+        int peek_next_char_() {
+            if (next_char_buffer_.empty())
+                do_read_one_char();
             return next_char_buffer_.front();
         }
 
