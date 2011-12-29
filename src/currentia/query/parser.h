@@ -53,7 +53,9 @@ namespace currentia {
             long line_number = lexer_ptr_->get_current_line_number();
             ss << "Parse error: line " << line_number
                << ": (" << Lexer::token_to_string(current_token_) << "): "
-               << message;
+               << message
+               << std::endl;
+            lexer_ptr_->print_error_point(ss);
             throw ss.str();
         }
 
