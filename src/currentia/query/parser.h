@@ -23,12 +23,26 @@ namespace currentia {
                     //     std::cout << "Name => " << lexer_ptr_->get_latest_name() << std::endl;
 
                     std::cout << Lexer::token_to_string(token);
-                    if (token == Lexer::NAME)
+
+                    switch (token) {
+                    case Lexer::NAME:
                         std::cout << "(" << lexer_ptr_->get_latest_name() << ")";
-                    std::cout << " ";
+                        break;
+                    case Lexer::INTEGER:
+                    case Lexer::FLOAT:
+                        std::cout << "(" << lexer_ptr_->get_latest_number() << ")";
+                        break;
+                    case Lexer::STRING:
+                        std::cout << "(" << lexer_ptr_->get_latest_string() << ")";
+                        break;
+                    default:
+                        break;
+                    }
+
+                    std::cout << std::endl;
                 }
             } catch (std::string error) {
-                std::cerr << "Error from Lexer: " << error << std::endl;
+                std::cerr << "\nSyntax Error: " << error << std::endl;
             }
         }
     };
