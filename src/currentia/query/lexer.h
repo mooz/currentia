@@ -130,10 +130,6 @@ namespace currentia {
 
         static std::string token_to_string(enum Token token) {
             switch (token) {
-            case CREATE:
-                return "CREATE";
-            case STREAM:
-                return "STREAM";
             case SELECT:
                 return "SELECT";
             case FROM:
@@ -144,6 +140,10 @@ namespace currentia {
                 return "AND";
             case OR:
                 return "OR";
+            case CREATE:
+                return "CREATE";
+            case STREAM:
+                return "STREAM";
             case NAME:
                 return "NAME";
             case STRING:
