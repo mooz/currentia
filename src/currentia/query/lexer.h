@@ -37,60 +37,50 @@ namespace currentia {
         }
 
         enum Token next_token() {
-            while (stream_ptr_->good()) {
+            while (is_char_available_()) {
                 char next_char = peek_next_char_();
                 // std::cout << "next char [" << next_char << "]" << std::endl;
-
                 if (!is_char_available_())
                     return EOF;
 
                 // TODO handle SELECTA as "NAME"
                 switch (next_char) {
                 case 'S':
-                    if (peek_match_("SELECT")) {
-                        match_("SELECT");
-                        return SELECT;
-                    }
+                    if (peek_match_("SELECT"))
+                        return rule_select_();
                     break;
                 case 'F':
-                    if (peek_match_("FROM")) {
-                        match_("FROM");
-                        return FROM;
-                    }
+                    if (peek_match_("FROM"))
+                        return rule_from_();
                     break;
                 case 'W':
-                    if (peek_match_("WHERE")) {
-                        match_("WHERE");
-                        return WHERE;
-                    }
+                    if (peek_match_("WHERE"))
+                        return rule_where_();
                     break;
                 case 'A':
-                    if (peek_match_("AND")) {
-                        match_("AND");
-                        return AND;
-                    }
+                    if (peek_match_("AND"))
+                        return rule_where_();
                     break;
                 case 'O':
-                    if (peek_match_("OR")) {
-                        match_("OR");
-                        return OR;
-                    }
+                    if (peek_match_("OR"))
+                        return rule_or_();
                     break;
                 case ',':
-                    get_next_char_();
-                    return COMMA;
+                    return rule_comma_();
                 case '(':
-                    get_next_char_();
-                    return LPAREN;
+                    return rule_lparen_();
                 case ')':
-                    get_next_char_();
-                    return RPAREN;
+                    return rule_rparen_();
+                case '#':
+                    consume_comment_();
+                    continue;
                 case ' ':
                 case '\n':
                 case '\r':
                 case '\t':
+                    // ignore
                     get_next_char_();
-                continue;
+                    continue;
                 }
 
                 if (is_alphabet(next_char))
@@ -220,6 +210,54 @@ namespace currentia {
             while (is_identifier_component(peek_next_char_()))
                 name_string_.push_back(get_next_char_());
             return NAME;
+        }
+
+        enum Token rule_select_() {
+            match_("SELECT");
+            return SELECT;
+        }
+
+        enum Token rule_from_() {
+            match_("FROM");
+            return FROM;
+        }
+
+        enum Token rule_where_() {
+            match_("WHERE");
+            return WHERE;
+        }
+
+        enum Token rule_and_() {
+            match_("AND");
+            return AND;
+        }
+
+        enum Token rule_or_() {
+            match_("OR");
+            return OR;
+        }
+
+        enum Token rule_comma_() {
+            get_next_char_();
+            return COMMA;
+        }
+
+        enum Token rule_lparen_() {
+            get_next_char_();
+            return COMMA;
+        }
+
+        enum Token rule_rparen_() {
+            get_next_char_();
+            return RPAREN;
+        }
+
+        void consume_comment_() {
+            if (get_next_char_() != '#')
+                throw std::string("Expected comment");
+
+            while (is_char_available_() && peek_next_char_() != '\n')
+                get_next_char_();
         }
     };
 }
