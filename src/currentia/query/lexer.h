@@ -31,10 +31,20 @@ namespace currentia {
 
             // names
             NAME,                   // [a-zA-Z_][a-zA-Z0-9_]*
+            // numbers
+            INTEGER,                // [0-9]
+            FLOAT,                  // [0-9].[0-9]*
             // others
             COMMA,                  // ","
+            DOT,                    // "."
             LPAREN,                 // "("
             RPAREN,                 // ")"
+            EQOAL,                  // "="
+            NOT_EQUAL,              // "!="
+            LESS_THAN,              // "<"
+            LESS_THAN_EQUAL,        // "<="
+            GREATER_THAN,           // ">"
+            GREATER_THAN_EQUAL,     // ">="
             // error
             UNKNOWN,
             EOF,
@@ -56,10 +66,34 @@ namespace currentia {
                 switch (next_char) {
                 case ',':
                     return rule_comma_();
+                case '.':
+                    return rule_dot_();
                 case '(':
                     return rule_lparen_();
                 case ')':
                     return rule_rparen_();
+                case '=':
+                    return rule_equal_();
+                case '!':
+                    get_next_char_();
+                    if (peek_next_char_() != '=')
+                        throw error_message_("Expected '='");
+                    get_next_char_();
+                    return NOT_EQUAL;
+                case '>':
+                    // > or >=
+                    get_next_char_();
+                    if (peek_next_char_() != '=')
+                        return GREATER_THAN;
+                    get_next_char_();
+                    return GREATER_THAN_EQUAL;
+                case '<':
+                    // < or <=
+                    get_next_char_();
+                    if (peek_next_char_() != '=')
+                        return LESS_THAN;
+                    get_next_char_();
+                    return LESS_THAN_EQUAL;
                 case '#':
                     consume_comment_();
                     continue;
@@ -75,7 +109,8 @@ namespace currentia {
                 if (is_alphabet(next_char))
                     return rule_name_or_reserved_word_();
 
-                throw std::string("Unknown character ") + next_char;
+                if (is_number(next_char))
+                    return rule_integer_or_float_();
             }
 
             return EOF;
@@ -111,12 +146,30 @@ namespace currentia {
                 return "OR";
             case NAME:
                 return "NAME";
+            case INTEGER:
+                return "INTEGER";
+            case FLOAT:
+                return "FLOAT";
             case COMMA:
                 return "COMMA";
+            case DOT:
+                return "DOT";
             case LPAREN:
                 return "LPAREN";
             case RPAREN:
                 return "RPAREN";
+            case EQOAL:
+                return "EQOAL";
+            case NOT_EQUAL:
+                return "NOT_EQUAL";
+            case LESS_THAN:
+                return "LESS_THAN";
+            case LESS_THAN_EQUAL:
+                return "LESS_THAN_EQUAL";
+            case GREATER_THAN:
+                return "GREATER_THAN";
+            case GREATER_THAN_EQUAL:
+                return "GREATER_THAN_EQUAL";
             case EOF:
                 return "EOF";
             case UNKNOWN:
@@ -128,6 +181,10 @@ namespace currentia {
 
         const std::string& get_latest_name() {
             return name_string_;
+        }
+
+        const std::string& get_latest_number() {
+            return number_string_;
         }
 
     private:
@@ -236,9 +293,35 @@ namespace currentia {
             return NAME;
         }
 
+        std::string number_string_;
+        enum Token rule_integer_or_float_() {
+            number_string_.clear();
+
+            // TODO: allow beginning with '0'?
+            if (!is_number(peek_next_char_()))
+                throw error_message_("Expected number");
+            number_string_.push_back(get_next_char_());
+
+            while (is_number(peek_next_char_()))
+                number_string_.push_back(get_next_char_());
+
+            if (peek_next_char_() != '.')
+                return INTEGER;
+            get_next_char_();
+            while (is_number(peek_next_char_()))
+                number_string_.push_back(get_next_char_());
+
+            return FLOAT;
+        }
+
         enum Token rule_comma_() {
             get_next_char_();
             return COMMA;
+        }
+
+        enum Token rule_dot_() {
+            get_next_char_();
+            return DOT;
         }
 
         enum Token rule_lparen_() {
@@ -249,6 +332,11 @@ namespace currentia {
         enum Token rule_rparen_() {
             get_next_char_();
             return RPAREN;
+        }
+
+        enum Token rule_equal_() {
+            get_next_char_();
+            return EQOAL;
         }
 
         void consume_comment_() {
