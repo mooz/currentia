@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <functional>
 #include <ctype.h>
+#include <sstream>
 
 namespace currentia {
     class Lexer {
@@ -53,7 +54,8 @@ namespace currentia {
         static const int EOF_SIGN = -1;
 
         Lexer(std::istream* stream_ptr):
-            stream_ptr_(stream_ptr) {
+            stream_ptr_(stream_ptr),
+            line_number_(1) {
         }
 
         enum Token next_token() {
@@ -111,6 +113,8 @@ namespace currentia {
 
                 if (is_number(next_char))
                     return rule_integer_or_float_();
+
+                throw error_message_(std::string("Unknown character ") + next_char);
             }
 
             return EOF;
@@ -189,9 +193,16 @@ namespace currentia {
 
     private:
         std::istream* stream_ptr_;
+        long line_number_;
 
         typedef std::list<char> char_buffer_t;
         char_buffer_t next_char_buffer_;
+
+        std::string error_message_(std::string message) {
+            std::stringstream ss;
+            ss << "line "<< line_number_ << ": " << message;
+            return ss.str();
+        }
 
         int dequeue_next_char_buffer_() {
             int next_char = next_char_buffer_.front();
@@ -216,6 +227,8 @@ namespace currentia {
                 if (!stream_ptr_->good())
                     return EOF_SIGN;  // XXX
                 enqueue_next_char_buffer_(next_char);
+                if (next_char == '\n')
+                    line_number_++;
             }
             return next_char_buffer_.front();
         }
@@ -254,6 +267,7 @@ namespace currentia {
                     throw std::string("Expected ") + expected;
             }
         }
+        // Rules
 
         enum Token rule_name_or_reserved_word_() {
             rule_name_();
@@ -278,13 +292,12 @@ namespace currentia {
             return NAME;
         }
 
-        // rules
         std::string name_string_;
         enum Token rule_name_() {
             name_string_.clear();
 
             if (!is_alphabet(peek_next_char_()))
-                throw std::string("Expected alphabet");
+                throw error_message_("Expected alphabet");
             name_string_.push_back(get_next_char_());
 
             while (is_identifier_component(peek_next_char_()))
@@ -341,7 +354,7 @@ namespace currentia {
 
         void consume_comment_() {
             if (get_next_char_() != '#')
-                throw std::string("Expected comment");
+                throw error_message_("Expected '#'");
 
             while (peek_next_char_() != '\n')
                 get_next_char_();
