@@ -45,7 +45,7 @@ namespace currentia {
             DOT,                    // "."
             LPAREN,                 // "("
             RPAREN,                 // ")"
-            EQOAL,                  // "="
+            EQUAL,                  // "="
             NOT_EQUAL,              // "!="
             LESS_THAN,              // "<"
             LESS_THAN_EQUAL,        // "<="
@@ -160,8 +160,8 @@ namespace currentia {
                 return "LPAREN";
             case RPAREN:
                 return "RPAREN";
-            case EQOAL:
-                return "EQOAL";
+            case EQUAL:
+                return "EQUAL";
             case NOT_EQUAL:
                 return "NOT_EQUAL";
             case LESS_THAN:
@@ -353,7 +353,7 @@ namespace currentia {
 
         enum Token rule_equal_() {
             get_next_char_();
-            return EQOAL;
+            return EQUAL;
         }
 
         enum Token rule_not_equal_() {
