@@ -50,7 +50,10 @@ namespace currentia {
     private:
         void report_error_(std::string message) {
             std::stringstream ss;
-            ss << "Parse error: line " << lexer_ptr_->get_current_line_number() << ": " << message;
+            long line_number = lexer_ptr_->get_current_line_number();
+            ss << "Parse error: line " << line_number
+               << ": (" << Lexer::token_to_string(current_token_) << "): "
+               << message;
             throw ss.str();
         }
 
@@ -173,9 +176,10 @@ namespace currentia {
         void parse_condition_() {
             switch (current_token_) {
             case Lexer::LPAREN:
-                parse_selection_();
+                get_next_token_(); // Trash LPAREN
+                parse_conditions_();
                 if (current_token_ != Lexer::RPAREN)
-                    report_error_("Unclosed sub-query");
+                    report_error_("Expected ')'");
                 get_next_token_(); // Trash RPAREN
                 break;
             default:
@@ -197,7 +201,7 @@ namespace currentia {
             case Lexer::STRING:
             case Lexer::INTEGER:
             case Lexer::FLOAT:
-                get_next_token_(); // Trash <COMPARATOR>
+                get_next_token_(); // Trash <VALUE>
                 break;
             default:
                 parse_attribute_();
