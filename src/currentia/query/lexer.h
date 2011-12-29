@@ -15,12 +15,20 @@ namespace currentia {
         typedef Lexer* ptr_t;
 
         enum Token {
+            // {{{ DML --------------------------------
             SELECT,                 // "SELECT"
             FROM,                   // "FROM"
             WHERE,                  // "WHERE"
             // conjunctives
             AND,                    // "AND"
             OR,                     // "OR"
+            // }}} DML --------------------------------
+
+            // {{{ DDL --------------------------------
+            CREATE,                 // "CREATE"
+            STREAM,                 // "STREAM"
+            // }}} DDL --------------------------------
+
             // names
             NAME,                   // [a-zA-Z_][a-zA-Z0-9_]*
             // others
@@ -87,6 +95,10 @@ namespace currentia {
 
         static std::string token_to_string(enum Token token) {
             switch (token) {
+            case CREATE:
+                return "CREATE";
+            case STREAM:
+                return "STREAM";
             case SELECT:
                 return "SELECT";
             case FROM:
@@ -108,8 +120,9 @@ namespace currentia {
             case EOF:
                 return "EOF";
             case UNKNOWN:
-            default:
                 return "UNKNOWN";
+            default:
+                return "MISSING_STRING_EXPRESSION";
             }
         }
 
@@ -188,12 +201,18 @@ namespace currentia {
         enum Token rule_name_or_reserved_word_() {
             rule_name_();
 
+            if (name_string_ == "CREATE")
+                return CREATE;
+            if (name_string_ == "STREAM")
+                return STREAM;
+
             if (name_string_ == "SELECT")
                 return SELECT;
             if (name_string_ == "FROM")
                 return FROM;
             if (name_string_ == "WHERE")
                 return WHERE;
+
             if (name_string_ == "AND")
                 return AND;
             if (name_string_ == "OR")
