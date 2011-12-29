@@ -179,13 +179,13 @@ namespace currentia {
                 get_next_token_(); // Trash RPAREN
                 break;
             default:
-                parse_comparision_();
+                parse_comparison_();
                 break;
             }
         }
 
         // <COMPARISON> := <VALUE> <COMPARATOR> <VALUE>
-        void parse_comparision_() {
+        void parse_comparison_() {
             parse_value_();
             parse_comparator_();
             parse_value_();
