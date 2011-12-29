@@ -85,25 +85,13 @@ namespace currentia {
                 case '=':
                     return rule_equal_();
                 case '!':
-                    get_next_char_();
-                    if (peek_next_char_() != '=')
-                        throw error_message_("Expected '='");
-                    get_next_char_();
-                    return NOT_EQUAL;
+                    return rule_not_equal_();
                 case '>':
                     // > or >=
-                    get_next_char_();
-                    if (peek_next_char_() != '=')
-                        return GREATER_THAN;
-                    get_next_char_();
-                    return GREATER_THAN_EQUAL;
+                    return rule_greater_than_or_equal_();
                 case '<':
                     // < or <=
-                    get_next_char_();
-                    if (peek_next_char_() != '=')
-                        return LESS_THAN;
-                    get_next_char_();
-                    return LESS_THAN_EQUAL;
+                    return rule_less_than_or_equal_();
                 case '#':
                     consume_comment_();
                     continue;
@@ -366,6 +354,30 @@ namespace currentia {
         enum Token rule_equal_() {
             get_next_char_();
             return EQOAL;
+        }
+
+        enum Token rule_not_equal_() {
+            get_next_char_();
+            if (peek_next_char_() != '=')
+                throw error_message_("Expected '='");
+            get_next_char_();
+            return NOT_EQUAL;
+        }
+
+        enum Token rule_greater_than_or_equal_() {
+            get_next_char_();
+            if (peek_next_char_() != '=')
+                return GREATER_THAN;
+            get_next_char_();
+            return GREATER_THAN_EQUAL;
+        }
+
+        enum Token rule_less_than_or_equal_() {
+            get_next_char_();
+            if (peek_next_char_() != '=')
+                return LESS_THAN;
+            get_next_char_();
+            return LESS_THAN_EQUAL;
         }
 
         void consume_comment_() {
