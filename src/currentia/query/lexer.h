@@ -237,36 +237,6 @@ namespace currentia {
             return stream_ptr_->good() || !next_char_buffer_.empty();
         }
 
-        bool peek_match_(std::string expected) {
-            bool matched = true;
-            char_buffer_t consumed_chars;
-
-            std::string::iterator iter = expected.begin();
-            std::string::iterator iter_end = expected.end();
-            for (; iter != iter_end; ++iter) {
-                int next_char = get_next_char_();
-                consumed_chars.push_back(next_char);
-                if (*iter != next_char) {
-                    matched = false;
-                    break;
-                }
-            }
-
-            std::for_each(consumed_chars.begin(),
-                          consumed_chars.end(),
-                          std::bind1st(std::mem_fun(&Lexer::enqueue_next_char_buffer_), this));
-
-            return matched;
-        }
-
-        void match_(std::string expected) {
-            std::string::iterator iter = expected.begin();
-            std::string::iterator iter_end = expected.end();
-            for (; iter != iter_end; ++iter) {
-                if (*iter != get_next_char_())
-                    throw std::string("Expected ") + expected;
-            }
-        }
         // Rules
 
         enum Token rule_name_or_reserved_word_() {
