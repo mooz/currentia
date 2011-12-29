@@ -32,6 +32,8 @@ namespace currentia {
             EOF,
         };
 
+        static const int EOF_SIGN = -1;
+
         Lexer(std::istream* stream_ptr):
             stream_ptr_(stream_ptr) {
         }
@@ -43,28 +45,7 @@ namespace currentia {
                 if (!is_char_available_())
                     return EOF;
 
-                // TODO handle SELECTA as "NAME"
                 switch (next_char) {
-                case 'S':
-                    if (peek_match_("SELECT"))
-                        return rule_select_();
-                    break;
-                case 'F':
-                    if (peek_match_("FROM"))
-                        return rule_from_();
-                    break;
-                case 'W':
-                    if (peek_match_("WHERE"))
-                        return rule_where_();
-                    break;
-                case 'A':
-                    if (peek_match_("AND"))
-                        return rule_where_();
-                    break;
-                case 'O':
-                    if (peek_match_("OR"))
-                        return rule_or_();
-                    break;
                 case ',':
                     return rule_comma_();
                 case '(':
@@ -84,7 +65,7 @@ namespace currentia {
                 }
 
                 if (is_alphabet(next_char))
-                    return rule_name_();
+                    return rule_name_or_reserved_word_();
 
                 throw std::string("Unknown character ") + next_char;
             }
@@ -160,13 +141,17 @@ namespace currentia {
         }
 
         int peek_next_char_() {
-            if (next_char_buffer_.empty())
-                enqueue_next_char_buffer_(get_next_char_());
+            if (next_char_buffer_.empty()) {
+                int next_char = get_next_char_();
+                if (!stream_ptr_->good())
+                    return EOF_SIGN;  // XXX
+                enqueue_next_char_buffer_(next_char);
+            }
             return next_char_buffer_.front();
         }
 
         bool is_char_available_() {
-            return !stream_ptr_->eof() && !next_char_buffer_.empty();
+            return stream_ptr_->good() || !next_char_buffer_.empty();
         }
 
         bool peek_match_(std::string expected) {
@@ -200,41 +185,36 @@ namespace currentia {
             }
         }
 
+        enum Token rule_name_or_reserved_word_() {
+            rule_name_();
+
+            if (name_string_ == "SELECT")
+                return SELECT;
+            if (name_string_ == "FROM")
+                return FROM;
+            if (name_string_ == "WHERE")
+                return WHERE;
+            if (name_string_ == "AND")
+                return AND;
+            if (name_string_ == "OR")
+                return OR;
+
+            return NAME;
+        }
+
         // rules
         std::string name_string_;
         enum Token rule_name_() {
             name_string_.clear();
-            // [a-zA-Z][a-zA-Z0-9_]*
-            if (is_alphabet(peek_next_char_()))
-                name_string_.push_back(get_next_char_());
+
+            if (!is_alphabet(peek_next_char_()))
+                throw std::string("Expected alphabet");
+            name_string_.push_back(get_next_char_());
+
             while (is_identifier_component(peek_next_char_()))
                 name_string_.push_back(get_next_char_());
+
             return NAME;
-        }
-
-        enum Token rule_select_() {
-            match_("SELECT");
-            return SELECT;
-        }
-
-        enum Token rule_from_() {
-            match_("FROM");
-            return FROM;
-        }
-
-        enum Token rule_where_() {
-            match_("WHERE");
-            return WHERE;
-        }
-
-        enum Token rule_and_() {
-            match_("AND");
-            return AND;
-        }
-
-        enum Token rule_or_() {
-            match_("OR");
-            return OR;
         }
 
         enum Token rule_comma_() {
@@ -244,7 +224,7 @@ namespace currentia {
 
         enum Token rule_lparen_() {
             get_next_char_();
-            return COMMA;
+            return LPAREN;
         }
 
         enum Token rule_rparen_() {
@@ -256,7 +236,7 @@ namespace currentia {
             if (get_next_char_() != '#')
                 throw std::string("Expected comment");
 
-            while (is_char_available_() && peek_next_char_() != '\n')
+            while (peek_next_char_() != '\n')
                 get_next_char_();
         }
     };
