@@ -9,31 +9,44 @@ namespace currentia {
     class Parser {
         Lexer::ptr_t lexer_ptr_;
 
+        Lexer::Token current_token_;
+        Lexer::Token get_next_token_() {
+            current_token_ = lexer_ptr_->next_token();
+            return current_token_;
+        }
+
+        const std::string dummy_current_string_;
+        const std::string& get_current_string_() {
+            switch (current_token_) {
+            case Lexer::NAME:
+                return lexer_ptr_->get_latest_name();
+            case Lexer::INTEGER:
+            case Lexer::FLOAT:
+                return lexer_ptr_->get_latest_number();
+            case Lexer::STRING:
+                return lexer_ptr_->get_latest_string();
+            default:
+                return dummy_current_string_;
+            }
+        }
+
     public:
         Parser(Lexer::ptr_t lexer_ptr):
-            lexer_ptr_(lexer_ptr) {
+            lexer_ptr_(lexer_ptr),
+            current_token_(Lexer::UNKNOWN) {
         }
 
         void parse() {
-            Lexer::Token token;
             try {
-                while ((token = lexer_ptr_->next_token()) != Lexer::EOF) {
-                    // std::cout << "Token => " << Lexer::token_to_string(token) << std::endl;
-                    // if (token == Lexer::NAME)
-                    //     std::cout << "Name => " << lexer_ptr_->get_latest_name() << std::endl;
+                while (get_next_token_() != Lexer::EOF) {
+                    std::cout << Lexer::token_to_string(current_token_);
 
-                    std::cout << Lexer::token_to_string(token);
-
-                    switch (token) {
+                    switch (current_token_) {
                     case Lexer::NAME:
-                        std::cout << "(" << lexer_ptr_->get_latest_name() << ")";
-                        break;
                     case Lexer::INTEGER:
                     case Lexer::FLOAT:
-                        std::cout << "(" << lexer_ptr_->get_latest_number() << ")";
-                        break;
                     case Lexer::STRING:
-                        std::cout << "(" << lexer_ptr_->get_latest_string() << ")";
+                        std::cout << "(" << get_current_string_() << ")";
                         break;
                     default:
                         break;
