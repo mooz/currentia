@@ -39,9 +39,9 @@ namespace currentia {
 
         void parse() {
             try {
-                while (get_next_token_() != Lexer::EOF) {
+                get_next_token_();
+                while (current_token_ != Lexer::EOF)
                     parse_statement_();
-                }
             } catch (std::string error) {
                 std::cerr << "\nSyntax Error: " << error << std::endl;
             }
