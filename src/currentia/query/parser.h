@@ -174,8 +174,12 @@ namespace currentia {
             }
         }
 
-        // <CONDITION> := (LPAREN <CONDITIONS> RPAREN | <COMPARISON>)
+        // <CONDITION> := NOT? (LPAREN <CONDITIONS> RPAREN | <COMPARISON>)
         void parse_condition_() {
+            if (current_token_ == Lexer::NOT) {
+                get_next_token_(); // Trash NOT
+            }
+
             switch (current_token_) {
             case Lexer::LPAREN:
                 get_next_token_(); // Trash LPAREN

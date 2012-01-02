@@ -41,6 +41,7 @@ namespace currentia {
             FLOAT,                  // [0-9].[0-9]*
 
             // symbols
+            NOT,                    // NOT
             COMMA,                  // ","
             DOT,                    // "."
             LPAREN,                 // "("
@@ -142,6 +143,8 @@ namespace currentia {
                 return "AND";
             case OR:
                 return "OR";
+            case NOT:
+                return "NOT";
             case CREATE:
                 return "CREATE";
             case STREAM:
@@ -293,6 +296,8 @@ namespace currentia {
             if (name_string_ == "OR")
                 return OR;
 
+            if (name_string_ == "NOT")
+                return NOT;
             return NAME;
         }
 
