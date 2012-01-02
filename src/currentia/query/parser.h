@@ -144,7 +144,7 @@ namespace currentia {
             }
         }
 
-        // <FROM_ELEMENT> := (LPAREN <SELECTION> RPAREN | NAME)
+        // <FROM_ELEMENT> := (LPAREN <SELECTION> RPAREN | NAME) <WINDOW>?
         void parse_from_element_() {
             switch (current_token_) {
             case Lexer::LPAREN:
@@ -162,6 +162,47 @@ namespace currentia {
                 report_error_("Expected sub-query or stream name");
                 break;
             }
+
+            if (current_token_ == Lexer::LBRACKET)
+                parse_window_();
+        }
+
+        // <WINDOW> := LBRACKET
+        //                 (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR)?
+        //                 (ADVANCE (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR))?
+        //             RBRACKET
+        void parse_window_() {
+            if (current_token_ != Lexer::LBRACKET)
+                report_error_("Expected '[' for window specification");
+            get_next_token_(); // Trash LBRACKET
+
+            // parse window width
+            if (current_token_ != Lexer::INTEGER &&
+                current_token_ != Lexer::FLOAT)
+                report_error_("Expected INTEGER or FLOAT for window width");
+            get_next_token_();  // Trash number
+
+            if (current_token_ == Lexer::ROWS) {
+                get_next_token_(); // Trash window width unit
+            }
+
+            if (current_token_ == Lexer::ADVANCE) {
+                get_next_token_(); // Trash ADVANCE
+
+                // parse window stride
+                if (current_token_ != Lexer::INTEGER &&
+                    current_token_ != Lexer::FLOAT)
+                    report_error_("Expected INTEGER or FLOAT for window stride");
+                get_next_token_();  // Trash number
+
+                if (current_token_ == Lexer::ROWS) {
+                    get_next_token_(); // Trash window stride unit
+                }
+            }
+
+            if (current_token_ != Lexer::RBRACKET)
+                report_error_("Expected ']' for window specification");
+            get_next_token_(); // Trash RBRACKET
         }
 
         // <CONDITIONS> := <CONDITION> ((AND | OR) <CONDITIONS>)?

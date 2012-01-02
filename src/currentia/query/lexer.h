@@ -42,6 +42,11 @@ namespace currentia {
 
             // symbols
             NOT,                    // NOT
+            // window specification
+            ROWS,                   // ROWS
+            ADVANCE,                // ADVANCE
+            LBRACKET,               // "["
+            RBRACKET,               // "]"
             COMMA,                  // ","
             DOT,                    // "."
             LPAREN,                 // "("
@@ -83,6 +88,10 @@ namespace currentia {
                     return rule_lparen_();
                 case ')':
                     return rule_rparen_();
+                case '[':
+                    return rule_lbracket_();
+                case ']':
+                    return rule_rbracket_();
                 case '=':
                     return rule_equal_();
                 case '!':
@@ -145,6 +154,10 @@ namespace currentia {
                 return "OR";
             case NOT:
                 return "NOT";
+            case ROWS:
+                return "ROWS";
+            case ADVANCE:
+                return "ADVANCE";
             case CREATE:
                 return "CREATE";
             case STREAM:
@@ -298,6 +311,13 @@ namespace currentia {
 
             if (name_string_ == "NOT")
                 return NOT;
+            if (name_string_ == "ROWS" ||
+                name_string_ == "TUPLES") // TUPLES is a synonym of ROWS
+                return ROWS;
+
+            if (name_string_ == "ADVANCE")
+                return ADVANCE;
+
             return NAME;
         }
 
@@ -386,6 +406,16 @@ namespace currentia {
         enum Token rule_rparen_() {
             get_next_char_();
             return RPAREN;
+        }
+
+        enum Token rule_lbracket_() {
+            get_next_char_();
+            return LBRACKET;
+        }
+
+        enum Token rule_rbracket_() {
+            get_next_char_();
+            return RBRACKET;
         }
 
         enum Token rule_equal_() {
