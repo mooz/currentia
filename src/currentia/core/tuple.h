@@ -49,13 +49,11 @@ namespace currentia {
             return ss.str();
         }
 
-        inline
-        Object get_value_by_index(int attribute_index) {
+        Object get_value_by_index(int attribute_index) const {
             return data_[attribute_index];
         }
 
-        inline
-        Object get_value_by_attribute_name(std::string& attribute_name) {
+        Object get_value_by_attribute_name(const std::string& attribute_name) const {
             int attribute_index = schema_ptr_->get_attribute_index_by_name(attribute_name);
             return get_value_by_index(attribute_index);
         }
@@ -70,7 +68,7 @@ namespace currentia {
         }
 
         inline
-        time_t get_arrived_time() {
+        time_t get_arrived_time() const {
             return arrived_time_;
         }
 

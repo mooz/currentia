@@ -57,7 +57,7 @@ namespace currentia {
         }
 
         // TODO: condsider (schema) relation name.
-        int add_attribute(std::string name, Object::Type type) {
+        int add_attribute(const std::string& name, Object::Type type) {
             pthread_mutex_lock(&schema_lock_);
 
             if (!is_schema_freezed_)
@@ -75,24 +75,24 @@ namespace currentia {
         }
 
         inline
-        int get_attribute_index_by_name(std::string& attribute_name) {
-            // assert(has_attribute(attribute_name));
-            return attributes_index_[attribute_name];
+        int get_attribute_index_by_name(const std::string& attribute_name) const {
+            // map access with [] breaks const'ness of method
+            return attributes_index_.find(attribute_name)->second;
         }
 
         inline
-        Attribute get_attribute_by_name(std::string& attribute_name) {
+        Attribute get_attribute_by_name(const std::string& attribute_name) const {
             // assert(has_attribute(attribute_name));
             int attribute_index = get_attribute_index_by_name(attribute_name);
             return attributes_[attribute_index];
         }
 
         inline
-        Attribute get_attribute_by_index(int attribute_index) {
+        Attribute get_attribute_by_index(int attribute_index) const {
             return attributes_[attribute_index];
         }
 
-        bool has_attribute(std::string& name) const {
+        bool has_attribute(const std::string& name) const {
             return attributes_index_.find(name) != attributes_index_.end();
         }
 
@@ -100,7 +100,7 @@ namespace currentia {
             return attributes_.size();
         }
 
-        bool validate_data(std::vector<Object>& data) const {
+        bool validate_data(const std::vector<Object>& data) const {
             if (data.size() != this->size())
                 return false;
 
@@ -153,13 +153,11 @@ namespace currentia {
             return new_schema_ptr;
         }
 
-        inline
-        long get_id() {
+        long get_id() const {
             return id_;
         }
 
-        inline
-        std::string get_id_string() {
+        std::string get_id_string() const {
             std::stringstream ss;
             ss << id_;
             return ss.str();
