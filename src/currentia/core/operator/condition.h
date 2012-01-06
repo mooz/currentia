@@ -16,9 +16,9 @@ namespace currentia {
         typedef std::tr1::shared_ptr<Condition> ptr_t;
 
         // for selection
-        virtual bool check(Tuple::ptr_t tuple_ptr) = 0;
+        virtual bool check(Tuple::ptr_t tuple_ptr) const = 0;
         // for join
-        virtual bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) = 0;
+        virtual bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const = 0;
     };
 
     class ConditionConjunctive: public Condition {
@@ -44,7 +44,7 @@ namespace currentia {
             right_condition_(right_condition) {
         }
 
-        bool check(Tuple::ptr_t tuple_ptr) {
+        bool check(Tuple::ptr_t tuple_ptr) const {
             switch (type_) {
             case ConditionConjunctive::AND:
                 return left_condition_->check(tuple_ptr)
@@ -55,7 +55,7 @@ namespace currentia {
             }
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) {
+        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
             switch (type_) {
             case ConditionConjunctive::AND:
                 return left_condition_->check(tuple1_ptr)
@@ -83,13 +83,13 @@ namespace currentia {
             condition_value_(condition_value) {
         }
 
-        bool check(Tuple::ptr_t tuple_ptr) {
+        bool check(Tuple::ptr_t tuple_ptr) const {
             Object target_value = tuple_ptr->
                                   get_value_by_attribute_name(target_attribute_name_);
             return target_value.compare(condition_value_, comparator_type_);
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) {
+        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
             throw "Error: ConditionConstantComparator doesn't support comparison of 2 tuples";
         }
     };
@@ -108,11 +108,11 @@ namespace currentia {
             comparator_type_(comparator_type) {
         }
 
-        bool check(Tuple::ptr_t tuple_ptr) {
+        bool check(Tuple::ptr_t tuple_ptr) const {
             throw "Error: ConditionConstantComparator doesn't support comparison of tuple and constant";
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) {
+        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
             Object tuple1_value = tuple1_ptr->
                                   get_value_by_attribute_name(target1_attribute_name_);
             Object tuple2_value = tuple2_ptr->
