@@ -33,7 +33,7 @@ namespace currentia {
 
     private:
         template <typename T>
-        bool generic_compare_(T& x, T& y, Comparator::Type comparator) {
+        bool generic_compare_(const T& x, const T& y, Comparator::Type comparator) const {
             switch (comparator) {
             case Comparator::EQUAL:              // ==
                 return x == y;
@@ -110,7 +110,7 @@ namespace currentia {
             return ss.str();
         }
 
-        bool compare(Object& target, Comparator::Type comparator) {
+        bool compare(const Object& target, Comparator::Type comparator) const {
             bool comparison_result = false;
 
             if (type != target.type) {
@@ -147,6 +147,10 @@ namespace currentia {
             }
 
             return comparison_result;
+        }
+
+        bool operator ==(const Object& target) const {
+            return this->compare(target, Comparator::EQUAL);
         }
 
         static std::string type2string(Object::Type type) {
