@@ -7,9 +7,10 @@
 #include "currentia/core/stream.h"
 #include "currentia/core/schema.h"
 #include "currentia/core/pointer.h"
+#include "currentia/trait/non-copyable.h"
 
 namespace currentia {
-    class Operator {
+    class Operator: private NonCopyable<Operator> {
     public:
         typedef std::tr1::shared_ptr<Operator> ptr_t;
 

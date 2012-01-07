@@ -8,9 +8,10 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/window.h"
 #include "currentia/core/operator/operator.h"
+#include "currentia/trait/non-copyable.h"
 
 namespace currentia {
-    class Synopsis {
+    class Synopsis: private NonCopyable<Synopsis> {
     public:
         typedef std::vector<Tuple::ptr_t> tuples_t;
         typedef tuples_t::const_iterator const_iterator;

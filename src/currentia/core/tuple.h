@@ -6,13 +6,14 @@
 #include "currentia/core/schema.h"
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
+#include "currentia/trait/non-copyable.h"
 
 #include <sstream>              // string_stream
 #include <vector>
 #include <ctime>
 
 namespace currentia {
-    class Tuple {
+    class Tuple: private NonCopyable<Tuple> {
     public:
         typedef std::tr1::shared_ptr<Tuple> ptr_t;
         // typedef std::tr1::shared_ptr<std::vector<Object> > data_ptr_t;

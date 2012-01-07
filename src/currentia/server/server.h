@@ -7,6 +7,8 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/schema.h"
 
+#include "currentia/trait/non-copyable.h"
+
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-projection.h"
@@ -48,7 +50,7 @@ namespace currentia {
     }
 
     // Server class
-    class Server {
+    class Server: private NonCopyable<Server> {
         Schema::ptr_t schema_ptr_;
         Stream::ptr_t stream_ptr_;
         Stream::ptr_t stream2_ptr_;

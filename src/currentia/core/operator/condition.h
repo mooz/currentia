@@ -7,11 +7,12 @@
 #include "currentia/core/object.h"
 #include "currentia/core/tuple.h"
 #include "currentia/core/operator/comparator.h"
+#include "currentia/trait/non-copyable.h"
 
 #include <list>
 
 namespace currentia {
-    class Condition {
+    class Condition: private NonCopyable<Condition> {
     protected:
         bool negated_;
 

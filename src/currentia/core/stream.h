@@ -7,12 +7,13 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/pointer.h"
 #include "currentia/core/thread.h"
+#include "currentia/trait/non-copyable.h"
 
 #include <list>
 
 namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
-    class Stream {
+    class Stream: private NonCopyable<Stream> {
     public:
         typedef std::tr1::shared_ptr<Stream> ptr_t;
 

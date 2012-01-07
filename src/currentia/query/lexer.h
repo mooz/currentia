@@ -10,8 +10,10 @@
 #include <ctype.h>
 #include <sstream>
 
+#include "currentia/trait/non-copyable.h"
+
 namespace currentia {
-    class Lexer {
+    class Lexer: private NonCopyable<Lexer> {
     public:
         typedef Lexer* ptr_t;
 

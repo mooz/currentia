@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "core server query trait"
+subdirs = ""
 
 def options(opt):
     opt.recurse(subdirs)

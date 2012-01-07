@@ -11,6 +11,7 @@
 #include "currentia/core/operator/comparator.h"
 
 namespace currentia {
+    // copyable
     class Object {
     public:
         enum Type {

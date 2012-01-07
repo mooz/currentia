@@ -4,9 +4,10 @@
 #define CURRENTIA_QUERY_PARSER_H_
 
 #include "currentia/query/lexer.h"
+#include "currentia/trait/non-copyable.h"
 
 namespace currentia {
-    class Parser {
+    class Parser: private NonCopyable<Parser> {
         Lexer::ptr_t lexer_ptr_;
 
         Lexer::Token current_token_;

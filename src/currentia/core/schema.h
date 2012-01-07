@@ -6,6 +6,7 @@
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
 #include "currentia/core/thread.h"
+#include "currentia/trait/non-copyable.h"
 
 #include <map>
 #include <vector>
@@ -31,7 +32,7 @@ namespace currentia {
         return next_schema_id++;
     }
 
-    class Schema {
+    class Schema: private NonCopyable<Schema> {
     public:
         typedef std::tr1::shared_ptr<Schema> ptr_t;
         // types
