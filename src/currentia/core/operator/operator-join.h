@@ -23,8 +23,8 @@ namespace currentia {
             left_window_(left_window),
             right_window_(right_window),
             // init synopsises
-            left_synopsis_(Synopsis(left_window_)),
-            right_synopsis_(Synopsis(right_window_)),
+            left_synopsis_(left_window_),
+            right_synopsis_(right_window_),
             // set attribute comparator
             attribute_comparator_(attribute_comparator) {
             // save pointers
