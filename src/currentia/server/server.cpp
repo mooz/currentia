@@ -17,8 +17,8 @@ int main(int argc, char **argv)
     pthread_t listen_thread;
     pthread_t process_thread;
 
-    pthread_create(&listen_thread, NULL, (pthread_body_t)listen_thread_body, &server);
-    pthread_create(&process_thread, NULL, (pthread_body_t)process_thread_body, &server);
+    pthread_create(&listen_thread, NULL, reinterpret_cast<pthread_body_t>(listen_thread_body), &server);
+    pthread_create(&process_thread, NULL, reinterpret_cast<pthread_body_t>(process_thread_body), &server);
 
     pthread_join(listen_thread, NULL);
     pthread_join(process_thread, NULL);
