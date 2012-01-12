@@ -59,11 +59,11 @@ namespace currentia {
             return get_value_by_index(attribute_index);
         }
 
-        friend data_t concat_data(Tuple::ptr_t tuple1, Tuple::ptr_t tuple2) {
+        data_t get_concatenated_data(const Tuple::ptr_t& target) {
             data_t new_data;
 
-            new_data.insert(new_data.end(), tuple1->data_.begin(), tuple1->data_.end());
-            new_data.insert(new_data.end(), tuple2->data_.begin(), tuple2->data_.end());
+            new_data.insert(new_data.end(), data_.begin(), data_.end());
+            new_data.insert(new_data.end(), target->data_.begin(), target->data_.end());
 
             return new_data;
         }

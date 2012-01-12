@@ -98,7 +98,7 @@ namespace currentia {
                     if (attribute_comparator_->check(*left_iter, *right_iter)) {
                         remained_join_results_.push_back(
                             Tuple::create(joined_schema_ptr_,
-                                          concat_data(*left_iter, *right_iter))
+                                          (*left_iter)->get_concatenated_data(*right_iter))
                         );
                     }
                 }
