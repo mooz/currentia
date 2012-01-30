@@ -453,7 +453,7 @@ namespace currentia {
             if (get_next_char_() != '#')
                 throw error_message_("Expected '#'");
 
-            while (peek_next_char_() != '\n')
+            while (is_char_available_() && peek_next_char_() != '\n')
                 get_next_char_();
         }
     };
