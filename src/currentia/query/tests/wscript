@@ -1,0 +1,19 @@
+# -*- python -*-
+
+subdirs = ""
+
+def options(opt):
+    opt.recurse(subdirs)
+
+def configure(conf):
+    conf.recurse(subdirs)
+
+def build(bld):
+    bld.program(
+        features = "cxx test",
+        source   = "test_parser.cpp",
+        target   = "test_parser",
+        includes = ". ../../../",
+        uselib   = "gtest_main"           # link gtest_main
+    )
+    bld.recurse(subdirs)
