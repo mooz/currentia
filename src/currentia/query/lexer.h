@@ -62,7 +62,7 @@ namespace currentia {
 
             // error
             UNKNOWN,
-            EOF,
+            EOS,                    //  End of Stream
         };
 
         static const int EOF_SIGN = -1;
@@ -79,7 +79,7 @@ namespace currentia {
 
                 switch (next_char) {
                 case EOF_SIGN:
-                    return EOF;
+                    return EOS;
                 case '"':
                     return rule_string_();
                 case ',':
@@ -192,8 +192,8 @@ namespace currentia {
                 return "GREATER_THAN";
             case GREATER_THAN_EQUAL:
                 return "GREATER_THAN_EQUAL";
-            case EOF:
-                return "EOF";
+            case EOS:
+                return "EOS";
             case UNKNOWN:
                 return "UNKNOWN";
             default:
