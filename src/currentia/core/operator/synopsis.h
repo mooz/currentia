@@ -22,7 +22,7 @@ namespace currentia {
         }
 
         // read tuples to prepare for next join
-        void read_next_tuples(Operator::ptr_t& target_operator) {
+        void read_next_tuples(const Operator::ptr_t& target_operator) {
             switch (window_.type) {
             case Window::LOGICAL:
                 return read_next_tuples_logical(target_operator);
@@ -32,7 +32,7 @@ namespace currentia {
             }
         }
 
-        inline void read_next_tuples_logical(Operator::ptr_t& target_operator) {
+        inline void read_next_tuples_logical(const Operator::ptr_t& target_operator) {
             long tuples_count = tuples_.size();
             long read_count;
 
@@ -49,21 +49,21 @@ namespace currentia {
             }
         }
 
-        inline void read_next_tuples_physical(Operator::ptr_t& target_operator) {
+        inline void read_next_tuples_physical(const Operator::ptr_t& target_operator) const {
             // not implemented yet
         }
 
-        inline tuples_t::const_iterator begin() {
+        inline tuples_t::const_iterator begin() const {
             return tuples_.begin();
         }
 
-        inline tuples_t::const_iterator end() {
+        inline tuples_t::const_iterator end() const {
             return tuples_.end();
         }
 
-        std::string toString() {
+        std::string toString() const {
             std::stringstream ss;
-            tuples_t::iterator iter = tuples_.begin();
+            tuples_t::const_iterator iter = tuples_.begin();
 
             int i = 0;
             for (; iter < tuples_.end(); ++iter) {
