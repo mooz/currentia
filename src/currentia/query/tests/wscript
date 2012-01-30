@@ -11,8 +11,8 @@ def configure(conf):
 def build(bld):
     bld.program(
         features = "cxx test",
-        source   = "test_parser.cpp",
-        target   = "test_parser",
+        source   = "test_lexer.cpp",
+        target   = "test_lexer",
         includes = ". ../../../",
         uselib   = "gtest_main"           # link gtest_main
     )
