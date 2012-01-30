@@ -56,7 +56,7 @@ namespace currentia {
         Stream::ptr_t stream2_ptr_;
 
     public:
-        typedef std::tr1::shared_ptr<Server> ptr_t;
+        typedef std::shared_ptr<Server> ptr_t;
 
         Server(Schema::ptr_t schema):
             schema_ptr_(schema),

@@ -34,7 +34,7 @@ namespace currentia {
 
     class Schema: private NonCopyable<Schema> {
     public:
-        typedef std::tr1::shared_ptr<Schema> ptr_t;
+        typedef std::shared_ptr<Schema> ptr_t;
         // types
         typedef std::vector<Attribute> attributes_t;
         typedef std::map<std::string, int> attributes_index_t;

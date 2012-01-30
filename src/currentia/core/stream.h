@@ -15,7 +15,7 @@ namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
     class Stream: private NonCopyable<Stream> {
     public:
-        typedef std::tr1::shared_ptr<Stream> ptr_t;
+        typedef std::shared_ptr<Stream> ptr_t;
 
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {

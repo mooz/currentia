@@ -15,8 +15,8 @@
 namespace currentia {
     class Tuple: private NonCopyable<Tuple> {
     public:
-        typedef std::tr1::shared_ptr<Tuple> ptr_t;
-        // typedef std::tr1::shared_ptr<std::vector<Object> > data_ptr_t;
+        typedef std::shared_ptr<Tuple> ptr_t;
+        // typedef std::shared_ptr<std::vector<Object> > data_ptr_t;
         typedef std::vector<Object> data_t;
 
         static Tuple::ptr_t create(Schema::ptr_t schema_ptr,

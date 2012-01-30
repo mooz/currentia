@@ -17,7 +17,7 @@ namespace currentia {
         bool negated_;
 
     public:
-        typedef std::tr1::shared_ptr<Condition> ptr_t;
+        typedef std::shared_ptr<Condition> ptr_t;
 
         Condition(): negated_(false) {}
         virtual ~Condition() = 0;
@@ -58,7 +58,7 @@ namespace currentia {
 
     class ConditionConjunctive: public Condition {
     public:
-        typedef std::tr1::shared_ptr<ConditionConjunctive> ptr_t;
+        typedef std::shared_ptr<ConditionConjunctive> ptr_t;
 
         // Conjunctive
         enum Type {
@@ -222,7 +222,7 @@ namespace currentia {
 
     class ConditionConstantComparator: public Condition {
     public:
-        typedef std::tr1::shared_ptr<ConditionConstantComparator> ptr_t;
+        typedef std::shared_ptr<ConditionConstantComparator> ptr_t;
 
     private:
 
@@ -302,7 +302,7 @@ namespace currentia {
         Comparator::Type comparator_type_;
 
     public:
-        typedef std::tr1::shared_ptr<ConditionAttributeComparator> ptr_t;
+        typedef std::shared_ptr<ConditionAttributeComparator> ptr_t;
 
         ConditionAttributeComparator(std::string target1_attribute_name,
                                      Comparator::Type comparator_type,

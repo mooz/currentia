@@ -23,12 +23,12 @@ namespace currentia {
             NUMBER_OF_TYPES
         };
 
-        typedef std::tr1::shared_ptr<Object> ptr_t;
+        typedef std::shared_ptr<Object> ptr_t;
 
         // typedef int int_number_t;
         // typedef double double_number_t;
-        typedef std::tr1::shared_ptr<std::string> string_ptr_t;
-        typedef std::tr1::shared_ptr<char*> blob_ptr_t;
+        typedef std::shared_ptr<std::string> string_ptr_t;
+        typedef std::shared_ptr<char*> blob_ptr_t;
 
         enum Type type;         // TODO: make it const (immutable)
 
