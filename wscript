@@ -1,18 +1,28 @@
 # -*- python -*-
 
-subdirs = "src"
+# special variables
+top = "."
+out = "build"
+
+# subdirectories
+sourcedir = "src"
+testdir   = "test"
+subdirs   = " ".join([sourcedir, testdir])
+
+# cxx flags
+cxxflags = ["-O2", "-Wall", "-g", "-pipe"]
 
 def options(opt):
-    opt.load("compiler_cxx waf_unit_test")
+    opt.load("unittestt", tooldir=testdir)
+    opt.load("compiler_cxx")
+    opt.recurse(subdirs)
 
 def configure(conf):
-    conf.load("compiler_cxx waf_unit_test")
-    conf.env.append_value("CXXFLAGS", ["-O2", "-Wall", "-g", "-pipe"]) # stores configuration persistently (conf.env). See build/c4che/_cache.py
-    conf.check_cxx(lib = "gtest_main", uselib_store = "gtest_main")
-    # recursively
+    conf.load("compiler_cxx")
+    conf.env.append_value("CXXFLAGS", cxxflags)
+    conf.load("unittestt", tooldir=testdir)
+    conf.check_cxx(lib="gtest_main", uselib_store="GTEST_MAIN")
     conf.recurse(subdirs)
 
 def build(bld):
-    from waflib.Tools import waf_unit_test
-    bld.add_post_fun(waf_unit_test.summary)
     bld.recurse(subdirs)

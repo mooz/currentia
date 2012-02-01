@@ -19,7 +19,7 @@ TEST (testLexer, whitespace) {
 }
 
 TEST (testLexer, comment) {
-   std::istringstream is("SELECT # SELECT FROM WHERE"); 
+    std::istringstream is("SELECT # SELECT FROM WHERE");
     currentia::Lexer lexer(&is);
 
     EXPECT_EQ(Lexer::SELECT, lexer.next_token());

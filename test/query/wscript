@@ -10,8 +10,10 @@ def configure(conf):
 
 def build(bld):
     bld.program(
-      source   = "parser.cpp",
-      target   = "parser",
-      includes = ". ../../"
+        features = 'testt',
+        source   = 'test_lexer.cpp',
+        includes = '../../src',
+        target   = 'test_lexer',
+        uselib   = 'GTEST_MAIN'
     )
     bld.recurse(subdirs)
