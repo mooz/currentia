@@ -20,7 +20,7 @@ namespace currentia {
             STRING,
             BLOB,
             //
-            NUMBER_OF_TYPES
+            UNKNOWN
         };
 
         typedef std::shared_ptr<Object> ptr_t;
@@ -116,9 +116,9 @@ namespace currentia {
 
             if (type != target.type) {
                 std::cerr << "Warning: comparing imcompatible type \""
-                          << type2string(type)
+                          << type_to_string(type)
                           << "\" and \""
-                          << type2string(target.type) << "\" " << std::endl;
+                          << type_to_string(target.type) << "\" " << std::endl;
                 // TODO: implement smart casting
                 return false;
             }
@@ -154,7 +154,7 @@ namespace currentia {
             return this->compare(target, Comparator::EQUAL);
         }
 
-        static std::string type2string(Object::Type type) {
+        static std::string type_to_string(Object::Type type) {
             switch (type) {
             case INT:
                 return std::string("TYPE_INT");
@@ -167,6 +167,21 @@ namespace currentia {
             default:
                 return std::string("TYPE_UNKNOWN");
             }
+        }
+
+        static Type string_to_type(const std::string& type_name) {
+            Object::Type type = UNKNOWN;
+
+            if (type_name == "INT")
+                type = INT;
+            else if (type_name == "FLOAT")
+                type = FLOAT;
+            else if (type_name == "STRING")
+                type = STRING;
+            else if (type_name == "BLOB")
+                type = BLOB;
+
+            return type;
         }
     };
 }
