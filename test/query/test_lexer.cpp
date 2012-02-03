@@ -62,3 +62,39 @@ TEST (testLexer, name) {
 
     EXPECT_EQ(Lexer::EOS, lexer.next_token());
 }
+
+TEST (testLexer, DDL) {
+    std::istringstream is("CREATE STREAM members (name STRING, age INT, income INT)");
+    currentia::Lexer lexer(&is);
+
+    EXPECT_EQ(Lexer::CREATE, lexer.next_token());
+    EXPECT_EQ(Lexer::STREAM, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("MEMBERS", lexer.get_latest_name());
+
+    EXPECT_EQ(Lexer::LPAREN, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("NAME", lexer.get_latest_name());
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("STRING", lexer.get_latest_name());
+
+    EXPECT_EQ(Lexer::COMMA, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("AGE", lexer.get_latest_name());
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("INT", lexer.get_latest_name());
+
+    EXPECT_EQ(Lexer::COMMA, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("INCOME", lexer.get_latest_name());
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("INT", lexer.get_latest_name());
+
+    EXPECT_EQ(Lexer::RPAREN, lexer.next_token());
+
+    EXPECT_EQ(Lexer::EOS, lexer.next_token());
+}
