@@ -7,13 +7,14 @@
 #include "currentia/core/stream.h"
 #include "currentia/core/schema.h"
 #include "currentia/core/pointer.h"
+
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 
 namespace currentia {
-    class Operator: private NonCopyable<Operator> {
+    class Operator: private NonCopyable<Operator>,
+                    public Pointable<Operator> {
     public:
-        typedef std::tr1::shared_ptr<Operator> ptr_t;
-
         // get next tuple from input stream and process
         virtual Tuple::ptr_t next() = 0; // blocking operator
 

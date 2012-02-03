@@ -6,6 +6,26 @@
 #include "currentia/query/lexer.h"
 #include "currentia/trait/non-copyable.h"
 
+#include "currentia/query/ast.h"
+
+#define ASSERT_TOKEN(token)                                     \
+    do {                                                        \
+        if (current_token_ != Lexer::token) {                   \
+            report_error_(                                      \
+                "Expected " #token ", but got "                 \
+                + Lexer::token_to_string(current_token_)        \
+            );                                                  \
+        }                                                       \
+    } while (0)
+
+#define ASSERT_TOKEN_IS_NUMBER()                        \
+    do {                                                \
+        if (current_token_ != Lexer::INTEGER &&         \
+            current_token_ != Lexer::FLOAT) {           \
+            report_error_("Expected INTEGER or FLOAT"); \
+        }                                               \
+    } while (0)
+
 namespace currentia {
     class Parser: private NonCopyable<Parser> {
         Lexer::ptr_t lexer_ptr_;
@@ -48,6 +68,16 @@ namespace currentia {
             }
         }
 
+        AbstractNode::ptr_t parse_statement() {
+            try {
+                get_next_token_();
+                return parse_statement_();
+            } catch (std::string error) {
+                std::cerr << "\nSyntax Error: " << error << std::endl;
+                return AbstractNode::ptr_t();
+            }
+        }
+
     private:
         void report_error_(std::string message) {
             std::stringstream ss;
@@ -67,43 +97,44 @@ namespace currentia {
             std::cout << message << std::endl;
         }
 
-        void parse_statement_() {
+        AbstractNode::ptr_t parse_statement_() {
             switch (current_token_) {
             case Lexer::SELECT:
-                parse_selection_();
-                break;
+                return parse_selection_();
             case Lexer::CREATE:
-                report_error_("DDL is unimplemented");
-                break;
+                return parse_create_();
             default:
                 report_error_("Expected SELECT or CREATE");
             }
         }
 
+        // ------------------------------------------------------------ //
+        // DML
+        // ------------------------------------------------------------ //
+
         // <SELECTION> : SELECT <ATTRIBUTES> FROM <FROM_ELEMENTS> WHERE <CONDITIONS>
         long selection_depth_;
-        void parse_selection_() {
+        AbstractNode::ptr_t parse_selection_() {
             selection_depth_++;
 
-            if (current_token_ != Lexer::SELECT)
-                report_error_("Expected SELECT");
+            ASSERT_TOKEN(SELECT);
             get_next_token_();
 
             parse_attributes_();
 
-            if (current_token_ != Lexer::FROM)
-                report_error_("Expected FROM");
+            ASSERT_TOKEN(FROM);
             get_next_token_();
 
-            parse_from_elements_();
+            parse_from_elements_(); // returns std::list<Operator::ptr_t>
 
-            if (current_token_ != Lexer::WHERE)
-                report_error_("Expected WHERE");
+            ASSERT_TOKEN(WHERE);
             get_next_token_();
 
-            parse_conditions_();
+            parse_conditions_(); // returns Condition::ptr_t
 
             selection_depth_--;
+
+            return AbstractNode::ptr_t();
         }
 
         // <ATTRIBUTES> := <ATTRIBUTE> (COMMA <ATTRIBUTES>)?
@@ -117,9 +148,8 @@ namespace currentia {
         }
 
         // <ATTRIBUTE> := NAME (DOT NAME)?
-        void parse_attribute_() {
-            if (current_token_ != Lexer::NAME)
-                report_error_("Expected NAME");
+        std::string parse_attribute_() {
+            ASSERT_TOKEN(NAME);
 
             std::string stream_name = "DEFAULT_STREAM";
             std::string attribute_name = get_current_string_();
@@ -132,7 +162,7 @@ namespace currentia {
                 get_next_token_(); // Trash NAME
             }
 
-            indented_print("Attribute(" + stream_name + ", " + attribute_name + ")");
+            return attribute_name;
         }
 
         // <FROM_ELEMENTS> := <FROM_ELEMENT> (COMMA <ATTRIBUTES>)?
@@ -166,6 +196,8 @@ namespace currentia {
 
             if (current_token_ == Lexer::LBRACKET)
                 parse_window_();
+
+            return SelectionNode::ptr_t();
         }
 
         // <WINDOW> := LBRACKET
@@ -173,14 +205,11 @@ namespace currentia {
         //                 (ADVANCE (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR))?
         //             RBRACKET
         void parse_window_() {
-            if (current_token_ != Lexer::LBRACKET)
-                report_error_("Expected '[' for window specification");
+            ASSERT_TOKEN(LBRACKET);
             get_next_token_(); // Trash LBRACKET
 
             // parse window width
-            if (current_token_ != Lexer::INTEGER &&
-                current_token_ != Lexer::FLOAT)
-                report_error_("Expected INTEGER or FLOAT for window width");
+            ASSERT_TOKEN_IS_NUMBER();
             get_next_token_();  // Trash number
 
             if (current_token_ == Lexer::ROWS) {
@@ -191,9 +220,7 @@ namespace currentia {
                 get_next_token_(); // Trash ADVANCE
 
                 // parse window stride
-                if (current_token_ != Lexer::INTEGER &&
-                    current_token_ != Lexer::FLOAT)
-                    report_error_("Expected INTEGER or FLOAT for window stride");
+                ASSERT_TOKEN_IS_NUMBER();
                 get_next_token_();  // Trash number
 
                 if (current_token_ == Lexer::ROWS) {
@@ -201,8 +228,7 @@ namespace currentia {
                 }
             }
 
-            if (current_token_ != Lexer::RBRACKET)
-                report_error_("Expected ']' for window specification");
+            ASSERT_TOKEN(RBRACKET);
             get_next_token_(); // Trash RBRACKET
         }
 
@@ -226,8 +252,7 @@ namespace currentia {
             case Lexer::LPAREN:
                 get_next_token_(); // Trash LPAREN
                 parse_conditions_();
-                if (current_token_ != Lexer::RPAREN)
-                    report_error_("Expected ')'");
+                ASSERT_TOKEN(RPAREN);
                 get_next_token_(); // Trash RPAREN
                 break;
             default:
@@ -271,7 +296,68 @@ namespace currentia {
                 report_error_("Expected <COMPARATOR>");
             }
         }
+
+        // ------------------------------------------------------------ //
+        // DDL
+        // ------------------------------------------------------------ //
+
+        // <CREATE> := CREATE STREAM NAME (COMMA <ATTRIBUTE_DEFS>)?
+        AbstractNode::ptr_t parse_create_() {
+            ASSERT_TOKEN(CREATE);
+            get_next_token_();  // Trash CREATE
+
+            // TODO: support other create types (TABLE, VIEW, TRIGGER, INDEX, ...)
+            ASSERT_TOKEN(STREAM);
+            get_next_token_();  // Trash STREAM
+
+            ASSERT_TOKEN(NAME);
+            std::string stream_name = get_current_string_();
+            get_next_token_();  // Trash NAME
+
+            ASSERT_TOKEN(LPAREN);
+            get_next_token_();  // Trash LPAREN
+
+            std::list<Attribute> attributes = parse_attribute_defs_();
+
+            ASSERT_TOKEN(RPAREN);
+            get_next_token_();  // Trash RPAREN
+
+            return AbstractNode::ptr_t(new CreateNode(stream_name, attributes));
+        }
+
+        // <ATTRIBUTE_DEFS> := <ATTRIBUTE_DEF> (COMMA <ATTRIBUTE_DEFS>)?
+        std::list<Attribute> parse_attribute_defs_() {
+            std::list<Attribute> attributes;
+            attributes.push_back(parse_attribute_def_());
+
+            if (current_token_ == Lexer::COMMA) {
+                get_next_token_(); // Trash COMMA
+                std::list<Attribute> rest_attributes = parse_attribute_defs_();
+                attributes.insert(attributes.end(), rest_attributes.begin(), rest_attributes.end());
+            }
+
+            return attributes;
+        }
+
+        // <ATTRIBUTE_DEF> := <NAME> <NAME>
+        Attribute parse_attribute_def_() {
+            ASSERT_TOKEN(NAME);
+            std::string attribute_name = get_current_string_();
+            get_next_token_();
+
+            ASSERT_TOKEN(NAME);
+            std::string type_name = get_current_string_();
+            get_next_token_();
+
+            Object::Type type = Object::string_to_type(type_name);
+            if (type == Object::UNKNOWN)
+                report_error_("Unknown type " + type_name);
+
+            return Attribute(attribute_name, type);
+        }
     };
 }
+
+#undef ASSERT_TOKEN
 
 #endif  /* ! CURRENTIA_QUERY_PARSER_H_  */

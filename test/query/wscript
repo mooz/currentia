@@ -9,11 +9,14 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
-    bld.program(
-        features = 'testt',
-        source   = 'test_lexer.cpp',
-        includes = '../../src',
-        target   = 'test_lexer',
-        uselib   = 'GTEST_MAIN'
-    )
+    def do_test(name):
+        bld.program(
+            features = 'testt',
+            source   = name + '.cpp',
+            includes = '../../src',
+            target   = name,
+            uselib   = 'GTEST_MAIN'
+        )
+    do_test("test_lexer")
+    do_test("test_ddl_parser")
     bld.recurse(subdirs)

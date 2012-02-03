@@ -6,7 +6,9 @@
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
 #include "currentia/core/thread.h"
+
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/printable.h"
 
 #include <map>
 #include <vector>
@@ -16,13 +18,17 @@
 #include <list>
 
 namespace currentia {
-    struct Attribute {
+    struct Attribute : public Printable<Attribute> {
         std::string  name;
         Object::Type type;
 
         Attribute(std::string name, Object::Type type):
             name(name),
             type(type) {
+        }
+
+        std::string toString() const {
+            return "<" + name + " " + Object::type_to_string(type) + ">";
         }
     };
 
