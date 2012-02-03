@@ -130,6 +130,10 @@ namespace currentia {
             return token == AND || token == OR;
         }
 
+        static bool is_token_value(Token token) {
+            return token == STRING || token == INTEGER || token == FLOAT;
+        }
+
         static bool is_alphabet(int c) {
             return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
         }

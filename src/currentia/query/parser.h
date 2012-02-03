@@ -8,6 +8,8 @@
 
 #include "currentia/query/ast.h"
 
+#include "currentia/core/operator/condition.h"
+
 #define ASSERT_TOKEN(token)                                     \
     do {                                                        \
         if (current_token_ != Lexer::token) {                   \
@@ -138,17 +140,27 @@ namespace currentia {
         }
 
         // <ATTRIBUTES> := <ATTRIBUTE> (COMMA <ATTRIBUTES>)?
-        void parse_attributes_() {
-            parse_attribute_();
+        std::list<AttributeIdentifier> parse_attributes_() {
+            std::list<AttributeIdentifier> attribute_identifiers;
+
+            AttributeIdentifier attribute_identifier = parse_attribute_();
+            attribute_identifiers.push_back(attribute_identifier);
 
             if (current_token_ == Lexer::COMMA) {
                 get_next_token_(); // Trash COMMA
-                parse_attributes_();
+                std::list<AttributeIdentifier> rest_attribute_identifiers = parse_attributes_();
+                attribute_identifiers.insert(
+                    attribute_identifiers.end(),
+                    rest_attribute_identifiers.begin(),
+                    rest_attribute_identifiers.end()
+                );
             }
+
+            return attribute_identifiers;
         }
 
         // <ATTRIBUTE> := NAME (DOT NAME)?
-        std::string parse_attribute_() {
+        AttributeIdentifier parse_attribute_() {
             ASSERT_TOKEN(NAME);
 
             std::string stream_name = "DEFAULT_STREAM";
@@ -162,12 +174,13 @@ namespace currentia {
                 get_next_token_(); // Trash NAME
             }
 
-            return attribute_name;
+            return AttributeIdentifier(attribute_name, stream_name);
         }
 
         // <FROM_ELEMENTS> := <FROM_ELEMENT> (COMMA <ATTRIBUTES>)?
         void parse_from_elements_() {
-            parse_from_element_();
+            std::list<SelectionNode::ptr_t> from_elements;
+            from_elements.push_back(parse_from_element_());
 
             if (current_token_ == Lexer::COMMA) {
                 get_next_token_(); // Trash COMMA
@@ -232,69 +245,178 @@ namespace currentia {
             get_next_token_(); // Trash RBRACKET
         }
 
+        // TODO: to testing
+    public:
+        Condition::ptr_t parse_conditions() {
+            get_next_token_();
+            return parse_conditions_();
+        }
+    private:
+
         // <CONDITIONS> := <CONDITION> ((AND | OR) <CONDITIONS>)?
-        void parse_conditions_() {
-            parse_condition_();
+        Condition::ptr_t parse_conditions_() {
+            Condition::ptr_t condition = parse_condition_();
 
             if (Lexer::is_token_conjunctive(current_token_)) {
-                get_next_token_(); // Trash CONJUNCTIVE
-                parse_conditions_();
+                ConditionConjunctive::Type conjunctive_type;
+                switch (current_token_) {
+                case Lexer::AND:
+                    conjunctive_type = ConditionConjunctive::AND;
+                    break;
+                case Lexer::OR:
+                    conjunctive_type = ConditionConjunctive::OR;
+                    break;
+                default:
+                    report_error_("Not handled ConditionConjunctive");
+                }
+                get_next_token_();
+                Condition::ptr_t right_conditions = parse_conditions_();
+
+                condition.reset(
+                    new ConditionConjunctive(
+                        condition,
+                        right_conditions,
+                        conjunctive_type
+                    )
+                );
             }
+
+            return condition;
         }
 
         // <CONDITION> := NOT? (LPAREN <CONDITIONS> RPAREN | <COMPARISON>)
-        void parse_condition_() {
+        Condition::ptr_t parse_condition_() {
+            bool negated = false;
             if (current_token_ == Lexer::NOT) {
+                negated = true;
                 get_next_token_(); // Trash NOT
             }
 
+            Condition::ptr_t condition;
             switch (current_token_) {
             case Lexer::LPAREN:
                 get_next_token_(); // Trash LPAREN
-                parse_conditions_();
+                condition = parse_conditions_();
                 ASSERT_TOKEN(RPAREN);
                 get_next_token_(); // Trash RPAREN
                 break;
             default:
-                parse_comparison_();
+                condition = parse_comparison_();
                 break;
             }
+
+            if (negated)
+                condition->negate();
+
+            return condition;
         }
 
-        // <COMPARISON> := <VALUE> <COMPARATOR> <VALUE>
-        void parse_comparison_() {
-            parse_value_();
-            parse_comparator_();
-            parse_value_();
+        // <COMPARISON> := <VALUE> <COMPARATOR> <ATTRIBUTE> |
+        //                 <ATTRIBUTE> <COMPARATOR> <VALUE> |
+        //                 <ATTRIBUTE> <COMPARATOR> <ATTRIBUTE>
+        Condition::ptr_t parse_comparison_() {
+            if (Lexer::is_token_value(current_token_)) {
+                // <VALUE> <COMPARATOR> <ATTRIBUTE>
+                Object value = parse_value_();
+                Comparator::Type comparator = parse_comparator_();
+                AttributeIdentifier attribute_identifier = parse_attribute_();
+
+                return Condition::ptr_t(
+                    new ConditionConstantComparator(
+                        attribute_identifier.name, // TODO: make Comparator to use AttributeIdentifier
+                        comparator,
+                        value
+                    )
+                );
+            } else {
+                AttributeIdentifier attribute_identifier = parse_attribute_();
+                Comparator::Type comparator = parse_comparator_();
+
+                if (Lexer::is_token_value(current_token_)) {
+                    // <ATTRIBUTE> <COMPARATOR> <VALUE>
+                    Object value = parse_value_();
+
+                    return Condition::ptr_t(
+                        new ConditionConstantComparator(
+                            attribute_identifier.name,
+                            comparator,
+                            value
+                        )
+                    );
+                } else {
+                    // <ATTRIBUTE> <COMPARATOR> <ATTRIBUTE>
+                    AttributeIdentifier attribute_identifier2 = parse_attribute_();
+
+                    return Condition::ptr_t(
+                        new ConditionAttributeComparator(
+                            attribute_identifier.name,
+                            comparator,
+                            attribute_identifier2.name
+                        )
+                    );
+                }
+            }
         }
 
         // <VALUE> := STRING | INTEGER | FLOAT | <ATTRIBUTE>
-        void parse_value_() {
-            switch (current_token_) {
+        Object parse_value_() {
+            if (!Lexer::is_token_value(current_token_))
+                report_error_("Expected <VALUE>");
+
+            Lexer::Token value_token = current_token_;
+            std::string value_string = get_current_string_();
+            get_next_token_();  // Trash <VALUE>
+
+            std::stringstream ss;
+
+            switch (value_token) {
             case Lexer::STRING:
+                return Object(value_string);
             case Lexer::INTEGER:
+                int value_int;
+                ss << value_string;
+                ss >> value_int;
+                return Object(value_int);
             case Lexer::FLOAT:
-                get_next_token_(); // Trash <VALUE>
-                break;
+                double value_float;
+                ss << value_string;
+                ss >> value_float;
+                return Object(value_float);
             default:
-                parse_attribute_();
+                report_error_("Unknown Error");
             }
         }
 
-        // <COMPARATOR> := EQOAL | NOT_EQUAL | LESS_THAN | LESS_THAN_EQUAL | GREATER_THAN | GREATER_THAN_EQUAL
-        void parse_comparator_() {
+        // <COMPARATOR> := EQUAL | NOT_EQUAL | LESS_THAN | LESS_THAN_EQUAL | GREATER_THAN | GREATER_THAN_EQUAL
+        Comparator::Type parse_comparator_() {
+            Comparator::Type comparator;
+
             switch (current_token_) {
             case Lexer::EQUAL:
+                comparator = Comparator::EQUAL;
+                break;
             case Lexer::NOT_EQUAL:
+                comparator = Comparator::NOT_EQUAL;
+                break;
             case Lexer::LESS_THAN:
+                comparator = Comparator::LESS_THAN;
+                break;
             case Lexer::LESS_THAN_EQUAL:
+                comparator = Comparator::LESS_THAN_EQUAL;
+                break;
             case Lexer::GREATER_THAN:
+                comparator = Comparator::GREATER_THAN;
+                break;
             case Lexer::GREATER_THAN_EQUAL:
-                get_next_token_(); // Trash <COMPARATOR>
+                comparator = Comparator::GREATER_THAN_EQUAL;
                 break;
             default:
                 report_error_("Expected <COMPARATOR>");
             }
+
+            get_next_token_(); // Trash <COMPARATOR>
+
+            return comparator;
         }
 
         // ------------------------------------------------------------ //

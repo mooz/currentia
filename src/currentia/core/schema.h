@@ -32,6 +32,21 @@ namespace currentia {
         }
     };
 
+    // TODO: is this header file is suitable for placing this class?
+    struct AttributeIdentifier : public Printable<AttributeIdentifier> {
+        std::string name;
+        std::string stream_name;
+
+        AttributeIdentifier(const std::string& name, const std::string& stream_name):
+            name(name),
+            stream_name(stream_name) {
+        }
+
+        std::string toString() const {
+            return stream_name + "." + name;
+        }
+    };
+
     inline
     static long get_next_schema_id() {
         static long next_schema_id = 1;

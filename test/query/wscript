@@ -19,4 +19,5 @@ def build(bld):
         )
     do_test("test_lexer")
     do_test("test_ddl_parser")
+    do_test("test_condition_parser")
     bld.recurse(subdirs)
