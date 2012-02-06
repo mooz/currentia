@@ -42,17 +42,23 @@ namespace currentia {
             INTEGER,                // [0-9]
             FLOAT,                  // [0-9].[0-9]*
 
-            // symbols
+            // misc
             NOT,                    // NOT
+            IN,                     // IN
+
             // window specification
             ROWS,                   // ROWS
             ADVANCE,                // ADVANCE
             LBRACKET,               // "["
             RBRACKET,               // "]"
+
+            // other symbols
             COMMA,                  // ","
             DOT,                    // "."
             LPAREN,                 // "("
             RPAREN,                 // ")"
+
+            // comparator
             EQUAL,                  // "="
             NOT_EQUAL,              // "!="
             LESS_THAN,              // "<"
@@ -160,6 +166,8 @@ namespace currentia {
                 return "OR";
             case NOT:
                 return "NOT";
+            case IN:
+                return "IN";
             case ROWS:
                 return "ROWS";
             case ADVANCE:
@@ -317,6 +325,9 @@ namespace currentia {
 
             if (name_string_ == "NOT")
                 return NOT;
+            if (name_string_ == "IN")
+                return IN;
+
             if (name_string_ == "ROWS" ||
                 name_string_ == "TUPLES") // TUPLES is a synonym of ROWS
                 return ROWS;

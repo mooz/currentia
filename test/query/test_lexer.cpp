@@ -26,7 +26,6 @@ TEST (testLexer, comment) {
     EXPECT_EQ(Lexer::EOS, lexer.next_token());
 }
 
-
 TEST (testLexer, keywords) {
     std::istringstream is("SELECT FROM WHERE");
     currentia::Lexer lexer(&is);
@@ -95,6 +94,23 @@ TEST (testLexer, DDL) {
     EXPECT_EQ("INT", lexer.get_latest_name());
 
     EXPECT_EQ(Lexer::RPAREN, lexer.next_token());
+
+    EXPECT_EQ(Lexer::EOS, lexer.next_token());
+}
+
+TEST (testLexer, IN) {
+    std::istringstream is("WHERE X IN Y");
+    currentia::Lexer lexer(&is);
+
+    EXPECT_EQ(Lexer::WHERE, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("X", lexer.get_latest_name());
+
+    EXPECT_EQ(Lexer::IN, lexer.next_token());
+
+    EXPECT_EQ(Lexer::NAME, lexer.next_token());
+    EXPECT_EQ("Y", lexer.get_latest_name());
 
     EXPECT_EQ(Lexer::EOS, lexer.next_token());
 }
