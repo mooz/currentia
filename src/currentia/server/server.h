@@ -126,13 +126,11 @@ namespace currentia {
         }
     };
 
-    void listen_thread_body(Server* server)
-    {
+    void listen_thread_body(Server* server) {
         server->listen();
     }
 
-    void process_thread_body( Server* server)
-    {
+    void process_thread_body(Server* server) {
         server->process();
     }
 }
