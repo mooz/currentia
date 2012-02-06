@@ -4,7 +4,9 @@
 #define CURRENTIA_QUERY_PARSER_H_
 
 #include "currentia/query/lexer.h"
+
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 
 #include "currentia/query/ast.h"
 
@@ -29,7 +31,8 @@
     } while (0)
 
 namespace currentia {
-    class Parser: private NonCopyable<Parser> {
+    class Parser: private NonCopyable<Parser>,
+                  public Pointable<Parser> {
         Lexer::ptr_t lexer_ptr_;
 
         Lexer::Token current_token_;
@@ -78,6 +81,21 @@ namespace currentia {
                 std::cerr << "\nSyntax Error: " << error << std::endl;
                 return AbstractNode::ptr_t();
             }
+        }
+
+        static Parser::ptr_t create_parser_from_stream(std::istream& input) {
+            Lexer::ptr_t lexer(new Lexer(&input));
+            Parser::ptr_t parser(new Parser(lexer));
+
+            return parser;
+        }
+
+        static AbstractNode::ptr_t parse_statement_from_stream(std::istream& input) {
+            return create_parser_from_stream(input)->parse_statement();
+        }
+
+        static Condition::ptr_t parse_conditions_from_stream(std::istream& input) {
+            return create_parser_from_stream(input)->parse_conditions_();
         }
 
     private:
@@ -245,12 +263,6 @@ namespace currentia {
             get_next_token_(); // Trash RBRACKET
         }
 
-        // TODO: to testing
-    public:
-        Condition::ptr_t parse_conditions() {
-            get_next_token_();
-            return parse_conditions_();
-        }
     private:
 
         // <CONDITIONS> := <CONDITION> ((AND | OR) <CONDITIONS>)?

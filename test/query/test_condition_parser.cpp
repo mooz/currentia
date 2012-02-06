@@ -8,10 +8,8 @@ template<typename T>
 std::tr1::shared_ptr<T>
 parse_string(const std::string& source) {
     std::istringstream is(source);
-    Lexer::ptr_t lexer(new Lexer(&is));
-    Parser parser(lexer);
 
-    return std::tr1::dynamic_pointer_cast<T>(parser.parse_conditions());
+    return std::tr1::dynamic_pointer_cast<T>(Parser::parse_conditions_from_stream(is));
 }
 
 TEST (testLexer, comparatorConjunctive) {
