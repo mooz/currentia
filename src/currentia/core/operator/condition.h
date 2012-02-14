@@ -99,11 +99,11 @@ namespace currentia {
         bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
             switch (type_) {
             case ConditionConjunctive::AND:
-                return left_condition_->check(tuple1_ptr)
-                    && right_condition_->check(tuple2_ptr);
+                return left_condition_->check(tuple1_ptr, tuple2_ptr)
+                    && right_condition_->check(tuple1_ptr, tuple2_ptr);
             case ConditionConjunctive::OR:
-                return left_condition_->check(tuple1_ptr)
-                    || right_condition_->check(tuple2_ptr);
+                return left_condition_->check(tuple1_ptr, tuple2_ptr)
+                    || right_condition_->check(tuple1_ptr, tuple2_ptr);
             }
         }
 
