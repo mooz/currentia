@@ -95,7 +95,17 @@ namespace currentia {
         }
 
         static Condition::ptr_t parse_conditions_from_stream(std::istream& input) {
-            return create_parser_from_stream(input)->parse_conditions_();
+            // for internal parsing methods, we have to call get_next_token_() at first.
+            Parser::ptr_t parser = create_parser_from_stream(input);
+            parser->get_next_token_();
+            return parser->parse_conditions_();
+        }
+
+        static CreateNode::ptr_t parse_create_from_stream(std::istream& input) {
+            // same reason as mentioned in parse_conditions_from_stream()
+            Parser::ptr_t parser = create_parser_from_stream(input);
+            parser->get_next_token_();
+            return parser->parse_create_();
         }
 
     private:
