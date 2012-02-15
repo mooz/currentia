@@ -306,6 +306,14 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     cmd_parser.parse_check(argc, argv);
 }
 
+#include <sys/time.h>
+
+double get_current_time_in_seconds() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 0.001 * 0.001;
+}
+
 int main(int argc, char **argv)
 {
     using namespace currentia;
@@ -320,6 +328,8 @@ int main(int argc, char **argv)
     typedef void* (*pthread_body_t)(void*);
     pthread_t listen_thread, process_thread, stream_sending_thread;
 
+    double begin_time = get_current_time_in_seconds();
+
     pthread_create(&listen_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
     pthread_create(&process_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
     pthread_create(&stream_sending_thread, NULL, reinterpret_cast<pthread_body_t>(stream_sending_thread_body), NULL);
@@ -327,6 +337,15 @@ int main(int argc, char **argv)
     pthread_join(listen_thread, NULL);
     pthread_join(process_thread, NULL);
     pthread_join(stream_sending_thread, NULL);
+
+    struct timeval end_time_val;
+    gettimeofday(&end_time_val, NULL);
+
+    double end_time = get_current_time_in_seconds();
+
+    double elapsed_seconds = end_time - begin_time;
+
+    std::cout << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl;
 
     return 0;
 }
