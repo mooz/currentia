@@ -451,8 +451,9 @@ namespace currentia {
             get_next_token_();  // Trash CREATE
 
             // TODO: support other create types (TABLE, VIEW, TRIGGER, INDEX, ...)
-            ASSERT_TOKEN(STREAM);
-            get_next_token_();  // Trash STREAM
+            if (current_token_ != Lexer::STREAM && current_token_ != Lexer::TABLE)
+                report_error_("Error: expected STREAM or TABLE"); 
+            get_next_token_();  // Trash STREAM or TABLE
 
             ASSERT_TOKEN(NAME);
             std::string stream_name = get_current_string_();

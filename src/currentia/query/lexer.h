@@ -30,6 +30,7 @@ namespace currentia {
             // {{{ DDL --------------------------------
             CREATE,                 // "CREATE"
             STREAM,                 // "STREAM"
+            TABLE,                  // "TABLE"
             // }}} DDL --------------------------------
 
             // identifier
@@ -176,6 +177,8 @@ namespace currentia {
                 return "CREATE";
             case STREAM:
                 return "STREAM";
+            case TABLE:
+                return "TABLE";
             case NAME:
                 return "NAME";
             case STRING:
@@ -310,6 +313,8 @@ namespace currentia {
                 return CREATE;
             if (name_string_ == "STREAM")
                 return STREAM;
+            if (name_string_ == "TABLE")
+                return TABLE;
 
             if (name_string_ == "SELECT")
                 return SELECT;
