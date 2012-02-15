@@ -30,8 +30,11 @@ namespace currentia {
         }
 
         inline
-        Tuple::ptr_t next() {
+        Tuple::ptr_t next_implementation() {
             while (Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next()) {
+                if (target_tuple_ptr->is_system_message())
+                    return target_tuple_ptr;
+
                 if (condition_ptr_->check(target_tuple_ptr))
                     return target_tuple_ptr;
                 // otherwise, tuple will be *deleted* by the shared_ptr

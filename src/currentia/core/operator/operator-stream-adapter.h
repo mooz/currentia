@@ -26,7 +26,7 @@ namespace currentia {
         }
 
         inline
-        Tuple::ptr_t next() {
+        Tuple::ptr_t next_implementation() {
             return input_stream_ptr_->dequeue();
         }
     };

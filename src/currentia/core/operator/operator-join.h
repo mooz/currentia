@@ -41,8 +41,9 @@ namespace currentia {
 
         typedef std::list<Tuple::ptr_t> join_results_t;
 
+        // TODO: Pass through system message (currently, blocked because read_next_tuples is batch operation)
         std::list<Tuple::ptr_t> remained_join_results_;
-        Tuple::ptr_t next() {
+        Tuple::ptr_t next_implementation() {
             while (remained_join_results_.empty()) {
                 left_synopsis_.read_next_tuples(parent_left_operator_ptr_);
                 right_synopsis_.read_next_tuples(parent_right_operator_ptr_);

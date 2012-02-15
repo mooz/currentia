@@ -16,7 +16,12 @@ namespace currentia {
                     public Pointable<Operator> {
     public:
         // get next tuple from input stream and process
-        virtual Tuple::ptr_t next() = 0; // blocking operator
+        Tuple::ptr_t next() {
+            Tuple::ptr_t result = next_implementation();
+            return result;
+        }
+
+        virtual Tuple::ptr_t next_implementation() = 0; // blocking operator
 
         virtual Schema::ptr_t get_output_schema_ptr() = 0;
     };
