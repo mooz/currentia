@@ -9,6 +9,8 @@ int main(int argc, char **argv)
 
     typedef void* (*pthread_body_t)(void*);
 
+#if 0
+
     Schema::ptr_t schema = create_schema();
     Server server(schema);
 
@@ -22,6 +24,8 @@ int main(int argc, char **argv)
 
     pthread_join(listen_thread, NULL);
     pthread_join(process_thread, NULL);
+
+#endif
 
     return 0;
 }
