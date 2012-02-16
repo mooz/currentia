@@ -10,8 +10,11 @@
 #include "currentia/core/operator/operator.h"
 #include "currentia/core/operator/condition.h"
 
+#include "currentia/trait/pointable.h"
+
 namespace currentia {
-    class OperatorSelection: public Operator {
+    class OperatorSelection: public Operator,
+                             public Pointable<OperatorSelection> {
         Condition::ptr_t condition_ptr_;
         Operator::ptr_t parent_operator_ptr_;
         Schema::ptr_t output_schema_ptr_;
@@ -20,6 +23,8 @@ namespace currentia {
         int selected_tuple_count_;
 
     public:
+        typedef Pointable<OperatorSelection>::ptr_t ptr_t;
+
         OperatorSelection(Operator::ptr_t parent_operator_ptr,
                           Condition::ptr_t condition_ptr):
             condition_ptr_(condition_ptr),
