@@ -16,4 +16,18 @@ def build(bld):
       lib      = ["pthread"],
     )
 
+    bld.program(
+      source   = "experiment_lock.cpp",
+      target   = "experiment_lock",
+      includes = ". ../../",
+      lib      = ["pthread"],
+    )
+
+    # bld.program(
+    #   source   = "experiment_versioning.cpp",
+    #   target   = "experiment_versioning",
+    #   includes = ". ../../",
+    #   lib      = ["pthread"],
+    # )
+
     bld.recurse(subdirs)
