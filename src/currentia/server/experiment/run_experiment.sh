@@ -95,14 +95,14 @@ do_bench_update_vs_stream() {
         2>&1 | tee ${UPDATE_VS_STREAM_DIR}/${file_name}
 }
 
-for rate in 1 10 100 1000 10000; do
-    for method in ${METHODS}; do
+for method in ${METHODS}; do
+    for rate in 1 10 100 1000 10000; do
         do_bench_query_vs_update ${method} ${rate}
     done
 done
 
-for rate in 100 1000 10000 100000; do
-    for method in ${METHODS}; do
+for method in ${METHODS}; do
+    for rate in 100 1000 10000 100000; do
         do_bench_update_vs_stream ${method} ${rate}
     done
 done
