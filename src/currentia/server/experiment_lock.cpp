@@ -3,8 +3,13 @@
 #include "currentia/core/thread.h"
 #include "currentia/server/server.h"
 
+#include "currentia/core/stream.h"
+#include "currentia/core/relation.h"
+
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/operator-simple-relation-join.h"
+#include "currentia/core/operator/operator-selection.h"
+#include "currentia/core/operator/operator-election.h"
 
 #include "thirdparty/cmdline.h"
 
@@ -95,8 +100,10 @@ create_stream_from_string(const std::string& input_ddl)
 // Begin Body
 // ======================================================== {{{
 
+// Parameters
 static int PURCHASE_COUNT;
 static int GOODS_COUNT;
+static int AGGREGATION_WINDOW_WIDTH;
 
 static useconds_t UPDATE_INTERVAL;
 
@@ -236,7 +243,6 @@ void setup_query()
 
     Operator::ptr_t purchase_stream_adapter(new OperatorStreamAdapter(purchase_stream));
     {
-        // Stream1 {{{
         // join-relation
         OperatorSimpleRelationJoin::ptr_t relation_join(
             new OperatorSimpleRelationJoin(
@@ -251,9 +257,11 @@ void setup_query()
         std::stringstream is_selection(SELECTION_CONDITION);
         Condition::ptr_t selection_condition = Parser::parse_conditions_from_stream(is_selection);
         OperatorSelection::ptr_t selection(new OperatorSelection(relation_join, selection_condition));
-        // }}} Stream1
 
-        purchase_stream_current = selection;
+        // election (aggregate)
+        OperatorElection::ptr_t election(new OperatorElection(selection, AGGREGATION_WINDOW_WIDTH));
+
+        purchase_stream_current = election;
     }
 
     query_ptr = purchase_stream_current;
@@ -273,6 +281,7 @@ void set_parameters_from_option(cmdline::parser& cmd_parser)
 {
     UPDATE_INTERVAL            = cmd_parser.get<useconds_t>("update-interval");
     PURCHASE_STREAM_INTERVAL   = cmd_parser.get<useconds_t>("purchase-interval");
+    AGGREGATION_WINDOW_WIDTH   = cmd_parser.get<int>("aggregation-window-width");
     PURCHASE_COUNT             = cmd_parser.get<int>("purchase-count");
     GOODS_COUNT                = cmd_parser.get<int>("goods-count");
     MAX_PRICE                  = cmd_parser.get<int>("max-price");
@@ -296,6 +305,7 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // Parameter
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
     cmd_parser.add<useconds_t>("purchase-interval", '\0', "Purchase interval", false, 1000);
+    cmd_parser.add<int>("aggregation-window-width", '\0', "window width for aggregation", false, 10);
     cmd_parser.add<int>("purchase-count", '\0', "Purchase count", false, 1000);
     cmd_parser.add<int>("goods-count", '\0', "Goods count", false, 1000);
     cmd_parser.add<int>("max-price", '\0', "Max price for purchases", false, 100000);
