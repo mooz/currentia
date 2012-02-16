@@ -145,6 +145,8 @@ namespace currentia {
         // <SELECTION> : SELECT <ATTRIBUTES> FROM <FROM_ELEMENTS> WHERE <CONDITIONS>
         long selection_depth_;
         AbstractNode::ptr_t parse_selection_() {
+            // FromSelectionNode::ptr_t selection_node(new FromSelectionNode());
+
             selection_depth_++;
 
             ASSERT_TOKEN(SELECT);
@@ -217,7 +219,11 @@ namespace currentia {
         }
 
         // <FROM_ELEMENT> := (LPAREN <SELECTION> RPAREN | NAME) <WINDOW>?
-        void parse_from_element_() {
+        SelectionNode::ptr_t parse_from_element_() {
+            SelectionNode::ptr_t selection_node(
+                new SelectionNode()
+            );
+
             switch (current_token_) {
             case Lexer::LPAREN:
                 get_next_token_(); // Trash LPAREN
@@ -446,7 +452,7 @@ namespace currentia {
         // ------------------------------------------------------------ //
 
         // <CREATE> := CREATE STREAM NAME (COMMA <ATTRIBUTE_DEFS>)?
-        AbstractNode::ptr_t parse_create_() {
+        CreateNode::ptr_t parse_create_() {
             ASSERT_TOKEN(CREATE);
             get_next_token_();  // Trash CREATE
 
@@ -467,7 +473,7 @@ namespace currentia {
             ASSERT_TOKEN(RPAREN);
             get_next_token_();  // Trash RPAREN
 
-            return AbstractNode::ptr_t(new CreateNode(stream_name, attributes));
+            return CreateNode::ptr_t(new CreateNode(stream_name, attributes));
         }
 
         // <ATTRIBUTE_DEFS> := <ATTRIBUTE_DEF> (COMMA <ATTRIBUTE_DEFS>)?
