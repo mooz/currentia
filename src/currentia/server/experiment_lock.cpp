@@ -78,6 +78,11 @@ create_stream_from_string(const std::string& input_ddl)
     return create_stream_from_schema(create_schema_from_string(input_ddl));
 }
 
+double interval_to_rate(useconds_t interval)
+{
+    return 1.0 / (static_cast<double>(interval) * 0.001 * 0.001);
+}
+
 // }}} ========================================================
 // End Helpers
 // ============================================================
@@ -104,6 +109,7 @@ void* update_status_thread_body(void* argument)
         usleep(UPDATE_INTERVAL);
 
         goods_relation->read_write_lock();
+        goods_relation->update();
         usleep(UPDATE_TIME);
         goods_relation->unlock();
 
@@ -120,10 +126,9 @@ void* process_stream_thread_body(void* argument)
             Tuple::ptr_t next_tuple = query_ptr->next();
             if (next_tuple->is_eos())
                 break;
-            std::cout << next_tuple->toString() << std::endl;
         }
     } catch (const char* error_message) {
-        std::cout << "Error while processing stream: " << error_message << std::endl;
+        std::cerr << "Error while processing stream: " << error_message << std::endl;
     }
 
     return NULL;
@@ -259,11 +264,8 @@ bool already_begin_called = false;
 void input_stream_hook_lock(const Tuple::ptr_t& tuple)
 {
     if (!already_begin_called) {
-        std::cerr << "Lock Begin!" << std::endl;
         already_begin_called = true;
         goods_relation->read_write_lock();
-    } else {
-        std::cerr << "Lock Already Beginned..." << std::endl;
     }
 }
 
@@ -271,7 +273,6 @@ void output_result_hook_lock(const Tuple::ptr_t& tuple)
 {
     goods_relation->unlock();
     already_begin_called = false;
-    std::cerr << "Lock End!" << std::endl;
 }
 
 // }}} ========================================================
@@ -282,21 +283,39 @@ void output_result_hook_lock(const Tuple::ptr_t& tuple)
 // Begin ~ End : Versioning
 // ======================================================== {{{
 
+Relation::ptr_t goods_relation_saved = Relation::ptr_t();
+bool REUSE_SNAPSHOT_MODE = true;
+
+inline
+void versioning_naive_process()
+{
+    global_relation_join->set_current_relation(goods_relation->copy());
+}
+
+inline
+void versioning_reuse_process()
+{
+    if (!goods_relation_saved ||
+        goods_relation->get_version_number() > goods_relation_saved->get_version_number()) {
+        goods_relation_saved = goods_relation->copy();
+        global_relation_join->set_current_relation(goods_relation_saved);
+    }
+}
+
 void input_stream_hook_versioning(const Tuple::ptr_t& tuple)
 {
     if (!already_begin_called) {
-        std::cerr << "Versioning Begin!" << std::endl;
-        global_relation_join->set_current_relation(goods_relation->copy());
+        if (REUSE_SNAPSHOT_MODE)
+            versioning_reuse_process();
+        else
+            versioning_naive_process();
         already_begin_called = true;
-    } else {
-        std::cerr << "Versioning Already Beginned..." << std::endl;
     }
 }
 
 void output_result_hook_versioning(const Tuple::ptr_t& tuple)
 {
     already_begin_called = false;
-    std::cerr << "Versioning End!" << std::endl;
 }
 
 // }}} ========================================================
@@ -386,6 +405,8 @@ void set_parameters_from_option(cmdline::parser& cmd_parser)
     PURCHASE_SCHEMA_DEFINITION = cmd_parser.get<std::string>("purchase-schema");
     GOODS_SCHEMA_DEFINITION    = cmd_parser.get<std::string>("goods-schema");
 
+    REUSE_SNAPSHOT_MODE = cmd_parser.get<bool>("reuse-snapshot");
+
     std::string method_string = cmd_parser.get<std::string>("method");
     if (method_string == "none")
         CONSISTENCY_PRESERVE_METHOD = NONE;
@@ -425,6 +446,8 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // Schema definition
     cmd_parser.add<std::string>("purchase-schema", '\0', "Purchase schema", false, "CREATE STREAM PURCHASES(GOODS_ID INT, USER_ID INT)");
     cmd_parser.add<std::string>("goods-schema", '\0', "Goods schema", false, "CREATE TABLE GOODS(ID INT, PRICE INT)");
+
+    cmd_parser.add<bool>("reuse-snapshot", '\0', "Reuse snapshot when possible", false, true);
 
     // Finish!
     cmd_parser.parse_check(argc, argv);
@@ -470,10 +493,13 @@ int main(int argc, char **argv)
     double throughput_update = updated_status_count / elapsed_seconds;
 
     std::cerr
-        << "Method " << method_to_string(CONSISTENCY_PRESERVE_METHOD) << std::endl
-        << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
+        << "Method: " << method_to_string(CONSISTENCY_PRESERVE_METHOD) << std::endl
+        << "Tuples: " << PURCHASE_COUNT << std::endl
+        << "Elapsed: " << elapsed_seconds << " secs" << std::endl
+        << "Stream Rate: " << interval_to_rate(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
+        << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
         << "Throughput (Query): " << throughput_query << " tps" << std::endl
-        << "Throughput (Update): " << throughput_update << " tps" << std::endl
+        << "Throughput (Update): " << throughput_update << " qps" << std::endl
         << "Selectivity: " << global_selection->get_selectivity() << std::endl;
 
     return 0;

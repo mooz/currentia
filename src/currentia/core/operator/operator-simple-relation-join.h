@@ -54,15 +54,6 @@ namespace currentia {
                 stream_schema_ptr_->get_attribute_index_by_name(join_attribute_name_stream_);
             target_attribute_column_in_relation_ =
                 relation_schema_ptr_->get_attribute_index_by_name(join_attribute_name_relation_);
-
-            std::cout << "target_attribute_column_in_stream: " << target_attribute_column_in_stream_ << std::endl;
-            std::cout << "target_attribute_column_in_stream_: " << target_attribute_column_in_relation_ << std::endl;
-            std::cout.flush();
-
-            if (target_attribute_column_in_stream_ < 0 ||
-                target_attribute_column_in_relation_ < 0) {
-                throw "Failed to initialize OperatorSimpleRelationJoin";
-            }
         }
 
         Schema::ptr_t get_output_schema_ptr() {
@@ -81,12 +72,11 @@ namespace currentia {
                 for (std::list<Tuple::ptr_t>::const_iterator relation_iterator = relation_->get_tuple_iterator();
                      relation_iterator != relation_->get_tuple_iterator_end();
                      ++relation_iterator) {
+                    Object value_in_relation =
+                        (*relation_iterator)->get_value_by_index(target_attribute_column_in_relation_);
+
                     // check equality
-                    bool is_qualified_tuple = target_attribute_value.compare(
-                        (*relation_iterator)->
-                        get_value_by_index(target_attribute_column_in_relation_),
-                        Comparator::EQUAL
-                    );
+                    bool is_qualified_tuple = target_attribute_value.compare(value_in_relation, Comparator::EQUAL);
 
                     if (is_qualified_tuple) {
                         // join
