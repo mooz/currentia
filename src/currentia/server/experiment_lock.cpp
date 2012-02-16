@@ -498,8 +498,8 @@ int main(int argc, char **argv)
         << "Elapsed: " << elapsed_seconds << " secs" << std::endl
         << "Stream Rate: " << interval_to_rate(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
         << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
-        << "Throughput (Query): " << throughput_query << " tps" << std::endl
-        << "Throughput (Update): " << throughput_update << " qps" << std::endl
+        << "Query Throughput: " << throughput_query << " tps" << std::endl
+        << "Update Throughput: " << throughput_update << " qps" << std::endl
         << "Selectivity: " << global_selection->get_selectivity() << std::endl;
 
     return 0;
