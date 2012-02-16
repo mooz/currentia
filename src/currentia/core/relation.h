@@ -102,8 +102,7 @@ namespace currentia {
         // Blocking
         Relation::ptr_t copy() {
             read_write_lock();
-            std::list<Tuple::ptr_t> new_tuple_ptrs;
-            new_tuple_ptrs.insert(new_tuple_ptrs.begin(), tuple_ptrs_.begin(), tuple_ptrs_.end());
+            std::list<Tuple::ptr_t> new_tuple_ptrs = tuple_ptrs_;
             unlock();
 
             return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs));
