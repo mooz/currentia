@@ -129,23 +129,16 @@ void* update_status_thread_body(void* argument)
 
 void* process_stream_thread_body(void* argument)
 {
-    double selected_purchase_count = 0;
-
     try {
         while (true) {
             Tuple::ptr_t next_tuple = query_ptr->next();
             if (next_tuple->is_eos())
                 break;
             std::cout << next_tuple->toString() << std::endl;
-            selected_purchase_count++;
         }
     } catch (const char* error_message) {
         std::cout << "Error while processing stream: " << error_message << std::endl;
     }
-
-    double selectivity = static_cast<double>(selected_purchase_count) / static_cast<double>(PURCHASE_COUNT);
-
-    std::cerr << "Selectivity :: " << selectivity << std::endl;
 
     return NULL;
 }
@@ -188,6 +181,12 @@ Tuple::ptr_t create_purchase_tuple(int goods_id, int user_id)
     data.push_back(Object(user_id));
 
     return Tuple::create(purchase_schema_ptr, data);
+}
+
+void set_purchase_stream()
+{
+    create_purchase_schema();
+    purchase_stream = create_stream_from_schema(purchase_schema_ptr);
 }
 
 // }}} ========================================================
@@ -234,19 +233,70 @@ void set_goods_relation()
 // Goods
 // ============================================================
 
-void set_purchase_stream()
-{
-    create_purchase_schema();
-    purchase_stream = create_stream_from_schema(purchase_schema_ptr);
+enum ConsistencyPreserveMethod {
+    NONE,
+    LOCK,
+    VERSIONING
+};
+
+std::string method_to_string(ConsistencyPreserveMethod method) {
+    switch (method) {
+    case NONE:
+        return "none";
+    case LOCK:
+        return "lock";
+    case VERSIONING:
+        return "versioning";
+    }
 }
 
-static std::string SELECTION_CONDITION;
+ConsistencyPreserveMethod CONSISTENCY_PRESERVE_METHOD = NONE;
 
+bool already_begin_called = false;
+
+// ============================================================
+// Begin ~ End
+// ======================================================== {{{
+
+void input_stream_hook(const Tuple::ptr_t& tuple)
+{
+    if (!already_begin_called) {
+        std::cerr << "Begin!" << std::endl;
+        already_begin_called = true;
+    } else {
+        std::cerr << "Already Begined..." << std::endl;
+    }
+}
+
+#include <assert.h>
+
+void output_result_hook(const Tuple::ptr_t& tuple)
+{
+    assert(already_begin_called);
+    already_begin_called = false;
+    std::cerr << "End!" << std::endl;
+}
+
+// }}} ========================================================
+// Begin ~ End
+// ============================================================
+
+static std::string SELECTION_CONDITION;
 void setup_query()
 {
     Operator::ptr_t purchase_stream_current;
 
     Operator::ptr_t purchase_stream_adapter(new OperatorStreamAdapter(purchase_stream));
+
+    switch (CONSISTENCY_PRESERVE_METHOD) {
+    case NONE:
+        break;
+    case LOCK:
+        purchase_stream_adapter->add_after_process(&input_stream_hook);
+    case VERSIONING:
+        purchase_stream_adapter->add_after_process(&input_stream_hook);
+    }
+
     {
         // join-relation
         OperatorSimpleRelationJoin::ptr_t relation_join(
@@ -270,6 +320,14 @@ void setup_query()
     }
 
     query_ptr = purchase_stream_current;
+
+    switch (CONSISTENCY_PRESERVE_METHOD) {
+    case NONE:
+        break;
+    case LOCK:
+    case VERSIONING:
+        query_ptr->add_after_process(&output_result_hook);
+    }
 }
 
 void initialize(cmdline::parser& cmd_parser)
@@ -286,7 +344,6 @@ void set_parameters_from_option(cmdline::parser& cmd_parser)
 {
     UPDATE_INTERVAL            = cmd_parser.get<useconds_t>("update-interval");
     UPDATE_TIME                = cmd_parser.get<useconds_t>("update-time");
-
     PURCHASE_STREAM_INTERVAL   = cmd_parser.get<useconds_t>("purchase-interval");
     AGGREGATION_WINDOW_WIDTH   = cmd_parser.get<int>("aggregation-window-width");
     PURCHASE_COUNT             = cmd_parser.get<int>("purchase-count");
@@ -296,6 +353,14 @@ void set_parameters_from_option(cmdline::parser& cmd_parser)
     SELECTION_CONDITION        = cmd_parser.get<std::string>("selection-condition");
     PURCHASE_SCHEMA_DEFINITION = cmd_parser.get<std::string>("purchase-schema");
     GOODS_SCHEMA_DEFINITION    = cmd_parser.get<std::string>("goods-schema");
+
+    std::string method_string = cmd_parser.get<std::string>("method");
+    if (method_string == "none")
+        CONSISTENCY_PRESERVE_METHOD = NONE;
+    else if (method_string == "lock")
+        CONSISTENCY_PRESERVE_METHOD = LOCK;
+    else if (method_string == "versioning")
+        CONSISTENCY_PRESERVE_METHOD = VERSIONING;
 }
 
 void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
@@ -310,6 +375,9 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // cmd_parser.add<std::string>("relation-file", '\0', "Relation file name", false, "");
 
     // Parameter
+    cmd_parser.add<std::string>("method", '\0', "consistency preserving method", false, "none",
+                                cmdline::oneof<std::string>("none", "lock", "versioning"));
+
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
     cmd_parser.add<useconds_t>("update-time", '\0', "time needed to update a relation", false, 10);
     cmd_parser.add<useconds_t>("purchase-interval", '\0', "Purchase interval", false, 1000);
@@ -369,9 +437,11 @@ int main(int argc, char **argv)
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
     double throughput_update = updated_status_count / elapsed_seconds;
 
-    std::cerr << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
-              << "Throughput (Query): " << throughput_query << " tps" << std::endl
-              << "Throughput (Update): " << throughput_update << " tps" << std::endl;
+    std::cerr
+        << "Method " << method_to_string(CONSISTENCY_PRESERVE_METHOD) << std::endl
+        << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
+        << "Throughput (Query): " << throughput_query << " tps" << std::endl
+        << "Throughput (Update): " << throughput_update << " tps" << std::endl;
 
     return 0;
 }
