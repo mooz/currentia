@@ -19,7 +19,7 @@ plot()
         logscale="set logscale x"
     fi
 
-    line_width=3
+    line_width=2
     point_size=1.0
 
     naive_label="Naive"
@@ -28,7 +28,7 @@ plot()
 
     (cat <<EOF
 # set style line 1 lw ${line_width} lc -1 pt 2  ps ${point_size}     # Naive
-set style line 2 lw ${line_width} lc -1 pt 13 ps ${point_size}     # Lock
+set style line 2 lw ${line_width} lc -1 pt 9 ps ${point_size}     # Lock
 set style line 3 lw ${line_width} lc -1 pt 5  ps ${point_size}     # Snapshot
 
 ${logscale}
@@ -53,11 +53,11 @@ EOF
     ) | gnuplot&
 }
 
-./show_query_vs_update.sh ${BASEDIR} > /tmp/query_vs_update.txt LOGSCALE
-plot /tmp/query_vs_update.txt "Update Arrival Rate (query/sec)" "Query Throughput (query/sec)" > ./query_vs_update.svg
+./show_query_vs_update.sh ${BASEDIR} > /tmp/query_vs_update.txt
+plot /tmp/query_vs_update.txt "Update Arrival Rate (query/sec)" "Query Throughput (query/sec)" LOGSCALE > ./query_vs_update.svg
 
-./show_update_vs_stream.sh ${BASEDIR} > /tmp/update_vs_stream.txt LOGSCALE
-plot /tmp/update_vs_stream.txt "Stream Arrival Rate (tuple/sec)" "Update Throughput (update/sec)" > ./update_vs_stream.svg
+./show_update_vs_stream.sh ${BASEDIR} > /tmp/update_vs_stream.txt
+plot /tmp/update_vs_stream.txt "Stream Arrival Rate (tuple/sec)" "Update Throughput (update/sec)" LOGSCALE > ./update_vs_stream.svg
 
 ./show_update_vs_window.sh ${BASEDIR} > /tmp/update_vs_window.txt
 plot /tmp/update_vs_window.txt "Window Size (tuple)" "Update Throughput (update/sec)" > ./update_vs_window.svg

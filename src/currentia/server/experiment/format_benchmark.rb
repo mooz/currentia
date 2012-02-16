@@ -28,17 +28,23 @@ class ResultAnalyser
   end
 
   def parse_result(result)
-    {
-      :method => result.match(/Method: (.*)$/)[1],
-      :tuples => result.match(/Tuples: (.*)$/)[1],
-      :elapsed => result.match(/Elapsed: (.*) secs$/)[1],
-      :stream_rate => result.match(/Stream Rate: (.*) tps$/)[1],
-      :update_rate => result.match(/Update Rate: (.*) qps$/)[1],
-      :query_throughput => result.match(/Query Throughput: (.*) tps$/)[1],
-      :update_throughput => result.match(/Update Throughput: (.*) qps$/)[1],
-      :selectivity => result.match(/Selectivity: (.*)$/)[1],
-      :window_size => result.match(/Window: (.*)$/)[1]
-    }
+    begin
+      {
+        :method => result.match(/Method: (.*)$/)[1],
+        :tuples => result.match(/Tuples: (.*)$/)[1],
+        :elapsed => result.match(/Elapsed: (.*) secs$/)[1],
+        :stream_rate => result.match(/Stream Rate: (.*) tps$/)[1],
+        :update_rate => result.match(/Update Rate: (.*) qps$/)[1],
+        :query_throughput => result.match(/Query Throughput: (.*) tps$/)[1],
+        :update_throughput => result.match(/Update Throughput: (.*) qps$/)[1],
+        :selectivity => result.match(/Selectivity: (.*)$/)[1],
+        :window_size => result.match(/Window: (.*)$/)[1]
+      }
+    rescue Exception => e
+      STDERR.puts e
+      STDERR.puts result
+      raise e
+    end
   end
 
   def get_result_and_parse(path)

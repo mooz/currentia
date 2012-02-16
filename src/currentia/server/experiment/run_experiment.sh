@@ -124,19 +124,19 @@ do_bench_update_vs_window() {
 }
 
 # for method in ${METHODS}; do
-#     for rate in 1 10 100 1000 10000; do
+#     for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
 #         do_bench_query_vs_update ${method} ${rate}
 #     done
 # done
 
-# for method in ${METHODS}; do
-#     for rate in 100 1000 10000 100000; do
-#         do_bench_update_vs_stream ${method} ${rate}
-#     done
-# done
-
 for method in ${METHODS}; do
-    for window_size in 1 5 10 15 20 25 30; do
-        do_bench_update_vs_window ${method} ${window_size}
+    for rate in 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
+        do_bench_update_vs_stream ${method} ${rate}
     done
 done
+
+# for method in ${METHODS}; do
+#     for window_size in 1 5 10 15 20 25 30; do
+#         do_bench_update_vs_window ${method} ${window_size}
+#     done
+# done
