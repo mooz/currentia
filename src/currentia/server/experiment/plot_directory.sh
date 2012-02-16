@@ -1,0 +1,51 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 RESULT_DIRECTORY"
+    exit
+fi
+
+BASEDIR=$(echo ${1} | sed 's/\/$//')
+
+plot()
+{
+    data=$1
+    xlabel=$2
+    ylabel=$3
+
+    line_width=3
+    point_size=1.0
+
+    (cat <<EOF
+set style line 1 lw ${line_width} lc -1 pt 2  ps ${point_size}     # Naive
+set style line 2 lw ${line_width} lc -1 pt 13 ps ${point_size}     # Lock
+set style line 3 lw ${line_width} lc -1 pt 5  ps ${point_size}     # Snapshot
+
+# set logscale x
+
+set key box
+set key below
+
+set xlabel "${xlabel}"
+set ylabel "${ylabel}"
+
+set terminal svg
+set term svg font "DejaVu Sans"
+
+plot "${data}" ind 0:0 usi 1:2 ti "Naive" w lp linestyle 1,\
+ "${data}" ind 1:1 usi 1:2 ti "Lock" w lp linestyle 2,\
+ "${data}" ind 2:2 usi 1:2 ti "  Snapshot" w lp linestyle 3
+
+pause -1
+EOF
+    ) | gnuplot&
+}
+
+./show_query_vs_update.sh ${BASEDIR} > /tmp/query_vs_update.txt
+plot /tmp/query_vs_update.txt "Update Arrival Rate (query/sec)" "Query Throughput (query/sec)" > ./query_vs_update.svg
+
+./show_update_vs_stream.sh ${BASEDIR} > /tmp/update_vs_stream.txt
+plot /tmp/update_vs_stream.txt "Stream Arrival Rate (tuple/sec)" "Update Throughput (update/sec)" > ./update_vs_stream.svg
+
+# ./show_update_vs_window.sh ${BASEDIR} > /tmp/update_vs_window.txt
+# plot /tmp/update_vs_stream.txt "Stream Rate (tuple/sec)" "Update Throughput (query/sec)" > ./update_vs_stream.svg
