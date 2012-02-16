@@ -21,6 +21,8 @@ namespace currentia {
 
         pthread_mutex_t read_mutex_;
 
+        long version_number_;
+
     public:
         class Transaction {
         public:
@@ -48,6 +50,7 @@ namespace currentia {
                  std::list<Tuple::ptr_t> tuple_ptrs = std::list<Tuple::ptr_t>()):
             schema_ptr_(schema_ptr),
             tuple_ptrs_(tuple_ptrs_) {
+            version_number_(0) {
             // initialize recursive mutex
             pthread_mutexattr_t mutex_attribute;
             pthread_mutexattr_settype(&mutex_attribute, PTHREAD_MUTEX_RECURSIVE);
@@ -60,6 +63,20 @@ namespace currentia {
             tuple_ptrs_.push_front(tuple_ptr);
             // tell arrival of a tuple to waiting threads
             unlock();
+        }
+
+        void update() {
+            read_write_lock();
+            version_number_++;
+            unlock();
+        }
+
+        long get_version_number() {
+            read_write_lock();
+            long current_version_number = version_number_;
+            unlock();
+
+            return current_version_number;
         }
 
         ScopedLock get_scoped_lock() {
