@@ -19,8 +19,7 @@ namespace currentia {
 
         std::list<Tuple::ptr_t> tuple_ptrs_;
 
-        pthread_mutex_t mutex_;
-        pthread_cond_t reader_wait_;
+        pthread_mutex_t read_mutex_;
 
     public:
         class Transaction {
@@ -31,16 +30,16 @@ namespace currentia {
         friend class Transaction;
 
         class ScopedLock {
-            pthread_mutex_t* mutex_;
+            pthread_mutex_t* read_mutex_;
 
         public:
             ScopedLock(pthread_mutex_t* mutex):
-                mutex_(mutex) {
-                pthread_mutex_lock(mutex_);
+                read_mutex_(mutex) {
+                pthread_mutex_lock(read_mutex_);
             }
 
             ~ScopedLock() {
-                pthread_mutex_unlock(mutex_);
+                pthread_mutex_unlock(read_mutex_);
             }
         };
 
@@ -49,9 +48,10 @@ namespace currentia {
                  std::list<Tuple::ptr_t> tuple_ptrs = std::list<Tuple::ptr_t>()):
             schema_ptr_(schema_ptr),
             tuple_ptrs_(tuple_ptrs_) {
-            // initialize values for thread synchronization
-            pthread_mutex_init(&mutex_, NULL);
-            pthread_cond_init(&reader_wait_, NULL);
+            // initialize recursive mutex
+            pthread_mutexattr_t mutex_attribute;
+            pthread_mutexattr_settype(&mutex_attribute, PTHREAD_MUTEX_RECURSIVE);
+            pthread_mutex_init(&read_mutex_, &mutex_attribute);
         }
 
         // Blocking
@@ -63,16 +63,16 @@ namespace currentia {
         }
 
         ScopedLock get_scoped_lock() {
-            return ScopedLock(&mutex_);
+            return ScopedLock(&read_mutex_);
         }
 
         // TODO: implement read_lock() and write_lock()
         void read_write_lock() {
-            pthread_mutex_lock(&mutex_);
+            pthread_mutex_lock(&read_mutex_);
         }
 
         void unlock() {
-            pthread_mutex_unlock(&mutex_);
+            pthread_mutex_unlock(&read_mutex_);
         }
 
         // Blocking
