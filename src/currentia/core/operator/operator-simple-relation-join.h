@@ -13,9 +13,12 @@
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/synopsis.h"
 
+#include "currentia/trait/pointable.h"
+
 namespace currentia {
     // Equi-Join
-    class OperatorSimpleRelationJoin: public Operator {
+    class OperatorSimpleRelationJoin: public Operator,
+                                      public Pointable<OperatorSimpleRelationJoin> {
         Operator::ptr_t parent_operator_ptr_;
         Relation::ptr_t relation_;
 
@@ -30,6 +33,8 @@ namespace currentia {
         int target_attribute_column_in_relation_;
 
     public:
+        typedef Pointable<OperatorSimpleRelationJoin>::ptr_t ptr_t;
+
         OperatorSimpleRelationJoin(Operator::ptr_t parent_operator_ptr,
                                    const std::string& join_attribute_name_stream,
                                    Relation::ptr_t relation,
@@ -93,6 +98,10 @@ namespace currentia {
 
             // never comes here
             return Tuple::ptr_t();
+        }
+
+        void set_current_relation(const Relation::ptr_t& new_relation) {
+            relation_ = new_relation;
         }
 
     private:

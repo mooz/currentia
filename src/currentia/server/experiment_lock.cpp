@@ -21,20 +21,6 @@ using namespace currentia;
 
 Tuple::ptr_t create_purchase_tuple(int goods_id, int user_id);
 
-//
-// 実験で変えるべきパラメータ
-//
-// - 入力ストリーム達
-//
-//   - 数, それぞれのスキーマ
-//
-// - オペレータの処理内容 (入力ストリーム達に依存)
-//
-//   - 出力は一つでスループットを計測しようか
-//
-// - 属性の分布: zipf 分布
-//
-
 static Operator::ptr_t query_ptr;
 static Stream::ptr_t purchase_stream;
 
@@ -300,6 +286,7 @@ void input_stream_hook_versioning(const Tuple::ptr_t& tuple)
 {
     if (!already_begin_called) {
         std::cerr << "Versioning Begin!" << std::endl;
+        global_relation_join->set_current_relation(goods_relation->copy());
         already_begin_called = true;
     } else {
         std::cerr << "Versioning Already Beginned..." << std::endl;
