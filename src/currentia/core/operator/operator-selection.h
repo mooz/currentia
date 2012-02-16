@@ -57,7 +57,7 @@ namespace currentia {
         double get_selectivity() {
             if (input_tuple_count_ == 0)
                 return 0.0;
-            return input_tuple_count_ / selected_tuple_count_;
+            return selected_tuple_count_ / input_tuple_count_;
         }
     };
 }
