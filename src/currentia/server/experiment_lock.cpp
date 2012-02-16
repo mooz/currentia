@@ -233,6 +233,18 @@ void set_goods_relation()
 // Goods
 // ============================================================
 
+// ============================================================
+// Operators
+// ======================================================== {{{
+
+OperatorSimpleRelationJoin::ptr_t global_relation_join;
+OperatorSelection::ptr_t global_selection;
+OperatorElection::ptr_t global_election;
+
+// }}} ========================================================
+// Operators
+// ============================================================
+
 enum ConsistencyPreserveMethod {
     NONE,
     LOCK,
@@ -263,6 +275,7 @@ void input_stream_hook_lock(const Tuple::ptr_t& tuple)
     if (!already_begin_called) {
         std::cerr << "Lock Begin!" << std::endl;
         already_begin_called = true;
+        goods_relation->read_write_lock();
     } else {
         std::cerr << "Lock Already Beginned..." << std::endl;
     }
@@ -270,6 +283,7 @@ void input_stream_hook_lock(const Tuple::ptr_t& tuple)
 
 void output_result_hook_lock(const Tuple::ptr_t& tuple)
 {
+    goods_relation->unlock();
     already_begin_called = false;
     std::cerr << "Lock End!" << std::endl;
 }
@@ -340,6 +354,11 @@ void setup_query()
         OperatorElection::ptr_t election(new OperatorElection(selection, AGGREGATION_WINDOW_WIDTH));
 
         purchase_stream_current = election;
+
+        // save operator pointers globally
+        global_relation_join = relation_join;
+        global_selection = selection;
+        global_election = election;
     }
 
     query_ptr = purchase_stream_current;
@@ -467,7 +486,8 @@ int main(int argc, char **argv)
         << "Method " << method_to_string(CONSISTENCY_PRESERVE_METHOD) << std::endl
         << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
         << "Throughput (Query): " << throughput_query << " tps" << std::endl
-        << "Throughput (Update): " << throughput_update << " tps" << std::endl;
+        << "Throughput (Update): " << throughput_update << " tps" << std::endl
+        << "Selectivity: " << global_selection->get_selectivity() << std::endl;
 
     return 0;
 }
