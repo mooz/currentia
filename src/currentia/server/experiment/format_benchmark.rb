@@ -37,6 +37,7 @@ class ResultAnalyser
       :query_throughput => result.match(/Query Throughput: (.*) tps$/)[1],
       :update_throughput => result.match(/Update Throughput: (.*) qps$/)[1],
       :selectivity => result.match(/Selectivity: (.*)$/)[1],
+      :window_size => result.match(/Window: (.*)$/)[1]
     }
   end
 
@@ -48,7 +49,7 @@ class ResultAnalyser
     paths.map { |path|
       get_result_and_parse(@dirpath + "/" + path)
     }.sort{ |a, b|
-      a[@x_name] <=> b[@x_name]
+      a[@x_name].to_f <=> b[@x_name].to_f
     }
   end
 

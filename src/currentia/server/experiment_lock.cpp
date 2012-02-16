@@ -506,7 +506,8 @@ int main(int argc, char **argv)
         << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
         << "Query Throughput: " << throughput_query << " tps" << std::endl
         << "Update Throughput: " << throughput_update << " qps" << std::endl
-        << "Selectivity: " << global_selection->get_selectivity() << std::endl;
+        << "Selectivity: " << global_selection->get_selectivity() << std::endl
+        << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
 
     return 0;
 }

@@ -13,15 +13,25 @@ plot()
     xlabel=$2
     ylabel=$3
 
+    if [ -z $4 ]; then
+        logscale=""
+    else
+        logscale="set logscale x"
+    fi
+
     line_width=3
     point_size=1.0
 
+    naive_label="Naive"
+    lock_label="Lock"
+    snapshot_label="Snapshot"
+
     (cat <<EOF
-set style line 1 lw ${line_width} lc -1 pt 2  ps ${point_size}     # Naive
+# set style line 1 lw ${line_width} lc -1 pt 2  ps ${point_size}     # Naive
 set style line 2 lw ${line_width} lc -1 pt 13 ps ${point_size}     # Lock
 set style line 3 lw ${line_width} lc -1 pt 5  ps ${point_size}     # Snapshot
 
-# set logscale x
+${logscale}
 
 set key box
 set key below
@@ -30,22 +40,24 @@ set xlabel "${xlabel}"
 set ylabel "${ylabel}"
 
 set terminal svg
-set term svg font "DejaVu Sans"
+set term svg font "DejaVu Serif"
 
-plot "${data}" ind 0:0 usi 1:2 ti "Naive" w lp linestyle 1,\
- "${data}" ind 1:1 usi 1:2 ti "Lock" w lp linestyle 2,\
- "${data}" ind 2:2 usi 1:2 ti "  Snapshot" w lp linestyle 3
+# "${data}" ind 0:0 usi 1:2 ti "${naive_label}" w lp linestyle 1,\
+
+plot \
+ "${data}" ind 1:1 usi 1:2 ti "${lock_label}" w lp linestyle 2,\
+ "${data}" ind 2:2 usi 1:2 ti "${snapshot_label}" w lp linestyle 3
 
 pause -1
 EOF
     ) | gnuplot&
 }
 
-./show_query_vs_update.sh ${BASEDIR} > /tmp/query_vs_update.txt
+./show_query_vs_update.sh ${BASEDIR} > /tmp/query_vs_update.txt LOGSCALE
 plot /tmp/query_vs_update.txt "Update Arrival Rate (query/sec)" "Query Throughput (query/sec)" > ./query_vs_update.svg
 
-./show_update_vs_stream.sh ${BASEDIR} > /tmp/update_vs_stream.txt
+./show_update_vs_stream.sh ${BASEDIR} > /tmp/update_vs_stream.txt LOGSCALE
 plot /tmp/update_vs_stream.txt "Stream Arrival Rate (tuple/sec)" "Update Throughput (update/sec)" > ./update_vs_stream.svg
 
-# ./show_update_vs_window.sh ${BASEDIR} > /tmp/update_vs_window.txt
-# plot /tmp/update_vs_stream.txt "Stream Rate (tuple/sec)" "Update Throughput (query/sec)" > ./update_vs_stream.svg
+./show_update_vs_window.sh ${BASEDIR} > /tmp/update_vs_window.txt
+plot /tmp/update_vs_window.txt "Window Size (tuple)" "Update Throughput (update/sec)" > ./update_vs_window.svg

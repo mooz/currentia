@@ -34,6 +34,9 @@ assert_dir_exist $QUERY_VS_UPDATE_DIR
 UPDATE_VS_STREAM_DIR=${RESULT_DIR}/update_vs_stream
 assert_dir_exist $UPDATE_VS_STREAM_DIR
 
+UPDATE_VS_WINDOW_DIR=${RESULT_DIR}/update_vs_window
+assert_dir_exist $UPDATE_VS_WINDOW_DIR
+
 # -------------------------------------------------- #
 
 BIN=/home/masa/src/currentia/build/src/currentia/server/experiment_lock
@@ -44,7 +47,7 @@ WINDOW_WIDTH=5
 SELECTION_CONDITION="PRICE < 50000" # 選択率がおよそ 0.5 程度に
 
 interval_to_rate() {
-    echo "1000 * 1000 / $rate" | bc
+    echo "1000 * 1000 / $1" | bc
 }
 
 do_bench_query_vs_update() {
@@ -95,14 +98,45 @@ do_bench_update_vs_stream() {
         2>&1 | tee ${UPDATE_VS_STREAM_DIR}/${file_name}
 }
 
-for method in ${METHODS}; do
-    for rate in 1 10 100 1000 10000; do
-        do_bench_query_vs_update ${method} ${rate}
-    done
-done
+do_bench_update_vs_window() {
+    # ウィンドウサイズを上げていったときの更新スループット
+    # (method, rate)
+
+    method=$1
+    window_size=$2
+
+    file_name=${method}_${window_size}.txt
+
+    interval=$(interval_to_rate 10000)
+
+    echo "---------------------------------------------------------"
+    echo "Update v.s. Window (Window Size ${window_size})"
+    echo "---------------------------------------------------------"
+
+    ${BIN} \
+        --purchase-interval ${interval} \
+        --purchase-count 10000 \
+        --aggregation-window-width ${window_size} \
+        --method ${method} \
+        --selection-condition "${SELECTION_CONDITION}" \
+        --update-interval 0 \
+        2>&1 | tee ${UPDATE_VS_WINDOW_DIR}/${file_name}
+}
+
+# for method in ${METHODS}; do
+#     for rate in 1 10 100 1000 10000; do
+#         do_bench_query_vs_update ${method} ${rate}
+#     done
+# done
+
+# for method in ${METHODS}; do
+#     for rate in 100 1000 10000 100000; do
+#         do_bench_update_vs_stream ${method} ${rate}
+#     done
+# done
 
 for method in ${METHODS}; do
-    for rate in 100 1000 10000 100000; do
-        do_bench_update_vs_stream ${method} ${rate}
+    for window_size in 1 5 10 15 20 25 30; do
+        do_bench_update_vs_window ${method} ${window_size}
     done
 done
