@@ -49,7 +49,7 @@ namespace currentia {
                  // optional
                  std::list<Tuple::ptr_t> tuple_ptrs = std::list<Tuple::ptr_t>()):
             schema_ptr_(schema_ptr),
-            tuple_ptrs_(tuple_ptrs_) {
+            tuple_ptrs_(tuple_ptrs),
             version_number_(0) {
             // initialize recursive mutex
             pthread_mutexattr_t mutex_attribute;
