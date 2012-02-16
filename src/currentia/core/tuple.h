@@ -49,8 +49,9 @@ namespace currentia {
             ss << "Tuple(";
             if (data_.size() > 0) {
                 ss << "\n";
-                data_t::const_iterator it = data_.begin();
-                for (; it != data_.end(); ++it) {
+                for (data_t::const_iterator it = data_.begin();
+                     it != data_.end();
+                     ++it) {
                     ss << "  " << it->toString() << "\n";
                 }
             }
