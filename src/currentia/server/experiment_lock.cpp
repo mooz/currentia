@@ -30,9 +30,10 @@ Tuple::ptr_t create_purchase_tuple(int goods_id, int user_id);
 // - 属性の分布: zipf 分布
 //
 
-Operator::ptr_t query_ptr;
-Stream::ptr_t purchase_stream;
-std::list<Tuple::ptr_t> goods_relation;
+static Operator::ptr_t query_ptr;
+static Stream::ptr_t purchase_stream;
+
+static Relation::ptr_t goods_relation;
 
 // ============================================================
 // Begin Helpers
@@ -94,18 +95,29 @@ create_stream_from_string(const std::string& input_ddl)
 // Begin Body
 // ======================================================== {{{
 
+static int PURCHASE_COUNT;
+static int GOODS_COUNT;
+
+static useconds_t UPDATE_INTERVAL;
+
 void* update_status_thread_body(void* argument)
 {
-    // update (throughput)
+    // Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
+
+    // for (int i = 0; i < PURCHASE_COUNT; ++i) {
+    //     purchase_stream->enqueue(create_purchase_tuple(i % GOODS_COUNT /* goods id */, rand() /* user id */));
+    //     if (UPDATE_INTERVAL > 0)
+    //         usleep(UPDATE_INTERVAL);
+    // }
+
+    // purchase_stream->enqueue(Tuple::create_eos()); // Finish!
 
     return NULL;
 }
 
-// Request output of the query
-static int PURCHASE_COUNT;
 void* process_stream_thread_body(void* argument)
 {
-    LOG("Process Stream Begin");
+    double selected_purchase_count = 0;
 
     try {
         while (true) {
@@ -113,33 +125,32 @@ void* process_stream_thread_body(void* argument)
             if (next_tuple->is_eos())
                 break;
             std::cout << next_tuple->toString() << std::endl;
+            selected_purchase_count++;
         }
     } catch (const char* error_message) {
         std::cout << "Error while processing stream: " << error_message << std::endl;
     }
 
-    LOG("Process Stream End");
+    double selectivity = static_cast<double>(selected_purchase_count) / static_cast<double>(PURCHASE_COUNT);
+
+    std::cerr << "Selectivity :: " << selectivity << std::endl;
 
     return NULL;
 }
 
 // Send purchase data
-useconds_t PURCHASE_STREAM_INTERVAL;
+static useconds_t PURCHASE_STREAM_INTERVAL;
 void* stream_sending_thread_body(void* argument)
 {
-    LOG("Send Purchase Data Begin");
-
     Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
 
     for (int i = 0; i < PURCHASE_COUNT; ++i) {
-        LOG("Send " << i << "th tuple");
-        purchase_stream->enqueue(create_purchase_tuple(i /* goods id */, rand() /* user id */));
-        usleep(PURCHASE_STREAM_INTERVAL);
+        purchase_stream->enqueue(create_purchase_tuple(i % GOODS_COUNT /* goods id */, rand() /* user id */));
+        if (PURCHASE_STREAM_INTERVAL > 0)
+            usleep(PURCHASE_STREAM_INTERVAL);
     }
 
     purchase_stream->enqueue(Tuple::create_eos()); // Finish!
-
-    LOG("Send Purchase Data End");
 
     return NULL;
 }
@@ -152,8 +163,8 @@ void* stream_sending_thread_body(void* argument)
 // Purchase
 // ======================================================== {{{
 
-std::string PURCHASE_SCHEMA_DEFINITION;
-Schema::ptr_t purchase_schema_ptr;
+static std::string PURCHASE_SCHEMA_DEFINITION;
+static Schema::ptr_t purchase_schema_ptr;
 void create_purchase_schema()
 {
     purchase_schema_ptr = create_schema_from_string(PURCHASE_SCHEMA_DEFINITION);
@@ -175,8 +186,8 @@ Tuple::ptr_t create_purchase_tuple(int goods_id, int user_id)
 // Goods
 // ======================================================== {{{
 
-std::string GOODS_SCHEMA_DEFINITION;
-Schema::ptr_t goods_schema_ptr;
+static std::string GOODS_SCHEMA_DEFINITION;
+static Schema::ptr_t goods_schema_ptr;
 void create_goods_schema()
 {
     goods_schema_ptr = create_schema_from_string(GOODS_SCHEMA_DEFINITION);
@@ -189,23 +200,22 @@ Tuple::ptr_t create_goods_tuple(int id, int price)
     return Tuple::create(goods_schema_ptr, data);
 }
 
-int MIN_PRICE;
-int MAX_PRICE;
+static int MIN_PRICE;
+static int MAX_PRICE;
 int generate_goods_price(int id)
 {
     return MIN_PRICE + rand() % (MAX_PRICE - MIN_PRICE);
 }
 
-int GOODS_COUNT;
 void set_goods_relation()
 {
     create_goods_schema();
 
+    goods_relation.reset(new Relation(goods_schema_ptr));
+
     for (int goods_id = 0; goods_id < GOODS_COUNT; ++goods_id) {
-        goods_relation.push_back(create_goods_tuple(goods_id, generate_goods_price(goods_id)));
+        goods_relation->insert(create_goods_tuple(goods_id, generate_goods_price(goods_id)));
     }
-    // std::ifstream relation_file;
-    // relation_file.open();
 }
 
 // }}} ========================================================
@@ -218,12 +228,10 @@ void set_purchase_stream()
     purchase_stream = create_stream_from_schema(purchase_schema_ptr);
 }
 
-std::string SELECTION_CONDITION;
+static std::string SELECTION_CONDITION;
 
 void setup_query()
 {
-    LOG("Setup Query Begin!");
-
     Operator::ptr_t purchase_stream_current;
 
     Operator::ptr_t purchase_stream_adapter(new OperatorStreamAdapter(purchase_stream));
@@ -249,24 +257,21 @@ void setup_query()
     }
 
     query_ptr = purchase_stream_current;
-
-    LOG("Setup Query End!");
 }
 
 void initialize(cmdline::parser& cmd_parser)
 {
-    try {
-        set_purchase_stream();
-        set_goods_relation();
-        // query
-        setup_query();
-    } catch (const char* error_message) {
-        std::cerr << "Error: " << error_message << std::endl;
-    }
+    srand(1);
+
+    set_purchase_stream();
+    set_goods_relation();
+    // query
+    setup_query();
 }
 
 void set_parameters_from_option(cmdline::parser& cmd_parser)
 {
+    UPDATE_INTERVAL            = cmd_parser.get<useconds_t>("update-interval");
     PURCHASE_STREAM_INTERVAL   = cmd_parser.get<useconds_t>("purchase-interval");
     PURCHASE_COUNT             = cmd_parser.get<int>("purchase-count");
     GOODS_COUNT                = cmd_parser.get<int>("goods-count");
@@ -289,6 +294,7 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // cmd_parser.add<std::string>("relation-file", '\0', "Relation file name", false, "");
 
     // Parameter
+    cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
     cmd_parser.add<useconds_t>("purchase-interval", '\0', "Purchase interval", false, 1000);
     cmd_parser.add<int>("purchase-count", '\0', "Purchase count", false, 1000);
     cmd_parser.add<int>("goods-count", '\0', "Goods count", false, 1000);
@@ -338,14 +344,12 @@ int main(int argc, char **argv)
     pthread_join(process_thread, NULL);
     pthread_join(stream_sending_thread, NULL);
 
-    struct timeval end_time_val;
-    gettimeofday(&end_time_val, NULL);
-
     double end_time = get_current_time_in_seconds();
-
     double elapsed_seconds = end_time - begin_time;
+    double throughput = PURCHASE_COUNT / elapsed_seconds;
 
-    std::cout << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl;
+    std::cerr << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
+              << "Throughput: " << throughput << " tps" << std::endl;
 
     return 0;
 }

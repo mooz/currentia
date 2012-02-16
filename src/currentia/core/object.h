@@ -75,7 +75,7 @@ namespace currentia {
             holder_.string_ptr = string_ptr;
         }
 
-        Object(std::string& string): type(STRING) {
+        Object(const std::string& string): type(STRING) {
             holder_.string_ptr = string_ptr_t(new std::string(string));
         }
 

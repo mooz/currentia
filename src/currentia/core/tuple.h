@@ -13,6 +13,7 @@
 #include <ctime>
 
 namespace currentia {
+    // Immutable
     class Tuple: private NonCopyable<Tuple> {
     public:
         typedef std::shared_ptr<Tuple> ptr_t;
@@ -82,11 +83,6 @@ namespace currentia {
         inline
         time_t get_arrived_time() const {
             return arrived_time_;
-        }
-
-        data_t& get_updatable_data() {
-            // TODO: too sloppy!
-            return data_;
         }
 
         const Schema::ptr_t get_schema_ptr() {

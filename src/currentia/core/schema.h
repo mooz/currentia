@@ -99,18 +99,21 @@ namespace currentia {
         inline
         int get_attribute_index_by_name(const std::string& attribute_name) const {
             // map access with [] breaks const'ness of method
-            return attributes_index_.find(attribute_name)->second;
+            attributes_index_t::const_iterator found = attributes_index_.find(attribute_name);
+            return found != attributes_index_.end() ? found->second : -1;
         }
 
         inline
         Attribute get_attribute_by_name(const std::string& attribute_name) const {
             // assert(has_attribute(attribute_name));
             int attribute_index = get_attribute_index_by_name(attribute_name);
+            assert_has_attribute_(attribute_index);
             return attributes_[attribute_index];
         }
 
         inline
         Attribute get_attribute_by_index(int attribute_index) const {
+            assert_has_attribute_(attribute_index);
             return attributes_[attribute_index];
         }
 
@@ -166,7 +169,7 @@ namespace currentia {
                 Schema::attributes_t::iterator attribute_iter = attributes.begin();
                 for (; attribute_iter != attributes.end(); ++attribute_iter) {
                     new_schema_ptr->add_attribute(
-                        attribute_iter->name + (*schema_iter)->get_id_string(),
+                        attribute_iter->name,
                         attribute_iter->type
                     );
                 }
@@ -186,6 +189,11 @@ namespace currentia {
         }
 
     private:
+        void assert_has_attribute_(int index) const {
+            if (index < 0 || static_cast<unsigned int>(index) >= attributes_.size())
+                throw "This schema does not have a requested attribute";
+        }
+
         long id_;
         // TODO: give relation name
         pthread_mutex_t schema_lock_;
