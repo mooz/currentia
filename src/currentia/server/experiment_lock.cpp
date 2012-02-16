@@ -255,30 +255,51 @@ ConsistencyPreserveMethod CONSISTENCY_PRESERVE_METHOD = NONE;
 bool already_begin_called = false;
 
 // ============================================================
-// Begin ~ End
+// Begin ~ End : Lock
 // ======================================================== {{{
 
-void input_stream_hook(const Tuple::ptr_t& tuple)
+void input_stream_hook_lock(const Tuple::ptr_t& tuple)
 {
     if (!already_begin_called) {
-        std::cerr << "Begin!" << std::endl;
+        std::cerr << "Lock Begin!" << std::endl;
         already_begin_called = true;
     } else {
-        std::cerr << "Already Begined..." << std::endl;
+        std::cerr << "Lock Already Beginned..." << std::endl;
     }
 }
 
-#include <assert.h>
-
-void output_result_hook(const Tuple::ptr_t& tuple)
+void output_result_hook_lock(const Tuple::ptr_t& tuple)
 {
-    assert(already_begin_called);
     already_begin_called = false;
-    std::cerr << "End!" << std::endl;
+    std::cerr << "Lock End!" << std::endl;
 }
 
 // }}} ========================================================
-// Begin ~ End
+// Begin ~ End : Lock
+// ============================================================
+
+// ============================================================
+// Begin ~ End : Versioning
+// ======================================================== {{{
+
+void input_stream_hook_versioning(const Tuple::ptr_t& tuple)
+{
+    if (!already_begin_called) {
+        std::cerr << "Versioning Begin!" << std::endl;
+        already_begin_called = true;
+    } else {
+        std::cerr << "Versioning Already Beginned..." << std::endl;
+    }
+}
+
+void output_result_hook_versioning(const Tuple::ptr_t& tuple)
+{
+    already_begin_called = false;
+    std::cerr << "Versioning End!" << std::endl;
+}
+
+// }}} ========================================================
+// Begin ~ End : Versioning
 // ============================================================
 
 static std::string SELECTION_CONDITION;
@@ -292,9 +313,11 @@ void setup_query()
     case NONE:
         break;
     case LOCK:
-        purchase_stream_adapter->add_after_process(&input_stream_hook);
+        purchase_stream_adapter->add_after_process(&input_stream_hook_lock);
+        break;
     case VERSIONING:
-        purchase_stream_adapter->add_after_process(&input_stream_hook);
+        purchase_stream_adapter->add_after_process(&input_stream_hook_versioning);
+        break;
     }
 
     {
@@ -325,8 +348,11 @@ void setup_query()
     case NONE:
         break;
     case LOCK:
+        query_ptr->add_after_process(&output_result_hook_lock);
+        break;
     case VERSIONING:
-        query_ptr->add_after_process(&output_result_hook);
+        query_ptr->add_after_process(&output_result_hook_versioning);
+        break;
     }
 }
 
