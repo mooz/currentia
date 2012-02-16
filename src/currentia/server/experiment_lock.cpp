@@ -106,18 +106,23 @@ static int GOODS_COUNT;
 static int AGGREGATION_WINDOW_WIDTH;
 
 static useconds_t UPDATE_INTERVAL;
+static useconds_t UPDATE_TIME;
 
+static int updated_status_count;
 void* update_status_thread_body(void* argument)
 {
-    // Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
+    updated_status_count = 0;
 
-    // for (int i = 0; i < PURCHASE_COUNT; ++i) {
-    //     purchase_stream->enqueue(create_purchase_tuple(i % GOODS_COUNT /* goods id */, rand() /* user id */));
-    //     if (UPDATE_INTERVAL > 0)
-    //         usleep(UPDATE_INTERVAL);
-    // }
+    while (true) {
+        // randomly select a tuple and update it
+        usleep(UPDATE_INTERVAL);
 
-    // purchase_stream->enqueue(Tuple::create_eos()); // Finish!
+        goods_relation->read_write_lock();
+        usleep(UPDATE_TIME);
+        goods_relation->unlock();
+
+        updated_status_count++;
+    }
 
     return NULL;
 }
@@ -280,6 +285,8 @@ void initialize(cmdline::parser& cmd_parser)
 void set_parameters_from_option(cmdline::parser& cmd_parser)
 {
     UPDATE_INTERVAL            = cmd_parser.get<useconds_t>("update-interval");
+    UPDATE_TIME                = cmd_parser.get<useconds_t>("update-time");
+
     PURCHASE_STREAM_INTERVAL   = cmd_parser.get<useconds_t>("purchase-interval");
     AGGREGATION_WINDOW_WIDTH   = cmd_parser.get<int>("aggregation-window-width");
     PURCHASE_COUNT             = cmd_parser.get<int>("purchase-count");
@@ -304,6 +311,7 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
 
     // Parameter
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
+    cmd_parser.add<useconds_t>("update-time", '\0', "time needed to update a relation", false, 10);
     cmd_parser.add<useconds_t>("purchase-interval", '\0', "Purchase interval", false, 1000);
     cmd_parser.add<int>("aggregation-window-width", '\0', "window width for aggregation", false, 10);
     cmd_parser.add<int>("purchase-count", '\0', "Purchase count", false, 1000);
@@ -342,24 +350,28 @@ int main(int argc, char **argv)
     initialize(cmd_parser);
 
     typedef void* (*pthread_body_t)(void*);
-    pthread_t listen_thread, process_thread, stream_sending_thread;
+    pthread_t update_status_thread, process_stream_thread, stream_sending_thread;
 
     double begin_time = get_current_time_in_seconds();
 
-    pthread_create(&listen_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
-    pthread_create(&process_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
+    pthread_create(&update_status_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
+    pthread_create(&process_stream_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
     pthread_create(&stream_sending_thread, NULL, reinterpret_cast<pthread_body_t>(stream_sending_thread_body), NULL);
 
-    pthread_join(listen_thread, NULL);
-    pthread_join(process_thread, NULL);
+    pthread_join(process_stream_thread, NULL);
     pthread_join(stream_sending_thread, NULL);
+
+    pthread_cancel(update_status_thread);
+    // pthread_join(update_status_thread, NULL);
 
     double end_time = get_current_time_in_seconds();
     double elapsed_seconds = end_time - begin_time;
-    double throughput = PURCHASE_COUNT / elapsed_seconds;
+    double throughput_query = PURCHASE_COUNT / elapsed_seconds;
+    double throughput_update = updated_status_count / elapsed_seconds;
 
     std::cerr << "Finished processing " << PURCHASE_COUNT << " tuples in " << elapsed_seconds << " secs." << std::endl
-              << "Throughput: " << throughput << " tps" << std::endl;
+              << "Throughput (Query): " << throughput_query << " tps" << std::endl
+              << "Throughput (Update): " << throughput_update << " tps" << std::endl;
 
     return 0;
 }
