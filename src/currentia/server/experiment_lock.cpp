@@ -465,12 +465,18 @@ int main(int argc, char **argv)
 {
     using namespace currentia;
 
-    // create a parser
-    cmdline::parser cmd_parser;
-    parse_option(cmd_parser, argc, argv);
-    set_parameters_from_option(cmd_parser);
+    try {
+        // create a parser
+        cmdline::parser cmd_parser;
+        parse_option(cmd_parser, argc, argv);
+        set_parameters_from_option(cmd_parser);
 
-    initialize(cmd_parser);
+        initialize(cmd_parser);
+    } catch (const std::string& error) {
+        std::cerr << error << std::endl;
+    } catch (const char* error) {
+        std::cerr << error << std::endl;
+    }
 
     typedef void* (*pthread_body_t)(void*);
     pthread_t update_status_thread, process_stream_thread, stream_sending_thread;
