@@ -90,7 +90,7 @@ do_bench_update_vs_stream() {
 
     ${BIN} \
         --purchase-interval ${interval} \
-        --purchase-count 1000 \
+        --purchase-count 10000 \
         --aggregation-window-width ${WINDOW_WIDTH} \
         --method ${method} \
         --selection-condition "${SELECTION_CONDITION}" \

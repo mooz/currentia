@@ -13,11 +13,18 @@
 
 #include "thirdparty/cmdline.h"
 
+#include <sys/time.h>
 #include <iostream>
 
 using namespace currentia;
 
 #define LOG(x) std::cout << x << std::endl
+
+double get_current_time_in_seconds() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 0.001 * 0.001;
+}
 
 Tuple::ptr_t create_purchase_tuple(int goods_id, int user_id);
 
@@ -91,6 +98,9 @@ double interval_to_rate(useconds_t interval)
 // Begin Body
 // ======================================================== {{{
 
+double begin_time;
+double end_time;
+
 // Parameters
 static int PURCHASE_COUNT;
 static int GOODS_COUNT;
@@ -106,7 +116,8 @@ void* update_status_thread_body(void* argument)
 
     while (true) {
         // randomly select a tuple and update it
-        usleep(UPDATE_INTERVAL);
+        if (UPDATE_INTERVAL > 0)
+            usleep(UPDATE_INTERVAL);
 
         goods_relation->read_write_lock();
         goods_relation->update();
@@ -131,6 +142,8 @@ void* process_stream_thread_body(void* argument)
         std::cerr << "Error while processing stream: " << error_message << std::endl;
     }
 
+    end_time = get_current_time_in_seconds();
+
     return NULL;
 }
 
@@ -138,6 +151,8 @@ void* process_stream_thread_body(void* argument)
 static useconds_t PURCHASE_STREAM_INTERVAL;
 void* stream_sending_thread_body(void* argument)
 {
+    begin_time = get_current_time_in_seconds();
+
     Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
 
     for (int i = 0; i < PURCHASE_COUNT; ++i) {
@@ -453,14 +468,6 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     cmd_parser.parse_check(argc, argv);
 }
 
-#include <sys/time.h>
-
-double get_current_time_in_seconds() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 0.001 * 0.001;
-}
-
 int main(int argc, char **argv)
 {
     using namespace currentia;
@@ -481,8 +488,6 @@ int main(int argc, char **argv)
     typedef void* (*pthread_body_t)(void*);
     pthread_t update_status_thread, process_stream_thread, stream_sending_thread;
 
-    double begin_time = get_current_time_in_seconds();
-
     pthread_create(&update_status_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
     pthread_create(&process_stream_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
     pthread_create(&stream_sending_thread, NULL, reinterpret_cast<pthread_body_t>(stream_sending_thread_body), NULL);
@@ -493,7 +498,6 @@ int main(int argc, char **argv)
     pthread_cancel(update_status_thread);
     // pthread_join(update_status_thread, NULL);
 
-    double end_time = get_current_time_in_seconds();
     double elapsed_seconds = end_time - begin_time;
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
     double throughput_update = updated_status_count / elapsed_seconds;
