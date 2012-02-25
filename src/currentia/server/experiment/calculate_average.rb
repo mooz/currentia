@@ -9,6 +9,7 @@ ARGV.each do |filename|
         x, y = line.split(" ").map {|str| str.to_f }
         if values[nth]
           # assert values[nth][0] == x
+          values[nth][0] += x
           values[nth][1] += y
         else
           values[nth] = [x, y]
@@ -23,7 +24,7 @@ end
 
 puts values.map { |x, y|
   if x
-    "#{x} #{y / ARGV.length}"
+    "#{x / ARGV.length} #{y / ARGV.length}"
   else
     ""
   end
