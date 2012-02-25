@@ -121,9 +121,13 @@ namespace currentia {
         }
 
         static const char INDENTATION_CHAR = '\t';
-        void indented_print(std::string message) {
+        void print_indent() {
             for (int i = 1; i < selection_depth_; ++i)
                 std::cout << INDENTATION_CHAR;
+        }
+
+        void indented_print(const std::string& message) {
+            print_indent();
             std::cout << message << std::endl;
         }
 
