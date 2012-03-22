@@ -10,9 +10,11 @@
 #include "currentia/core/pointer.h"
 #include "currentia/core/operator/comparator.h"
 
+#include "currentia/trait/pointable.h"
+
 namespace currentia {
     // copyable
-    class Object {
+    class Object : public Pointable<Object> {
     public:
         enum Type {
             INT,
@@ -22,8 +24,6 @@ namespace currentia {
             //
             UNKNOWN
         };
-
-        typedef std::shared_ptr<Object> ptr_t;
 
         // typedef int int_number_t;
         // typedef double double_number_t;

@@ -8,15 +8,15 @@
 #include "currentia/core/pointer.h"
 #include "currentia/core/thread.h"
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 
 #include <list>
 
 namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
-    class Stream: private NonCopyable<Stream> {
+    class Stream: private NonCopyable<Stream>,
+                  public Pointable<Stream> {
     public:
-        typedef std::shared_ptr<Stream> ptr_t;
-
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {
             // initialize values for thread synchronization

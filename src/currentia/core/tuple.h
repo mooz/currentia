@@ -6,7 +6,9 @@
 #include "currentia/core/schema.h"
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
+
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 
 #include <sstream>              // string_stream
 #include <vector>
@@ -14,9 +16,9 @@
 
 namespace currentia {
     // Immutable
-    class Tuple: private NonCopyable<Tuple> {
+    class Tuple: private NonCopyable<Tuple>,
+                 public Pointable<Tuple> {
     public:
-        typedef std::shared_ptr<Tuple> ptr_t;
         // typedef std::shared_ptr<std::vector<Object> > data_ptr_t;
         typedef std::vector<Object> data_t;
 

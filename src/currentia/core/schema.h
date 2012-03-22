@@ -9,6 +9,7 @@
 
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/printable.h"
+#include "currentia/trait/pointable.h"
 
 #include <map>
 #include <vector>
@@ -53,9 +54,9 @@ namespace currentia {
         return next_schema_id++;
     }
 
-    class Schema: private NonCopyable<Schema> {
+    class Schema: private NonCopyable<Schema>,
+                  public Pointable<Schema> {
     public:
-        typedef std::shared_ptr<Schema> ptr_t;
         // types
         typedef std::vector<Attribute> attributes_t;
         typedef std::map<std::string, int> attributes_index_t;

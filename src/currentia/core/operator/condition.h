@@ -8,17 +8,17 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/operator/comparator.h"
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 
 #include <list>
 
 namespace currentia {
-    class Condition: private NonCopyable<Condition> {
+    class Condition: private NonCopyable<Condition>,
+                     public Pointable<Condition> {
     protected:
         bool negated_;
 
     public:
-        typedef std::shared_ptr<Condition> ptr_t;
-
         Condition(): negated_(false) {}
         virtual ~Condition() = 0;
 
@@ -56,9 +56,10 @@ namespace currentia {
 
     Condition::~Condition() {}
 
-    class ConditionConjunctive: public Condition {
+    class ConditionConjunctive: public Condition,
+                                public Pointable<ConditionConjunctive> {
     public:
-        typedef std::shared_ptr<ConditionConjunctive> ptr_t;
+        typedef Pointable<ConditionConjunctive>::ptr_t ptr_t;
 
         // Conjunctive
         enum Type {
@@ -220,9 +221,10 @@ namespace currentia {
 
     // Comparator
 
-    class ConditionConstantComparator: public Condition {
+    class ConditionConstantComparator: public Condition,
+                                       public Pointable<ConditionConstantComparator> {
     public:
-        typedef std::shared_ptr<ConditionConstantComparator> ptr_t;
+        typedef Pointable<ConditionConstantComparator>::ptr_t ptr_t;
 
     private:
 
@@ -296,13 +298,14 @@ namespace currentia {
         }
     };
 
-    class ConditionAttributeComparator: public Condition {
+    class ConditionAttributeComparator: public Condition,
+                                        public Pointable<ConditionAttributeComparator> {
         std::string target1_attribute_name_;
         std::string target2_attribute_name_;
         Comparator::Type comparator_type_;
 
     public:
-        typedef std::shared_ptr<ConditionAttributeComparator> ptr_t;
+        typedef Pointable<ConditionAttributeComparator>::ptr_t ptr_t;
 
         ConditionAttributeComparator(std::string target1_attribute_name,
                                      Comparator::Type comparator_type,
