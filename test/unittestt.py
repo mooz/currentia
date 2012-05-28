@@ -219,6 +219,8 @@ class utest(Task.Task):
             if filt != "":
                 self.ut_exec += ['--gtest_filter=' + filt]
 
+        self.ut_exec += ['--gtest_color=yes']
+
         cwd = getattr(self.generator, 'ut_cwd', '') or self.inputs[0].parent.abspath()
         proc = Utils.subprocess.Popen(self.ut_exec, cwd=cwd, env=fu, stderr=Utils.subprocess.PIPE, stdout=Utils.subprocess.PIPE)
         (stdout, stderr) = proc.communicate()
