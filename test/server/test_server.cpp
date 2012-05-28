@@ -23,7 +23,23 @@ TEST (TestServer, DefineStream) {
         InputStreamHandler::ptr_t test_stream2 = define_stream_from_ddl(server, is2);
         EXPECT_TRUE(server.has_stream_with_name("TESTSTREAM2"));
 
+        server.get_stream_adapter_by_name("TESTSTREAM1");
+        server.get_stream_adapter_by_name("TESTSTREAM2");
 
+        // server.register_query(
+        //     "QUERY1",
+        //     "TESTSTREAM1",
+        //     Operator::ptr_t(
+        //         new OperatorStreamAdapter(server.get_stream("TESTSTREAM1"))
+        //     )
+        // );
+
+        // server.register_query_legacy(
+        //     "QUERY1",
+        //     Operator::ptr_t(
+        //         server.get_stream_adapter_by_name("TESTSTREAM1")
+        //     )
+        // );
     } catch (std::string error) {
         std::cout << error << std::endl;
         EXPECT_TRUE(false);

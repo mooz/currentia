@@ -11,7 +11,7 @@ parse_string(const std::string& source) {
     Lexer::ptr_t lexer(new Lexer(&is));
     Parser parser(lexer);
 
-    AbstractNode::ptr_t root(parser.parse_statement());
+    Statement::ptr_t root(parser.parse_statement());
     return std::tr1::dynamic_pointer_cast<T>(root);
 }
 

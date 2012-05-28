@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = ""
+subdirs = "ast"
 
 def options(opt):
     opt.recurse(subdirs)

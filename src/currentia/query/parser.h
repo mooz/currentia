@@ -5,10 +5,13 @@
 
 #include "currentia/query/lexer.h"
 
+#include "currentia/query/ast/statement.h"
+
+#include "currentia/query/ast/create.h"
+#include "currentia/query/ast/from-selection.h"
+
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
-
-#include "currentia/query/ast.h"
 
 #include "currentia/core/operator/condition.h"
 
@@ -73,13 +76,13 @@ namespace currentia {
             }
         }
 
-        AbstractNode::ptr_t parse_statement() {
+        Statement::ptr_t parse_statement() {
             try {
                 get_next_token_();
                 return parse_statement_();
             } catch (std::string error) {
                 std::cerr << "\nSyntax Error: " << error << std::endl;
-                return AbstractNode::ptr_t();
+                return Statement::ptr_t();
             }
         }
 
@@ -90,7 +93,7 @@ namespace currentia {
             return parser;
         }
 
-        static AbstractNode::ptr_t parse_statement_from_stream(std::istream& input) {
+        static Statement::ptr_t parse_statement_from_stream(std::istream& input) {
             return create_parser_from_stream(input)->parse_statement();
         }
 
@@ -131,7 +134,7 @@ namespace currentia {
             std::cout << message << std::endl;
         }
 
-        AbstractNode::ptr_t parse_statement_() {
+        Statement::ptr_t parse_statement_() {
             switch (current_token_) {
             case Lexer::SELECT:
                 return parse_selection_();
@@ -148,7 +151,7 @@ namespace currentia {
 
         // <SELECTION> : SELECT <ATTRIBUTES> FROM <FROM_ELEMENTS> WHERE <CONDITIONS>
         long selection_depth_;
-        AbstractNode::ptr_t parse_selection_() {
+        Statement::ptr_t parse_selection_() {
             // FromSelectionNode::ptr_t selection_node(new FromSelectionNode());
 
             selection_depth_++;
@@ -170,7 +173,7 @@ namespace currentia {
 
             selection_depth_--;
 
-            return AbstractNode::ptr_t();
+            return Statement::ptr_t();
         }
 
         // <ATTRIBUTES> := <ATTRIBUTE> (COMMA <ATTRIBUTES>)?
