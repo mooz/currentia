@@ -4,6 +4,7 @@
 #define CURRENTIA_OPERATIONS_H_
 
 #include "currentia/core/object.h"
+#include <sstream>
 
 namespace currentia {
     namespace operations {
@@ -14,16 +15,46 @@ namespace currentia {
 
         Object::ptr_t operation_add(const Object& left,
                                     const Object& right) {
-            if (left.type != right.type)
-                throw TYPE_MISMATCH;
+            std::stringstream ss;
 
             switch (left.type) {
             case Object::INT:
-                return Object::ptr_t(new Object(left.holder_.int_number + right.holder_.int_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.int_number + right.holder_.int_number));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(static_cast<double>(left.holder_.int_number) + right.holder_.float_number));
+                case Object::STRING:
+                    ss << left.holder_.int_number;
+                    return Object::ptr_t(new Object(*Object::string_ptr_t(new std::string(ss.str())) + *right.holder_.string_ptr));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             case Object::FLOAT:
-                return Object::ptr_t(new Object(left.holder_.float_number + right.holder_.float_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.float_number + static_cast<double>(right.holder_.int_number)));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(left.holder_.float_number + right.holder_.float_number));
+                case Object::STRING:
+                    ss << left.holder_.float_number;
+                    return Object::ptr_t(new Object(*Object::string_ptr_t(new std::string(ss.str())) + *right.holder_.string_ptr));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             case Object::STRING:
-                return Object::ptr_t(new Object(*left.holder_.string_ptr + *right.holder_.string_ptr));
+                switch (right.type) {
+                case Object::INT:
+                    ss << right.holder_.int_number;
+                    return Object::ptr_t(new Object(*left.holder_.string_ptr + *Object::string_ptr_t(new std::string(ss.str()))));
+                case Object::FLOAT:
+                    ss << right.holder_.float_number;
+                    return Object::ptr_t(new Object(*left.holder_.string_ptr + *Object::string_ptr_t(new std::string(ss.str()))));
+                case Object::STRING:
+                    return Object::ptr_t(new Object(*left.holder_.string_ptr + *right.holder_.string_ptr));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             default:
                 throw UNSUPPORTED_OPERATION;
             }
@@ -31,14 +62,25 @@ namespace currentia {
 
         Object::ptr_t operation_subtract(const Object& left,
                                          const Object& right) {
-            if (left.type != right.type)
-                throw TYPE_MISMATCH;
-
             switch (left.type) {
             case Object::INT:
-                return Object::ptr_t(new Object(left.holder_.int_number - right.holder_.int_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.int_number - right.holder_.int_number));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(static_cast<double>(left.holder_.int_number) - right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             case Object::FLOAT:
-                return Object::ptr_t(new Object(left.holder_.float_number - right.holder_.float_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.float_number - static_cast<double>(right.holder_.int_number)));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(left.holder_.float_number - right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             default:
                 throw UNSUPPORTED_OPERATION;
             }
@@ -46,14 +88,25 @@ namespace currentia {
 
         Object::ptr_t operation_multiply(const Object& left,
                                          const Object& right) {
-            if (left.type != right.type)
-                throw TYPE_MISMATCH;
-
             switch (left.type) {
             case Object::INT:
-                return Object::ptr_t(new Object(left.holder_.int_number * right.holder_.int_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.int_number * right.holder_.int_number));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(static_cast<double>(left.holder_.int_number) * right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             case Object::FLOAT:
-                return Object::ptr_t(new Object(left.holder_.float_number * right.holder_.float_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.float_number * static_cast<double>(right.holder_.int_number)));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(left.holder_.float_number * right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             default:
                 throw UNSUPPORTED_OPERATION;
             }
@@ -61,14 +114,25 @@ namespace currentia {
 
         Object::ptr_t operation_divide(const Object& left,
                                        const Object& right) {
-            if (left.type != right.type)
-                throw TYPE_MISMATCH;
-
             switch (left.type) {
             case Object::INT:
-                return Object::ptr_t(new Object(left.holder_.int_number / right.holder_.int_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.int_number / right.holder_.int_number));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(static_cast<double>(left.holder_.int_number) / right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             case Object::FLOAT:
-                return Object::ptr_t(new Object(left.holder_.float_number / right.holder_.float_number));
+                switch (right.type) {
+                case Object::INT:
+                    return Object::ptr_t(new Object(left.holder_.float_number / static_cast<double>(right.holder_.int_number)));
+                case Object::FLOAT:
+                    return Object::ptr_t(new Object(left.holder_.float_number / right.holder_.float_number));
+                default:
+                    throw TYPE_MISMATCH;
+                }
             default:
                 throw UNSUPPORTED_OPERATION;
             }
