@@ -49,6 +49,11 @@ namespace currentia {
 
             // window specification
             ROWS,                   // ROWS
+            MSEC,                   // MSEC
+            SEC,                    // SEC
+            MIN,                    // MIN
+            HOUR,                   // HOUR
+            DAY,                    // DAY
             ADVANCE,                // ADVANCE
             LBRACKET,               // "["
             RBRACKET,               // "]"
@@ -171,6 +176,16 @@ namespace currentia {
                 return "IN";
             case ROWS:
                 return "ROWS";
+            case MSEC:
+                return "MSEC";
+            case SEC:
+                return "SEC";
+            case MIN:
+                return "MIN";
+            case HOUR:
+                return "HOUR";
+            case DAY:
+                return "DAY";
             case ADVANCE:
                 return "ADVANCE";
             case CREATE:
@@ -216,15 +231,15 @@ namespace currentia {
             }
         }
 
-        const std::string& get_latest_name() {
+        const std::string& get_latest_name_string() {
             return name_string_;
         }
 
-        const std::string& get_latest_number() {
+        const std::string& get_latest_number_string() {
             return number_string_;
         }
 
-        const std::string& get_latest_string() {
+        const std::string& get_latest_string_string() {
             return string_string_;
         }
 
@@ -336,6 +351,17 @@ namespace currentia {
             if (name_string_ == "ROWS" ||
                 name_string_ == "TUPLES") // TUPLES is a synonym of ROWS
                 return ROWS;
+
+            if (name_string_ == "MSEC")
+                return MSEC;
+            if (name_string_ == "SEC")
+                return SEC;
+            if (name_string_ == "MIN")
+                return MIN;
+            if (name_string_ == "HOUR")
+                return HOUR;
+            if (name_string_ == "DAY")
+                return DAY;
 
             if (name_string_ == "ADVANCE")
                 return ADVANCE;

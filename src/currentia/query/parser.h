@@ -48,15 +48,21 @@ namespace currentia {
         const std::string& get_current_string_() {
             switch (current_token_) {
             case Lexer::NAME:
-                return lexer_ptr_->get_latest_name();
+                return lexer_ptr_->get_latest_name_string();
             case Lexer::INTEGER:
             case Lexer::FLOAT:
-                return lexer_ptr_->get_latest_number();
+                return lexer_ptr_->get_latest_number_string();
             case Lexer::STRING:
-                return lexer_ptr_->get_latest_string();
+                return lexer_ptr_->get_latest_string_string();
             default:
                 return dummy_current_string_;
             }
+        }
+
+        double get_current_number_() const {
+            double current_number;
+            std::istringstream(lexer_ptr_->get_latest_number_string()) >> current_number;
+            return current_number;
         }
 
     public:
@@ -255,19 +261,35 @@ namespace currentia {
         }
 
         // <WINDOW> := LBRACKET
-        //                 (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR)?
-        //                 (ADVANCE (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR))?
+        //                 (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR|DAY)?
+        //                 (ADVANCE (INTEGER|FLOAT) (ROWS|MSEC|SEC|MIN|HOUR|DAY))?
         //             RBRACKET
         void parse_window_() {
+            long width;
+            long stride;
+            Window::Type type = Window::TUPLE_BASE;
+
             ASSERT_TOKEN(LBRACKET);
             get_next_token_(); // Trash LBRACKET
 
             // parse window width
             ASSERT_TOKEN_IS_NUMBER();
+            width = static_cast<long>(get_current_number_());
             get_next_token_();  // Trash number
 
-            if (current_token_ == Lexer::ROWS) {
+            switch (current_token_) {
+            case Lexer::ROWS:
                 get_next_token_(); // Trash window width unit
+                break;
+            case Lexer::MSEC:
+            case Lexer::SEC:
+            case Lexer::MIN:
+            case Lexer::HOUR:
+            case Lexer::DAY:
+                get_next_token_(); // Trash window width unit
+                break;
+            default:
+                break;
             }
 
             if (current_token_ == Lexer::ADVANCE) {
@@ -277,13 +299,26 @@ namespace currentia {
                 ASSERT_TOKEN_IS_NUMBER();
                 get_next_token_();  // Trash number
 
-                if (current_token_ == Lexer::ROWS) {
-                    get_next_token_(); // Trash window stride unit
+                switch (current_token_) {
+                case Lexer::ROWS:
+                    get_next_token_();
+                    break;
+                case Lexer::MSEC:
+                case Lexer::SEC:
+                case Lexer::MIN:
+                case Lexer::HOUR:
+                case Lexer::DAY:
+                    get_next_token_();
+                    break;
+                default:
+                    break;
                 }
             }
 
             ASSERT_TOKEN(RBRACKET);
             get_next_token_(); // Trash RBRACKET
+
+            Window window(width, stride, type);
         }
 
     private:

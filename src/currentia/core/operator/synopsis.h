@@ -24,9 +24,9 @@ namespace currentia {
         // read tuples to prepare for next join
         void read_next_tuples(const Operator::ptr_t& target_operator) {
             switch (window_.type) {
-            case Window::LOGICAL:
+            case Window::TUPLE_BASE:
                 return read_next_tuples_logical(target_operator);
-            case Window::PHYSICAL:
+            case Window::TIME_BASE:
                 // TODO: support physical window (is it possible in pull-style processing?)
                 return read_next_tuples_logical(target_operator);
             }
