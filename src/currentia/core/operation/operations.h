@@ -24,7 +24,6 @@ namespace currentia {
                 return Object::ptr_t(new Object(left.holder_.float_number + right.holder_.float_number));
             case Object::STRING:
                 return Object::ptr_t(new Object(*left.holder_.string_ptr + *right.holder_.string_ptr));
-                break;
             default:
                 throw UNSUPPORTED_OPERATION;
             }
