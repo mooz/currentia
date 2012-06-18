@@ -25,7 +25,7 @@
   re2c:define:YYFILL@len = #;
   re2c:define:YYFILL = "if (!fill(#)) { return TOKEN_EOS; }";
   re2c:yyfill:enable = 1;
-  re2c:indent:top = 2;
+  re2c:indent:top = 3;
   re2c:indent:string="    ";
 */
 
