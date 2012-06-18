@@ -27,8 +27,8 @@
 
 #define ASSERT_TOKEN_IS_NUMBER()                        \
     do {                                                \
-        if (current_token_ != Lexer::INTEGER &&         \
-            current_token_ != Lexer::FLOAT) {           \
+        if (current_token_ != Lexer::TOKEN_INTEGER &&         \
+            current_token_ != Lexer::TOKEN_FLOAT) {           \
             report_error_("Expected INTEGER or FLOAT"); \
         }                                               \
     } while (0)
@@ -40,42 +40,38 @@ namespace currentia {
 
         Lexer::Token current_token_;
         Lexer::Token get_next_token_() {
-            current_token_ = lexer_ptr_->next_token();
+            current_token_ = lexer_ptr_->get_next_token();
             return current_token_;
         }
 
-        const std::string dummy_current_string_;
-        const std::string& get_current_string_() {
+        std::string get_current_string_() {
             switch (current_token_) {
-            case Lexer::NAME:
-                return lexer_ptr_->get_latest_name_string();
-            case Lexer::INTEGER:
-            case Lexer::FLOAT:
-                return lexer_ptr_->get_latest_number_string();
-            case Lexer::STRING:
-                return lexer_ptr_->get_latest_string_string();
+            case Lexer::TOKEN_NAME:
+            case Lexer::TOKEN_INTEGER:
+            case Lexer::TOKEN_FLOAT:
+                return lexer_ptr_->get_token_text();
             default:
-                return dummy_current_string_;
+                return NULL;
             }
         }
 
-        double get_current_number_() const {
+        double get_current_number_() {
             double current_number;
-            std::istringstream(lexer_ptr_->get_latest_number_string()) >> current_number;
+            std::istringstream(get_current_string_()) >> current_number;
             return current_number;
         }
 
     public:
         Parser(Lexer::ptr_t lexer_ptr):
             lexer_ptr_(lexer_ptr),
-            current_token_(Lexer::UNKNOWN),
+            current_token_(Lexer::TOKEN_UNKNOWN),
             selection_depth_(0) {
         }
 
         void parse() {
             try {
                 get_next_token_();
-                while (current_token_ != Lexer::EOS)
+                while (current_token_ != Lexer::TOKEN_EOS)
                     parse_statement_();
             } catch (std::string error) {
                 std::cerr << "\nSyntax Error: " << error << std::endl;
@@ -142,9 +138,9 @@ namespace currentia {
 
         Statement::ptr_t parse_statement_() {
             switch (current_token_) {
-            case Lexer::SELECT:
+            case Lexer::TOKEN_SELECT:
                 return parse_selection_();
-            case Lexer::CREATE:
+            case Lexer::TOKEN_CREATE:
                 return parse_create_();
             default:
                 report_error_("Expected SELECT or CREATE");
@@ -162,17 +158,17 @@ namespace currentia {
 
             selection_depth_++;
 
-            ASSERT_TOKEN(SELECT);
+            ASSERT_TOKEN(TOKEN_SELECT);
             get_next_token_();
 
             parse_attributes_();
 
-            ASSERT_TOKEN(FROM);
+            ASSERT_TOKEN(TOKEN_FROM);
             get_next_token_();
 
             parse_from_elements_(); // returns std::list<Operator::ptr_t>
 
-            ASSERT_TOKEN(WHERE);
+            ASSERT_TOKEN(TOKEN_WHERE);
             get_next_token_();
 
             parse_conditions_(); // returns Condition::ptr_t
@@ -189,7 +185,7 @@ namespace currentia {
             AttributeIdentifier attribute_identifier = parse_attribute_();
             attribute_identifiers.push_back(attribute_identifier);
 
-            if (current_token_ == Lexer::COMMA) {
+            if (current_token_ == Lexer::TOKEN_COMMA) {
                 get_next_token_(); // Trash COMMA
                 std::list<AttributeIdentifier> rest_attribute_identifiers = parse_attributes_();
                 attribute_identifiers.insert(
@@ -204,13 +200,13 @@ namespace currentia {
 
         // <ATTRIBUTE> := NAME (DOT NAME)?
         AttributeIdentifier parse_attribute_() {
-            ASSERT_TOKEN(NAME);
+            ASSERT_TOKEN(TOKEN_NAME);
 
             std::string stream_name = "DEFAULT_STREAM";
             std::string attribute_name = get_current_string_();
 
-            if (get_next_token_() == Lexer::DOT) { // Trash NAME
-                if (get_next_token_() != Lexer::NAME) // Trash DOT
+            if (get_next_token_() == Lexer::TOKEN_DOT) { // Trash NAME
+                if (get_next_token_() != Lexer::TOKEN_NAME) // Trash DOT
                     report_error_("Attribute name is missing");
                 stream_name = attribute_name;
                 attribute_name = get_current_string_();
@@ -225,7 +221,7 @@ namespace currentia {
             std::list<SelectionNode::ptr_t> from_elements;
             from_elements.push_back(parse_from_element_());
 
-            if (current_token_ == Lexer::COMMA) {
+            if (current_token_ == Lexer::TOKEN_COMMA) {
                 get_next_token_(); // Trash COMMA
                 parse_from_elements_();
             }
@@ -238,14 +234,14 @@ namespace currentia {
             );
 
             switch (current_token_) {
-            case Lexer::LPAREN:
+            case Lexer::TOKEN_LPAREN:
                 get_next_token_(); // Trash LPAREN
                 parse_selection_();
-                if (current_token_ != Lexer::RPAREN)
+                if (current_token_ != Lexer::TOKEN_RPAREN)
                     report_error_("Unclosed sub-query");
                 get_next_token_(); // Trash RPAREN
                 break;
-            case Lexer::NAME:
+            case Lexer::TOKEN_NAME:
                 indented_print("Target Stream => " + get_current_string_());
                 get_next_token_();  // Trash NAME
                 break;
@@ -254,7 +250,7 @@ namespace currentia {
                 break;
             }
 
-            if (current_token_ == Lexer::LBRACKET)
+            if (current_token_ == Lexer::TOKEN_LBRACKET)
                 parse_window_();
 
             return SelectionNode::ptr_t();
@@ -269,7 +265,7 @@ namespace currentia {
             long stride;
             Window::Type type = Window::TUPLE_BASE;
 
-            ASSERT_TOKEN(LBRACKET);
+            ASSERT_TOKEN(TOKEN_LBRACKET);
             get_next_token_(); // Trash LBRACKET
 
             // parse window width
@@ -278,21 +274,21 @@ namespace currentia {
             get_next_token_();  // Trash number
 
             switch (current_token_) {
-            case Lexer::ROWS:
+            case Lexer::TOKEN_ROWS:
                 get_next_token_(); // Trash window width unit
                 break;
-            case Lexer::MSEC:
-            case Lexer::SEC:
-            case Lexer::MIN:
-            case Lexer::HOUR:
-            case Lexer::DAY:
+            case Lexer::TOKEN_MSEC:
+            case Lexer::TOKEN_SEC:
+            case Lexer::TOKEN_MIN:
+            case Lexer::TOKEN_HOUR:
+            case Lexer::TOKEN_DAY:
                 get_next_token_(); // Trash window width unit
                 break;
             default:
                 break;
             }
 
-            if (current_token_ == Lexer::ADVANCE) {
+            if (current_token_ == Lexer::TOKEN_ADVANCE) {
                 get_next_token_(); // Trash ADVANCE
 
                 // parse window stride
@@ -300,14 +296,14 @@ namespace currentia {
                 get_next_token_();  // Trash number
 
                 switch (current_token_) {
-                case Lexer::ROWS:
+                case Lexer::TOKEN_ROWS:
                     get_next_token_();
                     break;
-                case Lexer::MSEC:
-                case Lexer::SEC:
-                case Lexer::MIN:
-                case Lexer::HOUR:
-                case Lexer::DAY:
+                case Lexer::TOKEN_MSEC:
+                case Lexer::TOKEN_SEC:
+                case Lexer::TOKEN_MIN:
+                case Lexer::TOKEN_HOUR:
+                case Lexer::TOKEN_DAY:
                     get_next_token_();
                     break;
                 default:
@@ -315,7 +311,7 @@ namespace currentia {
                 }
             }
 
-            ASSERT_TOKEN(RBRACKET);
+            ASSERT_TOKEN(TOKEN_RBRACKET);
             get_next_token_(); // Trash RBRACKET
 
             Window window(width, stride, type);
@@ -330,10 +326,10 @@ namespace currentia {
             if (Lexer::is_token_conjunctive(current_token_)) {
                 ConditionConjunctive::Type conjunctive_type;
                 switch (current_token_) {
-                case Lexer::AND:
+                case Lexer::TOKEN_AND:
                     conjunctive_type = ConditionConjunctive::AND;
                     break;
-                case Lexer::OR:
+                case Lexer::TOKEN_OR:
                     conjunctive_type = ConditionConjunctive::OR;
                     break;
                 default:
@@ -357,17 +353,17 @@ namespace currentia {
         // <CONDITION> := NOT? (LPAREN <CONDITIONS> RPAREN | <COMPARISON>)
         Condition::ptr_t parse_condition_() {
             bool negated = false;
-            if (current_token_ == Lexer::NOT) {
+            if (current_token_ == Lexer::TOKEN_NOT) {
                 negated = true;
                 get_next_token_(); // Trash NOT
             }
 
             Condition::ptr_t condition;
             switch (current_token_) {
-            case Lexer::LPAREN:
+            case Lexer::TOKEN_LPAREN:
                 get_next_token_(); // Trash LPAREN
                 condition = parse_conditions_();
-                ASSERT_TOKEN(RPAREN);
+                ASSERT_TOKEN(TOKEN_RPAREN);
                 get_next_token_(); // Trash RPAREN
                 break;
             default:
@@ -440,14 +436,14 @@ namespace currentia {
             std::stringstream ss;
 
             switch (value_token) {
-            case Lexer::STRING:
+            case Lexer::TOKEN_STRING:
                 return Object(value_string);
-            case Lexer::INTEGER:
+            case Lexer::TOKEN_INTEGER:
                 int value_int;
                 ss << value_string;
                 ss >> value_int;
                 return Object(value_int);
-            case Lexer::FLOAT:
+            case Lexer::TOKEN_FLOAT:
                 double value_float;
                 ss << value_string;
                 ss >> value_float;
@@ -462,22 +458,22 @@ namespace currentia {
             Comparator::Type comparator;
 
             switch (current_token_) {
-            case Lexer::EQUAL:
+            case Lexer::TOKEN_EQUAL:
                 comparator = Comparator::EQUAL;
                 break;
-            case Lexer::NOT_EQUAL:
+            case Lexer::TOKEN_NOT_EQUAL:
                 comparator = Comparator::NOT_EQUAL;
                 break;
-            case Lexer::LESS_THAN:
+            case Lexer::TOKEN_LESS_THAN:
                 comparator = Comparator::LESS_THAN;
                 break;
-            case Lexer::LESS_THAN_EQUAL:
+            case Lexer::TOKEN_LESS_THAN_EQUAL:
                 comparator = Comparator::LESS_THAN_EQUAL;
                 break;
-            case Lexer::GREATER_THAN:
+            case Lexer::TOKEN_GREATER_THAN:
                 comparator = Comparator::GREATER_THAN;
                 break;
-            case Lexer::GREATER_THAN_EQUAL:
+            case Lexer::TOKEN_GREATER_THAN_EQUAL:
                 comparator = Comparator::GREATER_THAN_EQUAL;
                 break;
             default:
@@ -495,24 +491,24 @@ namespace currentia {
 
         // <CREATE> := CREATE STREAM NAME (COMMA <ATTRIBUTE_DEFS>)?
         CreateNode::ptr_t parse_create_() {
-            ASSERT_TOKEN(CREATE);
+            ASSERT_TOKEN(TOKEN_CREATE);
             get_next_token_();  // Trash CREATE
 
             // TODO: support other create types (TABLE, VIEW, TRIGGER, INDEX, ...)
-            if (current_token_ != Lexer::STREAM && current_token_ != Lexer::TABLE)
+            if (current_token_ != Lexer::TOKEN_STREAM && current_token_ != Lexer::TOKEN_TABLE)
                 report_error_("Error: expected STREAM or TABLE"); 
             get_next_token_();  // Trash STREAM or TABLE
 
-            ASSERT_TOKEN(NAME);
+            ASSERT_TOKEN(TOKEN_NAME);
             std::string stream_name = get_current_string_();
             get_next_token_();  // Trash NAME
 
-            ASSERT_TOKEN(LPAREN);
+            ASSERT_TOKEN(TOKEN_LPAREN);
             get_next_token_();  // Trash LPAREN
 
             std::list<Attribute> attributes = parse_attribute_defs_();
 
-            ASSERT_TOKEN(RPAREN);
+            ASSERT_TOKEN(TOKEN_RPAREN);
             get_next_token_();  // Trash RPAREN
 
             return CreateNode::ptr_t(new CreateNode(stream_name, attributes));
@@ -523,7 +519,7 @@ namespace currentia {
             std::list<Attribute> attributes;
             attributes.push_back(parse_attribute_def_());
 
-            if (current_token_ == Lexer::COMMA) {
+            if (current_token_ == Lexer::TOKEN_COMMA) {
                 get_next_token_(); // Trash COMMA
                 std::list<Attribute> rest_attributes = parse_attribute_defs_();
                 attributes.insert(attributes.end(), rest_attributes.begin(), rest_attributes.end());
@@ -534,11 +530,11 @@ namespace currentia {
 
         // <ATTRIBUTE_DEF> := <NAME> <NAME>
         Attribute parse_attribute_def_() {
-            ASSERT_TOKEN(NAME);
+            ASSERT_TOKEN(TOKEN_NAME);
             std::string attribute_name = get_current_string_();
             get_next_token_();
 
-            ASSERT_TOKEN(NAME);
+            ASSERT_TOKEN(TOKEN_NAME);
             std::string type_name = get_current_string_();
             get_next_token_();
 
