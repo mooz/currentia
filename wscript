@@ -26,3 +26,8 @@ def configure(conf):
 
 def build(bld):
     bld.recurse(subdirs)
+
+def gen_lexer(bld):
+    bld.exec_command(
+        'pwd; re2c --case-insensitive -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re'
+    )

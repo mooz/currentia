@@ -303,13 +303,13 @@ namespace currentia {
             return 0;
         }
 
-        // template <typename Stream>
-        // void print_error_point(Stream& stream = std::cout) {
-        //     stream << current_line_ << std::endl;
-        //     for (int i = 0; i < cursor_point_ - 1; ++i)
-        //         stream << '_';
-        //     stream << '^';
-        // }
+        template <typename Stream>
+        void print_error_point(Stream& stream = std::cout) {
+            // stream << current_line_ << std::endl;
+            // for (int i = 0; i < get_current_cursor_point() - 1; ++i)
+            //     stream << '_';
+            // stream << '^';
+        }
     };
 }
 

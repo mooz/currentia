@@ -9,8 +9,6 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
-    bld(rule='echo re2c --case-insensitive -i -o ${TGT} ${SRC}', source='lexer.re', target='lexer.h')
-
     bld.program(
       source   = "parser.cpp",
       target   = "parser",
