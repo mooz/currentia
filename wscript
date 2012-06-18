@@ -28,6 +28,19 @@ def build(bld):
     bld.recurse(subdirs)
 
 def gen_lexer(bld):
-    bld.exec_command(
-        'pwd; re2c --case-insensitive -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re'
-    )
+    try:
+        import waflib
+        (out, err) = bld.cmd_and_log(
+            're2c --case-insensitive -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re',
+            output=waflib.Context.BOTH
+        )
+        if out:
+            print(out)
+        if err:
+            print(err)
+    except Exception as e:
+        if e.stdout:
+            print(e.stdout)
+        if e.stderr:
+            print(e.stderr)
+

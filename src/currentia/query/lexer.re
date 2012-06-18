@@ -29,6 +29,9 @@
   re2c:indent:string="    ";
 */
 
+#define dump(x) \
+        std::cout << #x << " => [" << (x) << "]" << std::endl
+
 namespace currentia {
     class Lexer : private NonCopyable<Lexer> {
     private:
@@ -38,7 +41,7 @@ namespace currentia {
         char* yy_cursor_;
         char* yy_marker_;
         char* yy_limit_;
-        char* current_token_begin_;
+        char* token_begin_;
         long buffer_size_;
         long line_number_;
 
@@ -119,99 +122,123 @@ namespace currentia {
             free(buffer_);
         }
 
-        bool fill(int n) {
-            if (ifs_ptr_->eof())
-                return false;
+        inline
+        int get_buffer_used_size() {
+            return yy_limit_ - buffer_;
+        }
 
-            int rest_size = yy_limit_ - current_token_begin_;
-            if (rest_size + n >= buffer_size_) {
+        inline
+        int get_buffer_allocated_size() {
+            return buffer_size_;
+        }
+
+        bool fill(int n) {
+            if (ifs_ptr_->eof() && (yy_limit_ - yy_cursor_) <= 0)
+                return false;   // EOS
+
+            int cursor_offset = yy_cursor_ - buffer_;
+            int remained_characters_count = yy_limit_ - yy_cursor_;
+
+            if (remained_characters_count + n >= buffer_size_) {
                 // Extend buffer
+                int yy_marker_offset = yy_marker_ - buffer_;
+                int yy_limit_offset = yy_limit_ - buffer_;
                 buffer_ = reinterpret_cast<char*>(realloc(buffer_, buffer_size_ *= 2));
-                // Adjust
-                yy_cursor_ = buffer_ + (yy_cursor_ - current_token_begin_);
-                current_token_begin_ = buffer_;
-                yy_limit_ = buffer_ + rest_size;
-            } else {
+                // Refresh Re-allocated memory
+                yy_marker_ = buffer_ + yy_marker_offset;
+                yy_limit_ = yy_limit_ + yy_limit_offset;
+            } else if (remained_characters_count > 0) {
                 // Shift remained characters in the buffer_ to head of the buffer_
-                memmove(buffer_, current_token_begin_, sizeof(char) * rest_size);
-                // Adjust
-                yy_cursor_ = buffer_ + (yy_cursor_ - current_token_begin_);
-                current_token_begin_ = buffer_;
-                yy_limit_ = buffer_ + rest_size;
+                memmove(buffer_, yy_cursor_, sizeof(char) * remained_characters_count);
             }
 
+            // Adjust position (shift)
+            yy_cursor_ = token_begin_ = buffer_;
+            yy_marker_ -= cursor_offset;
+            yy_limit_ -= cursor_offset;
+
+            // This line is very important (fill buffer with EOF)
+            memset(yy_limit_, '\0', sizeof(char) * (buffer_size_ - remained_characters_count));
+
             // Read characters from input stream
-            int read_size = buffer_size_ - rest_size;
+            int read_size = buffer_size_ - remained_characters_count;
             ifs_ptr_->read(yy_limit_, read_size);
             yy_limit_ += ifs_ptr_->gcount();
+            // Dirty hack (for stringstream which doesn't give us a EOF character)
+            if (ifs_ptr_->gcount() == 0 && *(yy_limit_ -1) != '\0') {
+                *yy_limit_ = '\0';
+                ++yy_limit_;
+            }
 
             return true;
         }
 
         std::string get_token_text() {
-            return std::string(current_token_begin_, current_token_begin_ + get_token_length());
+            return std::string(token_begin_, token_begin_ + get_token_length());
         }
         int get_token_length() {
-            return yy_cursor_ - current_token_begin_;
+            return yy_cursor_ - token_begin_;
         }
 
-        enum Token get_next_token(void) {
+        enum Token get_next_token() {
         start:
-            current_token_begin_ = yy_cursor_;
+            token_begin_ = yy_cursor_;
 
             /*!re2c
 
               IDENTIFIER  = [a-zA-Z_][a-zA-Z_0-9]*;
-              NUMBER      = [0-9]+;
-              WHITESPACES = [ \t\v\f];
-              COMMENT     = [#][^\n\r]*([\r]?|[\n]);
+              WHITESPACES = [ \t\v\f]+;
+              NEWLINE     = [\r]?|[\n];
+              COMMENT     = [#] .* NEWLINE;
+              DIGIT       = [0-9];
+              STRING      = ["] ([\].|[^"])* ["];
 
-              COMMENT       { goto start; }
-              WHITESPACES   { goto start; }
-              [\r]?|[\n]    { line_number_++; goto start; }
+              COMMENT           { goto start; }
+              WHITESPACES       { goto start; }
+              NEWLINE           { line_number_++; goto start; }
 
-              "SELECT"      { return TOKEN_SELECT; }
-              "FROM"        { return TOKEN_FROM; }
-              "WHERE"       { return TOKEN_WHERE; }
-              "AND"         { return TOKEN_AND; }
-              "OR"          { return TOKEN_OR; }
+              "SELECT"          { return TOKEN_SELECT; }
+              "FROM"            { return TOKEN_FROM; }
+              "WHERE"           { return TOKEN_WHERE; }
+              "AND"             { return TOKEN_AND; }
+              "OR"              { return TOKEN_OR; }
 
-              "CREATE"      { return TOKEN_CREATE; }
-              "STREAM"      { return TOKEN_STREAM; }
-              "TABLE"       { return TOKEN_TABLE; }
+              "CREATE"          { return TOKEN_CREATE; }
+              "STREAM"          { return TOKEN_STREAM; }
+              "TABLE"           { return TOKEN_TABLE; }
 
-              "NOT"         { return TOKEN_NOT; }
-              "IN"          { return TOKEN_IN; }
+              "NOT"             { return TOKEN_NOT; }
+              "IN"              { return TOKEN_IN; }
 
-              "ROWS"        { return TOKEN_ROWS; }
-              "MSEC"        { return TOKEN_MSEC; }
-              "SEC"         { return TOKEN_SEC; }
-              "MIN"         { return TOKEN_MIN; }
-              "HOUR"        { return TOKEN_HOUR; }
-              "DAY"         { return TOKEN_DAY; }
-              "ADVANCE"     { return TOKEN_ADVANCE; }
+              "ROWS"            { return TOKEN_ROWS; }
+              "MSEC"            { return TOKEN_MSEC; }
+              "SEC"             { return TOKEN_SEC; }
+              "MIN"             { return TOKEN_MIN; }
+              "HOUR"            { return TOKEN_HOUR; }
+              "DAY"             { return TOKEN_DAY; }
+              "ADVANCE"         { return TOKEN_ADVANCE; }
 
-              IDENTIFIER    { return TOKEN_NAME; }
+              IDENTIFIER        { return TOKEN_NAME; }
 
-              ["][^"]*["]   { return TOKEN_STRING; }
-              [0-9]+.[0-9]* { return TOKEN_FLOAT; }
-              [0-9]         { return TOKEN_INTEGER; }
+              STRING            { return TOKEN_STRING; }
+              DIGIT+ [.] DIGIT* { return TOKEN_FLOAT; }
+              DIGIT             { return TOKEN_INTEGER; }
 
-              "["           { return TOKEN_LBRACKET; }
-              "]"           { return TOKEN_RBRACKET; }
-              ","           { return TOKEN_COMMA; }
-              "."           { return TOKEN_DOT; }
-              "("           { return TOKEN_LPAREN; }
-              ")"           { return TOKEN_RPAREN; }
-              "="           { return TOKEN_EQUAL; }
-              "!="          { return TOKEN_NOT_EQUAL; }
-              "<"           { return TOKEN_LESS_THAN; }
-              "<="          { return TOKEN_LESS_THAN_EQUAL; }
-              ">"           { return TOKEN_GREATER_THAN; }
-              ">="          { return TOKEN_GREATER_THAN_EQUAL; }
+              "["               { return TOKEN_LBRACKET; }
+              "]"               { return TOKEN_RBRACKET; }
+              ","               { return TOKEN_COMMA; }
+              "."               { return TOKEN_DOT; }
+              "("               { return TOKEN_LPAREN; }
+              ")"               { return TOKEN_RPAREN; }
+              "="               { return TOKEN_EQUAL; }
+              "!="              { return TOKEN_NOT_EQUAL; }
+              "<"               { return TOKEN_LESS_THAN; }
+              "<="              { return TOKEN_LESS_THAN_EQUAL; }
+              ">"               { return TOKEN_GREATER_THAN; }
+              ">="              { return TOKEN_GREATER_THAN_EQUAL; }
 
-              [\000]        { return TOKEN_EOS; }
-              .             { return TOKEN_UNKNOWN; }
+              [\x00]            { return TOKEN_EOS; }
+              .                 { return TOKEN_UNKNOWN; }
 
             */
         }
@@ -315,17 +342,29 @@ namespace currentia {
     };
 }
 
-// int main(int argc, char** argv)
-// {
-//     currentia::Lexer lexer(&std::cin);
-//     currentia::Lexer::Token token;
+#ifdef CURRENTIA_IS_LEXER_MAIN_
+int main(int argc, char** argv)
+{
+    std::istringstream is("foo bar baz");
+    currentia::Lexer lexer(&is);
 
-//     while ((token = lexer.get_next_token()) != currentia::Lexer::TOKEN_EOS) {
-//         std::cout << "token => " << currentia::Lexer::token_to_string(token)
-//                   << " '" << lexer.get_token_text() << "'" << std::endl;
-//     }
+    lexer.get_next_token();
+    lexer.get_next_token();
+    lexer.get_next_token();
+    lexer.get_next_token();
 
-//     return 0;
-// }
+    // std::istringstream is("");
+
+    // currentia::Lexer lexer(&is);
+    // currentia::Lexer::Token token;
+
+    // while ((token = lexer.get_next_token()) != currentia::Lexer::TOKEN_EOS) {
+    //     std::cout << "token => " << currentia::Lexer::token_to_string(token)
+    //               << " '" << lexer.get_token_text() << "'" << std::endl;
+    // }
+
+    return 0;
+}
+#endif
 
 #endif  /* ! CURRENTIA_QUERY_LEXER_H_  */
