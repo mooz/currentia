@@ -19,6 +19,7 @@
 /*!re2c
   re2c:define:YYCTYPE = "char";
   re2c:define:YYCURSOR = yy_cursor_;
+  re2c:define:YYMARKER = yy_marker_;
   re2c:define:YYLIMIT = yy_limit_;
   re2c:define:YYFILL:naked = 1;
   re2c:define:YYFILL@len = #;
@@ -35,6 +36,7 @@ namespace currentia {
 
         char* buffer_;
         char* yy_cursor_;
+        char* yy_marker_;
         char* yy_limit_;
         char* current_token_begin_;
         long buffer_size_;
@@ -110,7 +112,7 @@ namespace currentia {
             // Allocate
             buffer_ = reinterpret_cast<char*>(malloc(sizeof(char) * buffer_size_));
             // Init
-            yy_cursor_ = yy_limit_ = current_token_begin_ = buffer_;
+            yy_cursor_ = yy_marker_ = yy_limit_ = token_begin_ = buffer_;
         }
 
         ~Lexer() {
