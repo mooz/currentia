@@ -66,7 +66,7 @@ namespace currentia {
             TOKEN_STRING,                 // "[\"]*"
 
             // numbers
-            TOKEN_INTEGER,                // [0-9]
+            TOKEN_INTEGER,                // [1-9][0-9]*
             TOKEN_FLOAT,                  // [0-9].[0-9]*
 
             // misc
