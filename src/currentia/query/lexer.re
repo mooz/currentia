@@ -29,8 +29,8 @@
   re2c:indent:string="    ";
 */
 
-#define dump(x) \
-        std::cout << #x << " => [" << (x) << "]" << std::endl
+#define log(str) std::cout << str << std::endl
+#define dump(x) std::cout << #x << " => [" << (x) << "]" << std::endl
 
 namespace currentia {
     class Lexer : private NonCopyable<Lexer> {
