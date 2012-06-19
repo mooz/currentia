@@ -133,41 +133,40 @@ namespace currentia {
         }
 
         bool fill(int n) {
-            if (ifs_ptr_->eof() && (yy_limit_ - yy_cursor_) <= 0)
+            if (ifs_ptr_->eof() && (yy_cursor_ >= yy_limit_))
                 return false;   // EOS
 
-            int cursor_offset = yy_cursor_ - buffer_;
             int remained_characters_count = yy_limit_ - yy_cursor_;
+            int yy_cursor_offset = yy_cursor_ - buffer_;
+            int yy_marker_offset = yy_marker_ - buffer_;
+            int yy_limit_offset = yy_limit_ - buffer_;
 
             if (remained_characters_count + n >= buffer_size_) {
                 // Extend buffer
-                int yy_marker_offset = yy_marker_ - buffer_;
-                int yy_limit_offset = yy_limit_ - buffer_;
                 buffer_ = reinterpret_cast<char*>(realloc(buffer_, buffer_size_ *= 2));
-                // Refresh Re-allocated memory
+                // Adjust position
+                yy_cursor_ = token_begin_ = buffer_;
                 yy_marker_ = buffer_ + yy_marker_offset;
-                yy_limit_ = yy_limit_ + yy_limit_offset;
+                yy_limit_  = buffer_ + yy_limit_offset;
             } else if (remained_characters_count > 0) {
                 // Shift remained characters in the buffer_ to head of the buffer_
                 memmove(buffer_, yy_cursor_, sizeof(char) * remained_characters_count);
+                // Adjust position (shift)
+                yy_cursor_ = token_begin_ = buffer_;
+                yy_marker_ = buffer_ + (yy_marker_offset - yy_cursor_offset);
+                yy_limit_  = buffer_ + (yy_limit_offset - yy_cursor_offset);
             }
 
-            // Adjust position (shift)
-            yy_cursor_ = token_begin_ = buffer_;
-            yy_marker_ -= cursor_offset;
-            yy_limit_ -= cursor_offset;
-
             // This line is very important (fill buffer with EOF)
-            memset(yy_limit_, '\0', sizeof(char) * (buffer_size_ - remained_characters_count));
+            int empty_buffer_count = (buffer_ + buffer_size_) - yy_limit_;
+            memset(yy_limit_, '\0', sizeof(char) * empty_buffer_count);
 
             // Read characters from input stream
-            int read_size = buffer_size_ - remained_characters_count;
-            ifs_ptr_->read(yy_limit_, read_size);
+            ifs_ptr_->read(yy_limit_, empty_buffer_count);
             yy_limit_ += ifs_ptr_->gcount();
             // Dirty hack (for stringstream which doesn't give us a EOF character)
-            if (ifs_ptr_->gcount() == 0 && *(yy_limit_ -1) != '\0') {
-                *yy_limit_ = '\0';
-                ++yy_limit_;
+            if (ifs_ptr_->gcount() == 0 && *(yy_limit_ - 1) != '\0') {
+                *(++yy_limit_) = '\0';
             }
 
             return true;
