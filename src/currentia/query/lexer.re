@@ -33,6 +33,70 @@
 #define dump(x) std::cout << #x << " => [" << (x) << "]" << std::endl
 
 namespace currentia {
+#define CURRENTIA_DEFINE_ENUM(TOKEN, AS_STRING) \
+    TOKEN,
+
+#define CURRENTIA_DEFINE_SWITCH_STRING(TOKEN, AS_STRING)        \
+    case TOKEN: return AS_STRING;
+
+#define CURRENTIA_DEFINE_TOKEN_LIST(DEFINE)                     \
+    DEFINE(TOKEN_SELECT, "SELECT")                              \
+    DEFINE(TOKEN_FROM, "FROM")                                  \
+    DEFINE(TOKEN_WHERE, "WHERE")                                \
+    /* conjunctives */                                          \
+    DEFINE(TOKEN_AND, "AND")                                    \
+    DEFINE(TOKEN_OR, "OR")                                      \
+    /* }}} DML -------------------------------- */              \
+                                                                \
+    /* {{{ DDL -------------------------------- */              \
+    DEFINE(TOKEN_CREATE, "CREATE")                              \
+    DEFINE(TOKEN_STREAM, "STREAM")                              \
+    DEFINE(TOKEN_TABLE, "TABLE")                                \
+    /* }}} DDL -------------------------------- */              \
+                                                                \
+    /* identifier */                                            \
+    DEFINE(TOKEN_NAME, "NAME")                                  \
+                                                                \
+    /* string */                                                \
+    DEFINE(TOKEN_STRING, "STRING")                              \
+                                                                \
+    /* numbers */                                               \
+    DEFINE(TOKEN_INTEGER, "INTEGER")                            \
+    DEFINE(TOKEN_FLOAT, "FLOAT")                                \
+                                                                \
+    /* misc */                                                  \
+    DEFINE(TOKEN_NOT, "NOT")                                    \
+    DEFINE(TOKEN_IN, "IN")                                      \
+                                                                \
+    /* window specification */                                  \
+    DEFINE(TOKEN_ROWS, "ROWS")                                  \
+    DEFINE(TOKEN_MSEC, "MSEC")                                  \
+    DEFINE(TOKEN_SEC, "SEC")                                    \
+    DEFINE(TOKEN_MIN, "MIN")                                    \
+    DEFINE(TOKEN_HOUR, "HOUR")                                  \
+    DEFINE(TOKEN_DAY, "DAY")                                    \
+    DEFINE(TOKEN_ADVANCE, "ADVANCE")                            \
+    DEFINE(TOKEN_LBRACKET, "LBRACKET")                          \
+    DEFINE(TOKEN_RBRACKET, "RBRACKET")                          \
+                                                                \
+    /* other symbols */                                         \
+    DEFINE(TOKEN_COMMA, "COMMA")                                \
+    DEFINE(TOKEN_DOT, "DOT")                                    \
+    DEFINE(TOKEN_LPAREN, "LPAREN")                              \
+    DEFINE(TOKEN_RPAREN, "RPAREN")                              \
+                                                                \
+    /* comparator */                                            \
+    DEFINE(TOKEN_EQUAL, "EQUAL")                                \
+    DEFINE(TOKEN_NOT_EQUAL, "NOT_EQUAL")                        \
+    DEFINE(TOKEN_LESS_THAN, "LESS_THAN")                        \
+    DEFINE(TOKEN_LESS_THAN_EQUAL, "LESS_THAN_EQUAL")            \
+    DEFINE(TOKEN_GREATER_THAN, "GREATER_THAN")                  \
+    DEFINE(TOKEN_GREATER_THAN_EQUAL, "GREATER_THAN_EQUAL")      \
+                                                                \
+    /* error */                                                 \
+    DEFINE(TOKEN_UNKNOWN, "UNKNOWN")                            \
+    DEFINE(TOKEN_EOS, "EOS")
+
     class Lexer : private NonCopyable<Lexer> {
     private:
         std::istream* ifs_ptr_;
@@ -49,64 +113,16 @@ namespace currentia {
         typedef Lexer* ptr_t;
 
         enum Token {
-            // {{{ DML --------------------------------
-            TOKEN_SELECT,                 // "SELECT"
-            TOKEN_FROM,                   // "FROM"
-            TOKEN_WHERE,                  // "WHERE"
-            // conjunctives
-            TOKEN_AND,                    // "AND"
-            TOKEN_OR,                     // "OR"
-            // }}} DML --------------------------------
-
-            // {{{ DDL --------------------------------
-            TOKEN_CREATE,                 // "CREATE"
-            TOKEN_STREAM,                 // "STREAM"
-            TOKEN_TABLE,                  // "TABLE"
-            // }}} DDL --------------------------------
-
-            // identifier
-            TOKEN_NAME,                   // [a-zA-Z_][a-zA-Z0-9_]*
-
-            // string
-            TOKEN_STRING,                 // "[\"]*"
-
-            // numbers
-            TOKEN_INTEGER,                // [1-9][0-9]*
-            TOKEN_FLOAT,                  // [0-9].[0-9]*
-
-            // misc
-            TOKEN_NOT,                    // NOT
-            TOKEN_IN,                     // IN
-
-            // window specification
-            TOKEN_ROWS,                   // ROWS
-            TOKEN_MSEC,                   // MSEC
-            TOKEN_SEC,                    // SEC
-            TOKEN_MIN,                    // MIN
-            TOKEN_HOUR,                   // HOUR
-            TOKEN_DAY,                    // DAY
-            TOKEN_ADVANCE,                // ADVANCE
-            TOKEN_LBRACKET,               // "["
-            TOKEN_RBRACKET,               // "]"
-
-            // other symbols
-            TOKEN_COMMA,                  // ","
-            TOKEN_DOT,                    // "."
-            TOKEN_LPAREN,                 // "("
-            TOKEN_RPAREN,                 // ")"
-
-            // comparator
-            TOKEN_EQUAL,                  // "="
-            TOKEN_NOT_EQUAL,              // "!="
-            TOKEN_LESS_THAN,              // "<"
-            TOKEN_LESS_THAN_EQUAL,        // "<="
-            TOKEN_GREATER_THAN,           // ">"
-            TOKEN_GREATER_THAN_EQUAL,     // ">="
-
-            // error
-            TOKEN_UNKNOWN,
-            TOKEN_EOS,                    //  End of Stream
+            CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_ENUM)
         };
+
+        static std::string token_to_string(enum Token token) {
+            switch (token) {
+                CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_SWITCH_STRING)
+            default:
+                return "UNEXPECTED_TOKEN";
+            };
+        }
 
         Lexer(std::istream* ifs_ptr, long buffer_init_size = 1024):
             ifs_ptr_(ifs_ptr),
@@ -141,8 +157,12 @@ namespace currentia {
             int yy_marker_offset = yy_marker_ - buffer_;
             int yy_limit_offset = yy_limit_ - buffer_;
 
+            // dump(yy_cursor_offset);
+            // dump(yy_limit_offset);
+
             if (remained_characters_count + n >= buffer_size_) {
                 // Extend buffer
+                log("We need to extend buffer");
                 buffer_ = reinterpret_cast<char*>(realloc(buffer_, buffer_size_ *= 2));
                 // Adjust position
                 yy_cursor_ = token_begin_ = buffer_;
@@ -159,7 +179,10 @@ namespace currentia {
 
             // This line is very important (fill buffer with EOF)
             int empty_buffer_count = (buffer_ + buffer_size_) - yy_limit_;
+            // dump(empty_buffer_count);
+            // dump(buffer_);
             memset(yy_limit_, '\0', sizeof(char) * empty_buffer_count);
+            // dump(buffer_);
 
             // Read characters from input stream
             ifs_ptr_->read(yy_limit_, empty_buffer_count);
@@ -168,6 +191,9 @@ namespace currentia {
             if (ifs_ptr_->gcount() == 0 && *(yy_limit_ - 1) != '\0') {
                 *(++yy_limit_) = '\0';
             }
+
+            // log("Read");
+            // dump(buffer_);
 
             return true;
         }
@@ -183,6 +209,8 @@ namespace currentia {
         start:
             token_begin_ = yy_cursor_;
 
+            log("OK, start");
+
             /*!re2c
 
               IDENTIFIER  = [a-zA-Z_][a-zA-Z_0-9]*;
@@ -193,7 +221,10 @@ namespace currentia {
               STRING      = ["] ([\].|[^"])* ["];
 
               COMMENT           { goto start; }
-              WHITESPACES       { goto start; }
+              WHITESPACES       {
+            log("skip whitespace");
+ goto start;
+ }
               NEWLINE           { line_number_++; goto start; }
 
               "SELECT"          { return TOKEN_SELECT; }
@@ -250,79 +281,6 @@ namespace currentia {
             return token == TOKEN_STRING || token == TOKEN_INTEGER || token == TOKEN_FLOAT;
         }
 
-        static std::string token_to_string(enum Token token) {
-            switch (token) {
-            case TOKEN_SELECT:
-                return "SELECT";
-            case TOKEN_FROM:
-                return "FROM";
-            case TOKEN_WHERE:
-                return "WHERE";
-            case TOKEN_AND:
-                return "AND";
-            case TOKEN_OR:
-                return "OR";
-            case TOKEN_NOT:
-                return "NOT";
-            case TOKEN_IN:
-                return "IN";
-            case TOKEN_ROWS:
-                return "ROWS";
-            case TOKEN_MSEC:
-                return "MSEC";
-            case TOKEN_SEC:
-                return "SEC";
-            case TOKEN_MIN:
-                return "MIN";
-            case TOKEN_HOUR:
-                return "HOUR";
-            case TOKEN_DAY:
-                return "DAY";
-            case TOKEN_ADVANCE:
-                return "ADVANCE";
-            case TOKEN_CREATE:
-                return "CREATE";
-            case TOKEN_STREAM:
-                return "STREAM";
-            case TOKEN_TABLE:
-                return "TABLE";
-            case TOKEN_NAME:
-                return "NAME";
-            case TOKEN_STRING:
-                return "STRING";
-            case TOKEN_INTEGER:
-                return "INTEGER";
-            case TOKEN_FLOAT:
-                return "FLOAT";
-            case TOKEN_COMMA:
-                return "COMMA";
-            case TOKEN_DOT:
-                return "DOT";
-            case TOKEN_LPAREN:
-                return "LPAREN";
-            case TOKEN_RPAREN:
-                return "RPAREN";
-            case TOKEN_EQUAL:
-                return "EQUAL";
-            case TOKEN_NOT_EQUAL:
-                return "NOT_EQUAL";
-            case TOKEN_LESS_THAN:
-                return "LESS_THAN";
-            case TOKEN_LESS_THAN_EQUAL:
-                return "LESS_THAN_EQUAL";
-            case TOKEN_GREATER_THAN:
-                return "GREATER_THAN";
-            case TOKEN_GREATER_THAN_EQUAL:
-                return "GREATER_THAN_EQUAL";
-            case TOKEN_EOS:
-                return "EOS";
-            case TOKEN_UNKNOWN:
-                return "UNKNOWN";
-            default:
-                return "MISSING_STRING_EXPRESSION";
-            }
-        }
-
         long get_current_line_number() {
             return line_number_;
         }
@@ -339,28 +297,23 @@ namespace currentia {
             // stream << '^';
         }
     };
+
+#undef CURRENTIA_DEFINE_ENUM
+#undef CURRENTIA_DEFINE_SWITCH_STRING
+#undef CURRENTIA_DEFINE_TOKEN_LIST
 }
 
 #ifdef CURRENTIA_IS_LEXER_MAIN_
 int main(int argc, char** argv)
 {
-    std::istringstream is("foo bar baz");
+    std::istringstream is("abc def ghi");
     currentia::Lexer lexer(&is);
+    currentia::Lexer::Token token;
 
-    lexer.get_next_token();
-    lexer.get_next_token();
-    lexer.get_next_token();
-    lexer.get_next_token();
-
-    // std::istringstream is("");
-
-    // currentia::Lexer lexer(&is);
-    // currentia::Lexer::Token token;
-
-    // while ((token = lexer.get_next_token()) != currentia::Lexer::TOKEN_EOS) {
-    //     std::cout << "token => " << currentia::Lexer::token_to_string(token)
-    //               << " '" << lexer.get_token_text() << "'" << std::endl;
-    // }
+    while ((token = lexer.get_next_token()) != currentia::Lexer::TOKEN_EOS) {
+        std::cout << "token => " << currentia::Lexer::token_to_string(token)
+                  << " '" << lexer.get_token_text() << "'" << std::endl;
+    }
 
     return 0;
 }
