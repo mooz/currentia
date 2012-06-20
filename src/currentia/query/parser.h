@@ -51,7 +51,7 @@ namespace currentia {
             case Lexer::TOKEN_FLOAT:
                 return lexer_ptr_->get_token_text();
             default:
-                return NULL;
+                return "";
             }
         }
 
