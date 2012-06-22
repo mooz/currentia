@@ -37,7 +37,7 @@ namespace currentia {
 
         protected:
             int sync() {
-                if (buffer_.length()) {
+                if (!buffer_.empty()) {
                     syslog(priority_, "%s", buffer_.c_str());
                     buffer_.erase();
                     priority_ = LOG_DEBUG; // default to debug for each message
