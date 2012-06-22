@@ -14,11 +14,11 @@ def build(bld):
     # target = "myfoo",
     # use = "PYTHON BOOST_PYTHON")
 
-    bld.objects(
-        source   = "visitor.cpp",
-        target   = "visitor",
-        includes = ". ../../../"
-    )
+    # bld.objects(
+    #     source   = "visitor.cpp",
+    #     target   = "visitor",
+    #     includes = ". ../../../"
+    # )
     # bld.program(
     #   source   = "visitor.cpp",
     #   target   = "visitor",
