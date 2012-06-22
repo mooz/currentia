@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "currentia/query/parser.h"
+#include "currentia/util/log.h"
 
 using namespace currentia;
 
@@ -13,6 +14,9 @@ parse_string(const std::string& source) {
 }
 
 TEST (testLexer, comparatorConjunctive) {
+    std::clog.rdbuf(new core::Log("foo", LOG_USER));
+    std::clog << "Begin logging!" << std::endl;
+
     Condition::ptr_t create_node_ptr = parse_string<Condition>(
         "x > 20 AND y >= 20 OR NOT z < 12.34"
     );
