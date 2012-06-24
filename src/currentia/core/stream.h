@@ -59,6 +59,20 @@ namespace currentia {
             return tuple_ptr;
         }
 
+        // Dequeue an elemen from stream. If the stream is empty, returns NULL.
+        Tuple::ptr_t non_blocking_dequeue() {
+            pthread_mutex_lock(&mutex_);
+
+            if (tuple_ptrs_.empty())
+                return Tuple::ptr_t();
+
+            Tuple::ptr_t tuple_ptr = dequeue_a_tuple_ptr_();
+
+            pthread_mutex_unlock(&mutex_);
+
+            return tuple_ptr;
+        }
+
         // Used by projection operator
         // TODO: returning private pointer is not a good habit
         //       deeply clone?
