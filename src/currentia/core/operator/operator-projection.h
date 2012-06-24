@@ -3,41 +3,39 @@
 #ifndef CURRENTIA_OPERATOR_PROJECTION_H_
 #define CURRENTIA_OPERATOR_PROJECTION_H_
 
-#include "currentia/core/tuple.h"
-#include "currentia/core/stream.h"
 #include "currentia/core/object.h"
-
-#include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/single-input-operator.h"
+#include "currentia/core/stream.h"
+#include "currentia/core/tuple.h"
 
 namespace currentia {
-    class OperatorProjection: public Operator {
-        Operator::ptr_t parent_operator_ptr_;
-
+    class OperatorProjection: public SingleInputOperator {
     public:
         typedef std::list<std::string> target_attribute_names_t;
         typedef std::vector<int> target_attribute_indices_t;
 
         OperatorProjection(Operator::ptr_t parent_operator_ptr,
                            target_attribute_names_t target_attribute_names):
+            SingleInputOperator(parent_operator_ptr),
+            // Initialize members
             target_attribute_names_(target_attribute_names) {
-            parent_operator_ptr_ = parent_operator_ptr;
             old_schema_ptr_ = parent_operator_ptr_->get_output_schema_ptr();
             build_new_schema_and_indices();
+            // Arrange an output stream
+            set_output_stream(Stream::from_schema(new_schema_ptr_));
         }
 
-        inline
-        Schema::ptr_t get_output_schema_ptr() {
-            return new_schema_ptr_;
-        }
-
-        inline
         Tuple::ptr_t next_implementation() {
-            while (Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next()) {
-                if (target_tuple_ptr->is_system_message())
-                    return target_tuple_ptr;
-                return project_attributes(target_tuple_ptr);
+            Tuple::ptr_t input_tuple = input_stream_->non_blocking_dequeue();
+            if (!input_tuple)
+                return Tuple::ptr_t();
+
+            if (input_tuple->is_system_message()) {
+                output_tuple(input_tuple);
+                return Tuple::ptr_t();
             }
-            return Tuple::ptr_t(); // NULL
+
+            output_tuple(project_attributes(input_tuple));
         }
 
     private:
