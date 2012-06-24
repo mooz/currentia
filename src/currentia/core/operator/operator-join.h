@@ -8,18 +8,22 @@
 #include "currentia/core/object.h"
 #include "currentia/core/window.h"
 
-#include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/double-input-operator.h"
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/synopsis.h"
 
+#include <tr1/functional>
+
 namespace currentia {
-    class OperatorJoin: public Operator {
+    class OperatorJoin: public DoubleInputOperator {
     public:
         OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
                      Window left_window,
                      Operator::ptr_t parent_right_operator_ptr,
                      Window right_window,
                      ConditionAttributeComparator::ptr_t attribute_comparator):
+            DoubleInputOperator(parent_left_operator_ptr,
+                                parent_right_operator_ptr),
             left_window_(left_window),
             right_window_(right_window),
             // init synopsises
@@ -27,35 +31,26 @@ namespace currentia {
             right_synopsis_(right_window_),
             // set attribute comparator
             attribute_comparator_(attribute_comparator) {
-            // save pointers
-            parent_left_operator_ptr_ = parent_left_operator_ptr;
-            parent_right_operator_ptr_ = parent_right_operator_ptr;
             // build new schema and index
             joined_schema_ptr_ = build_joined_schema_();
-        }
-
-        inline
-        Schema::ptr_t get_output_schema_ptr() {
-            return joined_schema_ptr_;
+            set_output_stream(Stream::from_schema(joined_schema_ptr_));
+            // set callbacks
+            Synopsis::callback_t on_accept = std::tr1::bind(&OperatorJoin::join_synopsis_, this);
+            left_synopsis_.set_on_accept(on_accept);
+            right_synopsis_.set_on_accept(on_accept);
         }
 
         typedef std::list<Tuple::ptr_t> join_results_t;
 
-        // TODO: Pass through system message (currently, blocked because read_next_tuples is batch operation)
-        std::list<Tuple::ptr_t> remained_join_results_;
-        Tuple::ptr_t next_implementation() {
-            while (remained_join_results_.empty()) {
-                left_synopsis_.read_next_tuples(parent_left_operator_ptr_);
-                right_synopsis_.read_next_tuples(parent_right_operator_ptr_);
 
-                // Now, do JOIN
-                join_synopsis_();
-            }
+        Tuple::ptr_t process_left_input(Tuple::ptr_t input) {
+            left_synopsis_.enqueue(input);
+            return Tuple::ptr_t();
+        }
 
-            // return a tuple from remained result
-            Tuple::ptr_t next_tuple = remained_join_results_.front();
-            remained_join_results_.pop_front();
-            return next_tuple;
+        Tuple::ptr_t process_right_input(Tuple::ptr_t input) {
+            right_synopsis_.enqueue(input);
+            return Tuple::ptr_t();
         }
 
     private:
@@ -97,10 +92,8 @@ namespace currentia {
             for (; left_iter != left_iter_end; ++left_iter) {
                 for (; right_iter != right_iter_end; ++right_iter) {
                     if (attribute_comparator_->check(*left_iter, *right_iter)) {
-                        remained_join_results_.push_back(
-                            Tuple::create(joined_schema_ptr_,
-                                          (*left_iter)->get_concatenated_data(*right_iter))
-                        );
+                        output_tuple(Tuple::create(joined_schema_ptr_,
+                                                   (*left_iter)->get_concatenated_data(*right_iter)));
                     }
                 }
             }
