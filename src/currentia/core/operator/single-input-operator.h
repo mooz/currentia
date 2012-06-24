@@ -3,10 +3,9 @@
 #ifndef CURRENTIA_OPERATOR_SINGLE_INPUT_H_
 #define CURRENTIA_OPERATOR_SINGLE_INPUT_H_
 
+#include "currentia/core/operator/operator.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
-
-#include "currentia/core/operator/operator.h"
 
 namespace currentia {
     class SingleInputOperator: public Operator {
