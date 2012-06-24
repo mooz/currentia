@@ -9,7 +9,7 @@
 #include "currentia/core/window.h"
 #include "currentia/core/relation.h"
 
-#include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/single-input-operator.h"
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/synopsis.h"
 
@@ -17,9 +17,8 @@
 
 namespace currentia {
     // Equi-Join
-    class OperatorSimpleRelationJoin: public Operator,
+    class OperatorSimpleRelationJoin: public SingleInputOperator,
                                       public Pointable<OperatorSimpleRelationJoin> {
-        Operator::ptr_t parent_operator_ptr_;
         Relation::ptr_t relation_;
 
         std::string join_attribute_name_stream_;
@@ -39,8 +38,8 @@ namespace currentia {
                                    const std::string& join_attribute_name_stream,
                                    Relation::ptr_t relation,
                                    const std::string& join_attribute_name_relation):
-            // save arguments as private member
-            parent_operator_ptr_(parent_operator_ptr),
+            SingleInputOperator(parent_operator_ptr),
+            // Initialize members
             relation_(relation),
             join_attribute_name_stream_(join_attribute_name_stream),
             join_attribute_name_relation_(join_attribute_name_relation),
@@ -48,16 +47,12 @@ namespace currentia {
             stream_schema_ptr_(parent_operator_ptr_->get_output_schema_ptr()),
             relation_schema_ptr_(relation->get_schema_ptr()),
             joined_schema_ptr_(build_joined_schema_()) {
-
+            set_output_stream(Stream::from_schema(joined_schema_ptr_));
             // get column numbers for fast access
             target_attribute_column_in_stream_ =
                 stream_schema_ptr_->get_attribute_index_by_name(join_attribute_name_stream_);
             target_attribute_column_in_relation_ =
                 relation_schema_ptr_->get_attribute_index_by_name(join_attribute_name_relation_);
-        }
-
-        Schema::ptr_t get_output_schema_ptr() {
-            return joined_schema_ptr_;
         }
 
         Tuple::ptr_t next_implementation() {
