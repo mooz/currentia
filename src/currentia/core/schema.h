@@ -42,9 +42,8 @@ namespace currentia {
         }
 
         void freeze() {
-            pthread_mutex_lock(&schema_lock_);
+            ScopedLock lock(&schema_lock_);
             is_schema_freezed_ = true;
-            pthread_mutex_unlock(&schema_lock_);
         }
 
         int add_attribute(Attribute& attribute) {
@@ -53,7 +52,7 @@ namespace currentia {
 
         // TODO: condsider (schema) relation name.
         int add_attribute(const std::string& name, Object::Type type) {
-            pthread_mutex_lock(&schema_lock_);
+            ScopedLock lock(&schema_lock_);
 
             if (!is_schema_freezed_)
                 attributes_.push_back(Attribute(name, type));
@@ -63,8 +62,6 @@ namespace currentia {
 
             if (!is_schema_freezed_)
                 attributes_index_[name] = current_size - 1;
-
-            pthread_mutex_unlock(&schema_lock_);
 
             return current_size;
         }

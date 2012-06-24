@@ -31,20 +31,6 @@ namespace currentia {
         };
         friend class Transaction;
 
-        class ScopedLock {
-            pthread_mutex_t* read_mutex_;
-
-        public:
-            ScopedLock(pthread_mutex_t* mutex):
-                read_mutex_(mutex) {
-                pthread_mutex_lock(read_mutex_);
-            }
-
-            ~ScopedLock() {
-                pthread_mutex_unlock(read_mutex_);
-            }
-        };
-
         Relation(Schema::ptr_t schema_ptr,
                  // optional
                  std::list<Tuple::ptr_t> tuple_ptrs = std::list<Tuple::ptr_t>()):
@@ -59,22 +45,19 @@ namespace currentia {
 
         // Blocking
         void insert(Tuple::ptr_t tuple_ptr) {
-            read_write_lock();
+            ScopedLock lock(&read_mutex_);
             tuple_ptrs_.push_front(tuple_ptr);
             // tell arrival of a tuple to waiting threads
-            unlock();
         }
 
         void update() {
-            read_write_lock();
+            ScopedLock lock(&read_mutex_);
             version_number_++;
-            unlock();
         }
 
         long get_version_number() {
-            read_write_lock();
+            ScopedLock lock(&read_mutex_);
             long current_version_number = version_number_;
-            unlock();
 
             return current_version_number;
         }
@@ -94,16 +77,14 @@ namespace currentia {
 
         // Blocking
         void do_transaction(const Transaction::ptr_t& transaction) {
-            read_write_lock();
+            ScopedLock lock(&read_mutex_);
             transaction->process();
-            unlock();
         }
 
         // Blocking
         Relation::ptr_t copy() {
-            read_write_lock();
+            ScopedLock lock(&read_mutex_);
             std::list<Tuple::ptr_t> new_tuple_ptrs = tuple_ptrs_;
-            unlock();
 
             return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs));
         }
