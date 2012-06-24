@@ -30,7 +30,7 @@ namespace currentia {
                 return Tuple::ptr_t();
             }
 
-            process_single_input(input_tuple);
+            return process_single_input(input_tuple);
         }
 
         virtual Tuple::ptr_t process_single_input(Tuple::ptr_t input) = 0;
