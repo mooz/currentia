@@ -24,6 +24,10 @@ namespace currentia {
             pthread_cond_init(&reader_wait_, NULL);
         }
 
+        static Stream::ptr_t from_schema(const Schema::ptr_t& schema) {
+            return Stream::ptr_t(new Stream(schema));
+        }
+
         void enqueue(Tuple::ptr_t tuple_ptr) {
             pthread_mutex_lock(&mutex_);
 
