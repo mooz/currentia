@@ -32,22 +32,13 @@ namespace currentia {
             set_output_stream(Stream::from_schema(parent_operator_ptr->get_output_schema_ptr()));
         }
 
-        Tuple::ptr_t next_implementation() {
-            Tuple::ptr_t input_tuple = input_stream_->non_blocking_dequeue();
-            if (!input_tuple)
-                return Tuple::ptr_t();
-
-            if (input_tuple->is_system_message()) {
-                output_tuple(input_tuple);
-                return Tuple::ptr_t();
-            }
-
+        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
             input_tuple_count_++;
             if (condition_ptr_->check(input_tuple)) {
                 selected_tuple_count_++;
                 output_tuple(input_tuple);
             }
-            // otherwise, tuple will be *deleted* by the shared_ptr
+            return Tuple::ptr_t();
         }
 
         double get_selectivity() {

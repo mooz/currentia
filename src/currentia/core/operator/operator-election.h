@@ -4,12 +4,11 @@
 #define CURRENTIA_OPERATOR_ELECTION_H_
 
 #include "currentia/core/tuple.h"
-#include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/single-input-operator.h"
 
 namespace currentia {
     // Election (Aggregation operator)
-    class OperatorElection: public Operator {
-        Operator::ptr_t parent_operator_ptr_;
+    class OperatorElection: public SingleInputOperator {
         int window_width_;
         int current_window_position_;
 
@@ -19,26 +18,15 @@ namespace currentia {
 
     public:
         OperatorElection(Operator::ptr_t parent_operator_ptr, int window_width):
+            SingleInputOperator(parent_operator_ptr),
             // save arguments as private member
-            parent_operator_ptr_(parent_operator_ptr),
             window_width_(window_width),
             current_window_position_(0) {
         }
 
-        Schema::ptr_t get_output_schema_ptr() {
-            return parent_operator_ptr_->get_output_schema_ptr();
-        }
-
-        Tuple::ptr_t next_implementation() {
-            while (true) {
-                Tuple::ptr_t target_tuple_ptr = parent_operator_ptr_->next();
-                if (target_tuple_ptr->is_system_message())
-                    return target_tuple_ptr;
-                if (is_outputtable_())
-                    return target_tuple_ptr;
-            }
-
-            // never comes here
+        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
+            if (is_outputtable_())
+                output_tuple(input_tuple);
             return Tuple::ptr_t();
         }
     };

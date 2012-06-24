@@ -20,6 +20,21 @@ namespace currentia {
         }
 
         virtual ~SingleInputOperator() = 0;
+
+        Tuple::ptr_t next_implementation() {
+            Tuple::ptr_t input_tuple = input_stream_->non_blocking_dequeue();
+            if (!input_tuple)
+                return Tuple::ptr_t();
+
+            if (input_tuple->is_system_message()) {
+                output_tuple(input_tuple);
+                return Tuple::ptr_t();
+            }
+
+            process_single_input(input_tuple);
+        }
+
+        virtual Tuple::ptr_t process_single_input(Tuple::ptr_t input) = 0;
     };
 
     SingleInputOperator::~SingleInputOperator() {}
