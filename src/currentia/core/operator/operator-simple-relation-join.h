@@ -87,6 +87,11 @@ namespace currentia {
         Schema::ptr_t build_joined_schema_() {
             return concat_schemas(stream_schema_ptr_, relation_schema_ptr_);
         }
+
+    public:
+        virtual std::string toString() {
+            return "Relation-Join";
+        }
     };
 }
 

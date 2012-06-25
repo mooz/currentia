@@ -98,6 +98,11 @@ namespace currentia {
                 }
             }
         }
+
+    public:
+        virtual std::string toString() {
+            return "Join";
+        }
     };
 }
 

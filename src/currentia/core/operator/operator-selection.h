@@ -46,6 +46,11 @@ namespace currentia {
                 return 0.0;
             return static_cast<double>(selected_tuple_count_) / static_cast<double>(input_tuple_count_);
         }
+
+    public:
+        virtual std::string toString() {
+            return "Selection";
+        }
     };
 }
 

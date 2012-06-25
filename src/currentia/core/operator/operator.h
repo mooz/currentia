@@ -70,6 +70,8 @@ namespace currentia {
         void add_after_process(process_hook_t hook) {
             after_process_hook.push_back(hook);
         }
+
+        virtual std::string toString() = 0;
     };
 
     Operator::~Operator() {}

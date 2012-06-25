@@ -63,6 +63,11 @@ namespace currentia {
             data.push_back(operations::operation_divide(sum_, window_width_object_));
             output_tuple(Tuple::create(get_output_schema_ptr(), data));
         }
+
+    public:
+        virtual std::string toString() {
+            return "Mean";
+        }
     };
 }
 

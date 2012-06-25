@@ -28,20 +28,20 @@ namespace currentia {
         }
 
         void visit(SingleInputOperator& op) {
-            std::clog << "Visit Single Operator!" << std::endl;
+            std::clog << "Visit Single Operator: " << op.toString() << std::endl;
             operators_.push_back(&op);
             dispatch(op.get_parent_operator().get());
         }
 
         void visit(DoubleInputOperator& op) {
-            std::clog << "Visit Binary Operator!" << std::endl;
+            std::clog << "Visit Binary Operator: " << op.toString() << std::endl;
             operators_.push_back(&op);
             dispatch(op.get_parent_left_operator().get());
             dispatch(op.get_parent_right_operator().get());
         }
 
         void visit(OperatorStreamAdapter& op) {
-            std::clog << "Visit Stream Adapter!" << std::endl;
+            std::clog << "Visit Stream Adapter: " << op.toString() << std::endl;
             operators_.push_back(&op);
         }
 

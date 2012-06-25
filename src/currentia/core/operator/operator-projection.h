@@ -70,6 +70,11 @@ namespace currentia {
 
             return Tuple::create(new_schema_ptr_, data);
         }
+
+    public:
+        virtual std::string toString() {
+            return "Projection";
+        }
     };
 }
 

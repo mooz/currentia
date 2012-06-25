@@ -29,6 +29,10 @@ namespace currentia {
                 output_tuple(input_tuple);
             return Tuple::ptr_t();
         }
+
+        virtual std::string toString() {
+            return "Election";
+        }
     };
 }
 

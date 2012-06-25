@@ -24,6 +24,11 @@ namespace currentia {
             output_tuple(input_stream_ptr_->dequeue());
             return Tuple::ptr_t();
         }
+
+    public:
+        virtual std::string toString() {
+            return "Stream-Adapter";
+        }
     };
 }
 
