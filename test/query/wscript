@@ -15,8 +15,10 @@ def build(bld):
             source   = name + '.cpp',
             includes = '../../src',
             target   = name,
-            uselib   = 'GTEST_MAIN'
+            uselib   = 'GTEST_MAIN',
+            use      = "visitor"
         )
+    do_test("test_ast_visitor")
     do_test("test_lexer")
     do_test("test_ddl_parser")
     do_test("test_condition_parser")

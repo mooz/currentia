@@ -3,13 +3,75 @@ AST から関係代数への変換
 AST から関係代数への変換をそろそろ実装しないと形無しなので，真面目にス
 テップ分けして取り組んでいくよ．
 
-* AST の作成
+org-mode の TODO 機能を利用して進めていく予定．次の記事が参考になる．
 
-問題点は次のことぐらいか
+http://d.hatena.ne.jp/handlename/20101210/1291979501
+
+* TODO AST の作成<2012-04-01 日 13:38>
+
+** TODO AST の設計<2012-04-01 日 13:38>
 
 - 非均質か均質か
 
-* AST validator
+  - まあ非均質だろう
+
+*** TODO 非均質の場合，どういったノードを作る必要があるかを調査<2012-04-01 日 13:39>
+
+**** SQLite (C?)
+
+**** MySQL (C++)
+
+**** Apache Derby
+
+http://db.apache.org/derby/dev/derby_source.html
+
+**** H2 DB
+
+***** 入手先
+
+http://www.h2database.com/h2-2012-03-18.zip
+
+***** ソースコード
+
+[[~/src/h2/src/main/org/h2/]]
+
+***** AST の場所
+
+****** DML
+
+~/src/h2/src/main/org/h2/command/dml/
+
+~/src/h2/src/main/org/h2/command/dml/Query.java
+
+が大元かな．
+
+****** DDL
+
+~/src/h2/src/main/org/h2/command/ddl/
+
+***** BNF パーサ
+
+自前で BNF パーサを持っているのかな．
+
+[[/home/masa/src/h2/src/main/org/h2/bnf]]
+
+***** Expression (オブジェクトシステム)
+
+[[/home/masa/src/h2/src/main/org/h2/expression]]
+
+~/src/h2/src/main/org/h2/expression/Expression.java
+
+にある Expression クラスが AST ノードとなっている様子．
+
+: An expression is a operation, a value, or a function in a query.
+
+- optimize() メソッドが用意されており楽しい
+
+  - サブツリー単位で optimize するのだろうね
+
+****** TODO DDL, DML のレベルで Expression がどのように保持されているか調査
+
+* TODO AST validator
 
 AST を解釈して，そのクエリが正しいかどうかをチェックする処理．
 
@@ -18,23 +80,36 @@ AST を解釈して，そのクエリが正しいかどうかをチェックす�
 - 存在しないストリーム名，属性名の参照など，カタログ情報と照らし合せる
   ことで判明する問題
 
-- 
-
-* AST simplifier
+* TODO AST simplifier
 
 AST をシンプルにする．
 
 条件式がこれにより CNF へ正規化される．他にも定数式の計算など，色々とシ
 ンプルにすることができそう．myui さんのツイートを見直すか．
 
-* AST -> Relational
+* TODO AST -> Relational
 
 AST から関係代数への変換．
 
 簡単なものなら，気合で何とかなりそう．複雑な条件式の割り当てをどうする
 かが問題．
 
-** TODO 複雑条件式をリレーションのペア毎に分離
+- FROM が一つ以上であれば結合
+
+- N のリレーションが結合される場合 ? 個の組み合わせが (N!/2 ?)
+
+  - この中から最適なものを選ぶ
+
+  - まー初めは最適なものなど考慮しなくて良いかな
+
+- 各組に対して，下で述べるように分解した条件を割り当てる
+
+  - これは簡単そうだね
+
+  - 分解した条件を map の形式で持っておき，リレーション名のペアを与える
+    ことで取得みたいな
+
+** TODO 複雑な条件式をリレーションのペア毎に分離
 
 つまり，次のような条件式を，
 

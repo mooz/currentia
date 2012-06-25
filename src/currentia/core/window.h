@@ -7,15 +7,15 @@ namespace currentia {
     class Window {
     public:
         enum Type {
-            LOGICAL,
-            PHYSICAL
+            TUPLE_BASE,
+            TIME_BASE
         };
 
         long width;
         long stride;
         Window::Type type;
 
-        Window(long width, long stride, Window::Type type = LOGICAL):
+        Window(long width, long stride, Window::Type type = TUPLE_BASE):
             width(width),
             stride(stride),
             type(type) {

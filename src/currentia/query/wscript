@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = ""
+subdirs = "ast"
 
 def options(opt):
     opt.recurse(subdirs)
@@ -14,4 +14,5 @@ def build(bld):
       target   = "parser",
       includes = ". ../../"
     )
+
     bld.recurse(subdirs)
