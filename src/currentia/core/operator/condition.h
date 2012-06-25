@@ -125,8 +125,6 @@ namespace currentia {
         }
 
         void distribute_disjunction() {
-            using namespace std::tr1;
-
             // bottom-up
             left_condition_->distribute_disjunction();
             right_condition_->distribute_disjunction();
@@ -135,9 +133,9 @@ namespace currentia {
                 return;
 
             ConditionConjunctive::ptr_t left_conjunctive =
-                dynamic_pointer_cast<ConditionConjunctive>(left_condition_);
+                std::dynamic_pointer_cast<ConditionConjunctive>(left_condition_);
             ConditionConjunctive::ptr_t right_conjunctive =
-                dynamic_pointer_cast<ConditionConjunctive>(right_condition_);
+                std::dynamic_pointer_cast<ConditionConjunctive>(right_condition_);
 
             if (left_conjunctive || right_conjunctive) {
                 // (Q && R) || P -> (Q || P) && (R || P)

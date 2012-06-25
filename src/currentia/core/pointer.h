@@ -8,6 +8,7 @@
 
 namespace std {
     using tr1::shared_ptr;
+    using tr1::dynamic_pointer_cast;
 };
 
 #endif  /* ! CURRENTIA_POINTER_H_ */
