@@ -22,6 +22,7 @@ namespace currentia {
             // save arguments as private member
             window_width_(window_width),
             current_window_position_(0) {
+            set_output_stream(Stream::from_schema(parent_operator_ptr->get_output_schema_ptr()));
         }
 
         Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
