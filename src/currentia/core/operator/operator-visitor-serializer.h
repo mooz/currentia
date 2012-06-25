@@ -15,7 +15,7 @@ namespace currentia {
     // Serialize a operator tree by sorting topological sort algorithm
     class OperatorVisitorSerializer : public OperatorAbstractVisitor,
                                       public Pointable<OperatorVisitorSerializer> {
-        std::list<Operator*> operators_;
+        std::vector<Operator*> operators_;
 
     public:
         typedef Pointable<OperatorVisitorSerializer>::ptr_t ptr_t;
@@ -23,17 +23,21 @@ namespace currentia {
         OperatorVisitorSerializer() {
         }
 
+        const std::vector<Operator*>& get_sorted_operators() {
+            return operators_;
+        }
+
         void visit(SingleInputOperator& op) {
             std::clog << "Visit Single Operator!" << std::endl;
             operators_.push_back(&op);
-            dispatch_(op.get_parent_operator());
+            dispatch(op.get_parent_operator().get());
         }
 
         void visit(DoubleInputOperator& op) {
             std::clog << "Visit Binary Operator!" << std::endl;
             operators_.push_back(&op);
-            dispatch_(op.get_parent_left_operator());
-            dispatch_(op.get_parent_right_operator());
+            dispatch(op.get_parent_left_operator().get());
+            dispatch(op.get_parent_right_operator().get());
         }
 
         void visit(OperatorStreamAdapter& op) {
@@ -41,14 +45,13 @@ namespace currentia {
             operators_.push_back(&op);
         }
 
-    private:
-        void dispatch_(const Operator::ptr_t& op) {
-            if (std::dynamic_pointer_cast<SingleInputOperator>(op)) {
-                std::dynamic_pointer_cast<SingleInputOperator>(op)->accept(this);
-            } else if (std::dynamic_pointer_cast<DoubleInputOperator>(op)) {
-                std::dynamic_pointer_cast<DoubleInputOperator>(op)->accept(this);
-            } else if (std::dynamic_pointer_cast<OperatorStreamAdapter>(op)) {
-                std::dynamic_pointer_cast<OperatorStreamAdapter>(op)->accept(this);
+        void dispatch(Operator* op) {
+            if (dynamic_cast<SingleInputOperator*>(op)) {
+                dynamic_cast<SingleInputOperator*>(op)->accept(this);
+            } else if (dynamic_cast<DoubleInputOperator*>(op)) {
+                dynamic_cast<DoubleInputOperator*>(op)->accept(this);
+            } else if (dynamic_cast<OperatorStreamAdapter*>(op)) {
+                dynamic_cast<OperatorStreamAdapter*>(op)->accept(this);
             }
 
             throw "Unhandled operator";
