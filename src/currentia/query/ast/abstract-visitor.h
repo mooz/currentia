@@ -5,18 +5,18 @@
 
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
-#include "currentia/query/ast/ast-forward-declaration.h"
+#include "currentia/core/operator/operator-forward-declaration.h"
 
 namespace currentia {
-    // TODO: forward declarations
-    CURRENTIA_QUERY_AST_NODE_LIST(CURRENTIA_QUERY_AST_OPERATION_DECLARE)
+    CURRENTIA_OPERATOR_LIST(CURRENTIA_OPERATOR_DECLARE)
 
     class AbstractVisitor : private NonCopyable<AbstractVisitor>,
                             public Pointable<AbstractVisitor> {
+
     public:
         virtual ~AbstractVisitor() = 0;
 
-        CURRENTIA_QUERY_AST_NODE_LIST(CURRENTIA_QUERY_AST_OPERATION_DEFINE_VISIT)
+        CURRENTIA_OPERATOR_LIST(CURRENTIA_OPERATOR_DEFINE_VISIT)
     };
 
     AbstractVisitor::~AbstractVisitor() {}

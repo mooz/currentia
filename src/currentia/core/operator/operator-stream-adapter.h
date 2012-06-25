@@ -5,11 +5,13 @@
 
 #include "currentia/core/object.h"
 #include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/visitable-operator.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
 
 namespace currentia {
-    class OperatorStreamAdapter: public Operator {
+    class OperatorStreamAdapter: public Operator,
+                                 public VisitableOperator<OperatorStreamAdapter> {
         Stream::ptr_t input_stream_ptr_;
 
     public:

@@ -4,11 +4,13 @@
 #define CURRENTIA_OPERATOR_DOUBLE_INPUT_H_
 
 #include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/visitable-operator.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
-    class DoubleInputOperator: public Operator {
+    class DoubleInputOperator: public Operator,
+                               public VisitableOperator<DoubleInputOperator> {
     protected:
         Operator::ptr_t parent_left_operator_ptr_;
         Operator::ptr_t parent_right_operator_ptr_;
@@ -51,6 +53,15 @@ namespace currentia {
 
         virtual Tuple::ptr_t process_left_input(Tuple::ptr_t input) = 0;
         virtual Tuple::ptr_t process_right_input(Tuple::ptr_t input) = 0;
+
+    public:
+        const Operator::ptr_t get_parent_left_operator() const {
+            return parent_left_operator_ptr_;
+        }
+
+        const Operator::ptr_t get_parent_right_operator() const {
+            return parent_right_operator_ptr_;
+        }
     };
 
     DoubleInputOperator::~DoubleInputOperator() {}

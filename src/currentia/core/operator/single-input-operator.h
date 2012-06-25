@@ -4,11 +4,13 @@
 #define CURRENTIA_OPERATOR_SINGLE_INPUT_H_
 
 #include "currentia/core/operator/operator.h"
+#include "currentia/core/operator/visitable-operator.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
-    class SingleInputOperator: public Operator {
+    class SingleInputOperator: public Operator,
+                               public VisitableOperator<SingleInputOperator> {
     protected:
         Operator::ptr_t parent_operator_ptr_;
         Stream::ptr_t input_stream_;
@@ -34,6 +36,11 @@ namespace currentia {
         }
 
         virtual Tuple::ptr_t process_single_input(Tuple::ptr_t input) = 0;
+
+    public:
+        const Operator::ptr_t get_parent_operator() const {
+            return parent_operator_ptr_;
+        }
     };
 
     SingleInputOperator::~SingleInputOperator() {}
