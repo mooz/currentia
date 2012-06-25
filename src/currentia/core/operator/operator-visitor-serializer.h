@@ -52,9 +52,9 @@ namespace currentia {
                 dynamic_cast<DoubleInputOperator*>(op)->accept(this);
             } else if (dynamic_cast<OperatorStreamAdapter*>(op)) {
                 dynamic_cast<OperatorStreamAdapter*>(op)->accept(this);
+            } else {
+                throw (std::string("Unhandled operator: ") + op->toString()).c_str();
             }
-
-            throw "Unhandled operator";
         }
     };
 }
