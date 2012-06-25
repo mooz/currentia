@@ -11,6 +11,8 @@
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-election.h"
 
+#include "currentia/core/scheduler/round-robin-scheduler.h"
+
 #include "thirdparty/cmdline.h"
 
 #include <sys/time.h>
@@ -130,11 +132,12 @@ void* update_status_thread_body(void* argument)
     return NULL;
 }
 
-void* process_stream_thread_body(void* argument)
+void* consume_output_stream_thread_body(void* argument)
 {
+    Stream::ptr_t output_stream = query_ptr->get_output_stream();
     try {
         while (true) {
-            Tuple::ptr_t next_tuple = query_ptr->next();
+            Tuple::ptr_t next_tuple = output_stream->dequeue();
             if (next_tuple->is_eos())
                 break;
         }
@@ -143,6 +146,18 @@ void* process_stream_thread_body(void* argument)
     }
 
     end_time = get_current_time_in_seconds();
+
+    return NULL;
+}
+
+void* process_stream_thread_body(void* argument)
+{
+    RoundRobinScheduler scheduler(query_ptr);
+
+    while (true) {
+        scheduler.process_next();
+        usleep(100);
+    }
 
     return NULL;
 }
@@ -486,17 +501,18 @@ int main(int argc, char **argv)
     }
 
     typedef void* (*pthread_body_t)(void*);
-    pthread_t update_status_thread, process_stream_thread, stream_sending_thread;
+    pthread_t update_status_thread, process_stream_thread, consume_output_stream_thread, stream_sending_thread;
 
     pthread_create(&update_status_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
     pthread_create(&process_stream_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
+    pthread_create(&consume_output_stream_thread, NULL, reinterpret_cast<pthread_body_t>(consume_output_stream_thread_body), NULL);
     pthread_create(&stream_sending_thread, NULL, reinterpret_cast<pthread_body_t>(stream_sending_thread_body), NULL);
 
-    pthread_join(process_stream_thread, NULL);
+    pthread_join(consume_output_stream_thread, NULL);
     pthread_join(stream_sending_thread, NULL);
 
+    pthread_cancel(process_stream_thread);
     pthread_cancel(update_status_thread);
-    // pthread_join(update_status_thread, NULL);
 
     double elapsed_seconds = end_time - begin_time;
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
