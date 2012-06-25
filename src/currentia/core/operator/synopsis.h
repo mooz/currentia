@@ -43,9 +43,9 @@ namespace currentia {
 
         void enqueue(const Tuple::ptr_t& input_tuple) {
             switch (window_.type) {
-            case Window::LOGICAL:
+            case Window::TUPLE_BASE:
                 return enqueue_logical(input_tuple);
-            case Window::PHYSICAL:
+            case Window::TIME_BASE:
                 assert(false);  // TODO: implement physical operator
                 break;
             }
