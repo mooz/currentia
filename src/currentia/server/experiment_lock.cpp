@@ -134,15 +134,15 @@ void* update_status_thread_body(void* argument)
 
 void* consume_output_stream_thread_body(void* argument)
 {
-    Stream::ptr_t output_stream = query_ptr->get_output_stream();
     try {
+        Stream::ptr_t output_stream = query_ptr->get_output_stream();
         while (true) {
             Tuple::ptr_t next_tuple = output_stream->dequeue();
             if (next_tuple->is_eos())
                 break;
         }
     } catch (const char* error_message) {
-        std::cerr << "Error while processing stream: " << error_message << std::endl;
+        std::cerr << "Error while consuming output stream: " << error_message << std::endl;
     }
 
     end_time = get_current_time_in_seconds();
@@ -152,11 +152,15 @@ void* consume_output_stream_thread_body(void* argument)
 
 void* process_stream_thread_body(void* argument)
 {
-    RoundRobinScheduler scheduler(query_ptr);
+    try {
+        RoundRobinScheduler scheduler(query_ptr);
 
-    while (true) {
-        scheduler.process_next();
-        usleep(100);
+        while (true) {
+            scheduler.process_next();
+            usleep(100);
+        }
+    } catch (const char* error_message) {
+        std::cerr << "Error while processing stream: " << error_message << std::endl;
     }
 
     return NULL;
@@ -166,17 +170,21 @@ void* process_stream_thread_body(void* argument)
 static useconds_t PURCHASE_STREAM_INTERVAL;
 void* stream_sending_thread_body(void* argument)
 {
-    begin_time = get_current_time_in_seconds();
+    try {
+        begin_time = get_current_time_in_seconds();
 
-    Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
+        Schema::ptr_t schema_ptr = purchase_stream->get_schema_ptr();
 
-    for (int i = 0; i < PURCHASE_COUNT; ++i) {
-        purchase_stream->enqueue(create_purchase_tuple(i % GOODS_COUNT /* goods id */, rand() /* user id */));
-        if (PURCHASE_STREAM_INTERVAL > 0)
-            usleep(PURCHASE_STREAM_INTERVAL);
+        for (int i = 0; i < PURCHASE_COUNT; ++i) {
+            purchase_stream->enqueue(create_purchase_tuple(i % GOODS_COUNT /* goods id */, rand() /* user id */));
+            if (PURCHASE_STREAM_INTERVAL > 0)
+                usleep(PURCHASE_STREAM_INTERVAL);
+        }
+
+        purchase_stream->enqueue(Tuple::create_eos()); // Finish!
+    } catch (const char* error_message) {
+        std::cerr << "Error while sending data stream: " << error_message << std::endl;
     }
-
-    purchase_stream->enqueue(Tuple::create_eos()); // Finish!
 
     return NULL;
 }
