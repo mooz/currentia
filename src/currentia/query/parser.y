@@ -31,12 +31,12 @@ statements ::= statement.
 statement ::= define_relation.
 statement ::= define_stream.
 
-define_relation ::= RELATION LPAREN attributes(A) RPAREN. {
+define_relation ::= RELATION NAME LPAREN attributes(A) RPAREN. {
     // TODO (create relation from attribute list)
 }
 
-define_stream ::= STREAM LPAREN attributes RPAREN.
-define_stream ::= STREAM LBRACE operations RBRACE.
+define_stream ::= STREAM NAME LPAREN attributes RPAREN.
+define_stream ::= STREAM NAME LBRACE operations RBRACE.
 
 attributes ::= attribute.
 attributes ::= attributes COMMA attribute.
