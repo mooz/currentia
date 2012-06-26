@@ -18,6 +18,8 @@
 
 %syntax_error {
     std::cerr << "Syntax error!" << std::endl;
+%parse_failure {
+    std::cerr << "Failed to parse input" << std::endl;
 }
 
 plan ::= statements EOS.
