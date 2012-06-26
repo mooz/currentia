@@ -1,4 +1,4 @@
-%token_type { const std::string* }
+%token_type { std::string* }
 
 %extra_argument { currentia::CPLContainer* cpl_container }
 
