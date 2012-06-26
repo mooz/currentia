@@ -12,7 +12,7 @@ namespace currentia {
         }
 
         virtual ~AbstractScheduler() = 0;
-        virtual void process_next() = 0;
+        virtual void wake_up() = 0;
     };
 
     AbstractScheduler::~AbstractScheduler() {};

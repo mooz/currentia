@@ -157,7 +157,7 @@ void* process_stream_thread_body(void* argument)
         RoundRobinScheduler scheduler(query_ptr);
 
         while (true) {
-            scheduler.process_next();
+            scheduler.wake_up();
             thread::scheduler_yield();
         }
     } catch (const char* error_message) {

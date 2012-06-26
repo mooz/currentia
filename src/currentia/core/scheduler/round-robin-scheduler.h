@@ -20,7 +20,7 @@ namespace currentia {
             operators_ = serializer_.get_sorted_operators();
         }
 
-        void process_next() {
+        void wake_up() {
             Operator* next_operator = get_next_operator_();
             next_operator->next();
         }
