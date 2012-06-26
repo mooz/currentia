@@ -73,7 +73,7 @@ window_type_time ::= DAY.
 
 fields ::= field.
 fields ::= fields COMMA field.
-field ::=  NAME DOT type.
+field ::=  NAME DOT NAME.
 
 condition ::= condition_term.
 condition ::= condition condition_conjunction condition_term.
