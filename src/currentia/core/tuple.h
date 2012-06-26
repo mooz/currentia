@@ -50,13 +50,20 @@ namespace currentia {
             std::stringstream ss;
 
             ss << "Tuple(";
-            if (data_.size() > 0) {
-                ss << "\n";
-                for (data_t::const_iterator it = data_.begin();
-                     it != data_.end();
-                     ++it) {
-                    ss << "  " << it->toString() << "\n";
+            switch (type_) {
+            case DATA:
+                if (data_.size() > 0) {
+                    ss << "\n";
+                    for (data_t::const_iterator it = data_.begin();
+                         it != data_.end();
+                         ++it) {
+                        ss << "  " << it->toString() << "\n";
+                    }
                 }
+                break;
+            case EOS:
+                ss << "EOS";
+                break;
             }
             ss << ")";
 
