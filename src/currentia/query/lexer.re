@@ -209,8 +209,6 @@ namespace currentia {
         start:
             token_begin_ = yy_cursor_;
 
-            log("OK, start");
-
             /*!re2c
 
               IDENTIFIER  = [a-zA-Z_][a-zA-Z_0-9]*;
@@ -221,10 +219,7 @@ namespace currentia {
               STRING      = ["] ([\].|[^"])* ["];
 
               COMMENT           { goto start; }
-              WHITESPACES       {
-            log("skip whitespace");
- goto start;
- }
+              WHITESPACES       { goto start; }
               NEWLINE           { line_number_++; goto start; }
 
               "SELECT"          { return TOKEN_SELECT; }
