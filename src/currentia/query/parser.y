@@ -7,13 +7,10 @@
 
 %include {
 #include <iostream>
+#include <string>
 #include <assert.h>
 #include "cpl.h"
-#include "lemon.h"
-
-    enum Token {
-        CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_ENUM)
-    };
+#include "parser.h"
 }
 
 %syntax_error {
