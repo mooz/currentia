@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "currentia/trait/non-copyable.h"
-#include "currentia/query/token.h"
+#include "currentia/query/parser.h"
 
 /*!re2c
   re2c:define:YYCTYPE = "char";
@@ -49,16 +49,13 @@ namespace currentia {
     public:
         typedef Lexer* ptr_t;
 
-        enum Token {
-            CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_ENUM)
-        };
-
-        static std::string token_to_string(enum Token token) {
-            switch (token) {
-                CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_SWITCH_STRING)
-            default:
-                return "UNEXPECTED_TOKEN";
-            };
+        static std::string token_to_string(int token) {
+            return "NULL";
+            // switch (token) {
+            //     CURRENTIA_DEFINE_TOKEN_LIST(CURRENTIA_DEFINE_SWITCH_STRING)
+            // default:
+            //     return "UNEXPECTED_TOKEN";
+            // };
         }
 
         Lexer(std::istream* ifs_ptr, long buffer_init_size = 1024):
@@ -142,7 +139,7 @@ namespace currentia {
             return yy_cursor_ - token_begin_;
         }
 
-        enum Token get_next_token() {
+        int get_next_token() {
         start:
             token_begin_ = yy_cursor_;
 
@@ -163,8 +160,8 @@ namespace currentia {
               'PROJECT' 'ION'?  { return TOKEN_PROJECT; }
               'JOIN'            { return TOKEN_JOIN; }
 
-              'FROM'            { return TOKEN_FROM; }
               'WHERE'           { return TOKEN_WHERE; }
+
               'AND'             { return TOKEN_AND; }
               'OR'              { return TOKEN_OR; }
 
@@ -172,28 +169,24 @@ namespace currentia {
               'MEAN'            { return TOKEN_MEAN; }
               'ELECT' 'ION'?    { return TOKEN_ELECT; }
 
-              'CREATE'          { return TOKEN_CREATE; }
               'STREAM'          { return TOKEN_STREAM; }
-              'TABLE'           { return TOKEN_TABLE; }
               'RELATION'        { return TOKEN_RELATION; }
 
               'NOT'             { return TOKEN_NOT; }
-              'IN'              { return TOKEN_IN; }
 
+              'WIDTH'           { return TOKEN_WIDTH; }
               'ROWS'            { return TOKEN_ROWS; }
               'MSEC'            { return TOKEN_MSEC; }
               'SEC'             { return TOKEN_SEC; }
               'MIN'             { return TOKEN_MIN; }
               'HOUR'            { return TOKEN_HOUR; }
               'DAY'             { return TOKEN_DAY; }
-              'ADVANCE'         { return TOKEN_ADVANCE; }
 
               'INT'             { return TOKEN_TYPE_INT; }
               'FLOAT'           { return TOKEN_TYPE_FLOAT; }
               'STRING'          { return TOKEN_TYPE_STRING; }
               'BLOB'            { return TOKEN_TYPE_BLOB; }
 
-              'COUNT'           { return TOKEN_COUNT; }
               'SLIDE'           { return TOKEN_SLIDE; }
               'WITH'            { return TOKEN_WITH; }
 
@@ -206,8 +199,6 @@ namespace currentia {
               ":"               { return TOKEN_COLON; }
               "{"               { return TOKEN_LBRACE; }
               "}"               { return TOKEN_RBRACE; }
-              "["               { return TOKEN_LBRACKET; }
-              "]"               { return TOKEN_RBRACKET; }
               ","               { return TOKEN_COMMA; }
               "."               { return TOKEN_DOT; }
               "("               { return TOKEN_LPAREN; }
@@ -225,11 +216,11 @@ namespace currentia {
             */
         }
 
-        static bool is_token_conjunctive(Token token) {
+        static bool is_token_conjunctive(int token) {
             return token == TOKEN_AND || token == TOKEN_OR;
         }
 
-        static bool is_token_value(Token token) {
+        static bool is_token_value(int token) {
             return token == TOKEN_STRING || token == TOKEN_INTEGER || token == TOKEN_FLOAT;
         }
 
@@ -249,10 +240,6 @@ namespace currentia {
             // stream << '^';
         }
     };
-
-#undef CURRENTIA_DEFINE_ENUM
-#undef CURRENTIA_DEFINE_SWITCH_STRING
-#undef CURRENTIA_DEFINE_TOKEN_LIST
 }
 
 #ifdef CURRENTIA_IS_LEXER_MAIN_
@@ -268,9 +255,9 @@ int main(int argc, char** argv)
         " }"
     );
     currentia::Lexer lexer(&is);
-    currentia::Lexer::Token token;
+    int token;
 
-    while ((token = lexer.get_next_token()) != currentia::Lexer::TOKEN_EOS) {
+    while ((token = lexer.get_next_token()) != TOKEN_EOS) {
         std::cout << "token => " << currentia::Lexer::token_to_string(token)
                   << " '" << lexer.get_token_text() << "'" << std::endl;
     }

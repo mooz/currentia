@@ -18,9 +18,9 @@ def build(bld):
             uselib   = 'GTEST_MAIN',
             use      = "visitor"
         )
-    do_test("test_ast_visitor")
-    do_test("test_lexer")
+    # do_test("test_ast_visitor")
+    # do_test("test_lexer")
     do_test("test_lexer_cpl")
-    do_test("test_ddl_parser")
-    do_test("test_condition_parser")
+    # do_test("test_ddl_parser")
+    # do_test("test_condition_parser")
     bld.recurse(subdirs)
