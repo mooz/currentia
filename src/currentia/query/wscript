@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "ast"
+subdirs = "ast tools"
 
 def options(opt):
     opt.recurse(subdirs)
@@ -9,9 +9,9 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
-    # bld.program(
-    #   source   = "parser.cpp",
-    #   target   = "parser",
-    #   includes = ". ../../"
-    # )
+    bld.program(
+      source   = "parser.c",
+      target   = "parser",
+      includes = ". ../../"
+    )
     bld.recurse(subdirs)

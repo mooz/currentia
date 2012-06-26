@@ -14,8 +14,9 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "currentia/trait/non-copyable.h"
+#include "currentia/core/operator/comparator.h"
 #include "currentia/query/parser.h"
+#include "currentia/trait/non-copyable.h"
 
 /*!re2c
   re2c:define:YYCTYPE = "char";
@@ -32,6 +33,7 @@
 
 #define log(str) std::cout << str << std::endl
 #define dump(x) std::cout << #x << " => [" << (x) << "]" << std::endl
+#define TOKEN_EOS 0
 
 namespace currentia {
     class Lexer : private NonCopyable<Lexer> {
@@ -158,9 +160,8 @@ namespace currentia {
 
               'SELECT' 'ION'?   { return TOKEN_SELECT; }
               'PROJECT' 'ION'?  { return TOKEN_PROJECT; }
-              'JOIN'            { return TOKEN_JOIN; }
 
-              'WHERE'           { return TOKEN_WHERE; }
+              'FROM'            { return TOKEN_FROM; }
 
               'AND'             { return TOKEN_AND; }
               'OR'              { return TOKEN_OR; }
@@ -174,7 +175,7 @@ namespace currentia {
 
               'NOT'             { return TOKEN_NOT; }
 
-              'WIDTH'           { return TOKEN_WIDTH; }
+              'RECENT'          { return TOKEN_RECENT; }
               'ROWS'            { return TOKEN_ROWS; }
               'MSEC'            { return TOKEN_MSEC; }
               'SEC'             { return TOKEN_SEC; }
@@ -188,7 +189,6 @@ namespace currentia {
               'BLOB'            { return TOKEN_TYPE_BLOB; }
 
               'SLIDE'           { return TOKEN_SLIDE; }
-              'WITH'            { return TOKEN_WITH; }
 
               IDENTIFIER        { return TOKEN_NAME; }
 
@@ -199,6 +199,8 @@ namespace currentia {
               ":"               { return TOKEN_COLON; }
               "{"               { return TOKEN_LBRACE; }
               "}"               { return TOKEN_RBRACE; }
+              "["               { return TOKEN_LBRACKET; }
+              "]"               { return TOKEN_RBRACKET; }
               ","               { return TOKEN_COMMA; }
               "."               { return TOKEN_DOT; }
               "("               { return TOKEN_LPAREN; }
@@ -239,28 +241,65 @@ namespace currentia {
             //     stream << '_';
             // stream << '^';
         }
+
+        static currentia::Comparator::Type
+        token_to_comparator(int comparator_type) {
+            using namespace currentia::Comparator;
+
+            switch (comparator_type) {
+            case TOKEN_EQUAL:
+                return EQUAL;
+            case TOKEN_NOT_EQUAL:
+                return NOT_EQUAL;
+            case TOKEN_LESS_THAN:
+                return LESS_THAN;
+            case TOKEN_LESS_THAN_EQUAL:
+                return LESS_THAN_EQUAL;
+            case TOKEN_GREATER_THAN:
+                return GREATER_THAN;
+            case TOKEN_GREATER_THAN_EQUAL:
+                return GREATER_THAN_EQUAL;
+            default:
+                throw "comparator type not given";
+            };
+        }
     };
 }
 
 #ifdef CURRENTIA_IS_LEXER_MAIN_
+
+#include "parser.c"
+
 int main(int argc, char** argv)
 {
     std::istringstream is(
         " stream purchases(goods_id: int, user_id: int)"
         " relation goods(id: int, price: int)"
-        " stream result {"
-        "   join purchases with goods where purchases.id = goods.goods_id"
-        "   selection price < 5000"
-        "   mean goods.price count 5 slide 5"
+        " "
+        " stream result"
+        " from purchases, goods [purchases.id = goods.goods_id]"
+        " {"
+        "   selection goods.price < 5000"
+        "   mean goods.price recent 5 rows slide 5 rows"
         " }"
     );
     currentia::Lexer lexer(&is);
     int token;
 
+    yyParser* parser = reinterpret_cast<yyParser*>(CPLParseAlloc(malloc));
+    currentia::CPLContainer cpl_container;
+    std::string current_token_string;
+    cpl_container.current_token_string = &current_token_string;
+
     while ((token = lexer.get_next_token()) != TOKEN_EOS) {
-        std::cout << "token => " << currentia::Lexer::token_to_string(token)
-                  << " '" << lexer.get_token_text() << "'" << std::endl;
+        // std::cout << "token => " << currentia::Lexer::token_to_string(token)
+        //           << " '" << lexer.get_token_text() << "'" << std::endl;
+        current_token_string = lexer.get_token_text();
+        CPLParse(parser, token, new std::string(current_token_string), &cpl_container);
     }
+
+    CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
+    CPLParseFree(parser, free);
 
     return 0;
 }

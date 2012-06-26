@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "core query trait"
+subdirs = "lemon"
 
 def options(opt):
     opt.recurse(subdirs)
@@ -10,4 +10,3 @@ def configure(conf):
 
 def build(bld):
     bld.recurse(subdirs)
-

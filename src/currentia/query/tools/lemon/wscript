@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "core query trait"
+subdirs = ""
 
 def options(opt):
     opt.recurse(subdirs)
@@ -9,5 +9,8 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
+    bld.program(
+      source   = "lemon.c",
+      target   = "lemon"
+    )
     bld.recurse(subdirs)
-

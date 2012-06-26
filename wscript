@@ -38,11 +38,13 @@ def __run_command(bld, cmd):
     except Exception as e:
         print(e)
 
+# src/currentia/query/tools/lemon/
+
 def generate_lexer(bld):
     __run_command(bld, "cd src/currentia/query/; re2c -i -o lexer.h lexer.re")
 
 def generate_parser(bld):
-    __run_command(bld, "cd src/currentia/query/; lemon parser.y;")
+    __run_command(bld, "cd src/currentia/query/; ./tools/lemon/lemon parser.y T=./tools/lemon/lempar-currentia.c; indent -kr -ts4 --no-tabs ./parser.c")
 
 def generate_lexer_parser(bld):
     generate_parser(bld)
