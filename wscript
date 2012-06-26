@@ -31,7 +31,7 @@ def gen_lexer(bld):
     try:
         import waflib
         (out, err) = bld.cmd_and_log(
-            're2c --case-insensitive -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re',
+            're2c -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re',
             output=waflib.Context.BOTH
         )
         if out:

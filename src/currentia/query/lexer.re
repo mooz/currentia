@@ -159,26 +159,43 @@ namespace currentia {
               WHITESPACES       { goto start; }
               NEWLINE           { line_number_++; goto start; }
 
-              "SELECT"          { return TOKEN_SELECT; }
-              "FROM"            { return TOKEN_FROM; }
-              "WHERE"           { return TOKEN_WHERE; }
-              "AND"             { return TOKEN_AND; }
-              "OR"              { return TOKEN_OR; }
+              'SELECT' 'ION'?   { return TOKEN_SELECT; }
+              'PROJECT' 'ION'?  { return TOKEN_PROJECT; }
+              'JOIN'            { return TOKEN_JOIN; }
 
-              "CREATE"          { return TOKEN_CREATE; }
-              "STREAM"          { return TOKEN_STREAM; }
-              "TABLE"           { return TOKEN_TABLE; }
+              'FROM'            { return TOKEN_FROM; }
+              'WHERE'           { return TOKEN_WHERE; }
+              'AND'             { return TOKEN_AND; }
+              'OR'              { return TOKEN_OR; }
 
-              "NOT"             { return TOKEN_NOT; }
-              "IN"              { return TOKEN_IN; }
+              'SUM' 'MATION?'   { return TOKEN_SUM; }
+              'MEAN'            { return TOKEN_MEAN; }
+              'ELECT' 'ION'?    { return TOKEN_ELECT; }
 
-              "ROWS"            { return TOKEN_ROWS; }
-              "MSEC"            { return TOKEN_MSEC; }
-              "SEC"             { return TOKEN_SEC; }
-              "MIN"             { return TOKEN_MIN; }
-              "HOUR"            { return TOKEN_HOUR; }
-              "DAY"             { return TOKEN_DAY; }
-              "ADVANCE"         { return TOKEN_ADVANCE; }
+              'CREATE'          { return TOKEN_CREATE; }
+              'STREAM'          { return TOKEN_STREAM; }
+              'TABLE'           { return TOKEN_TABLE; }
+              'RELATION'        { return TOKEN_RELATION; }
+
+              'NOT'             { return TOKEN_NOT; }
+              'IN'              { return TOKEN_IN; }
+
+              'ROWS'            { return TOKEN_ROWS; }
+              'MSEC'            { return TOKEN_MSEC; }
+              'SEC'             { return TOKEN_SEC; }
+              'MIN'             { return TOKEN_MIN; }
+              'HOUR'            { return TOKEN_HOUR; }
+              'DAY'             { return TOKEN_DAY; }
+              'ADVANCE'         { return TOKEN_ADVANCE; }
+
+              'INT'             { return TOKEN_TYPE_INT; }
+              'FLOAT'           { return TOKEN_TYPE_FLOAT; }
+              'STRING'          { return TOKEN_TYPE_STRING; }
+              'BLOB'            { return TOKEN_TYPE_BLOB; }
+
+              'COUNT'           { return TOKEN_COUNT; }
+              'SLIDE'           { return TOKEN_SLIDE; }
+              'WITH'            { return TOKEN_WITH; }
 
               IDENTIFIER        { return TOKEN_NAME; }
 
@@ -186,6 +203,9 @@ namespace currentia {
               DIGIT+ [.] DIGIT* { return TOKEN_FLOAT; }
               DIGIT+            { return TOKEN_INTEGER; }
 
+              ":"               { return TOKEN_COLON; }
+              "{"               { return TOKEN_LBRACE; }
+              "}"               { return TOKEN_RBRACE; }
               "["               { return TOKEN_LBRACKET; }
               "]"               { return TOKEN_RBRACKET; }
               ","               { return TOKEN_COMMA; }
@@ -238,7 +258,15 @@ namespace currentia {
 #ifdef CURRENTIA_IS_LEXER_MAIN_
 int main(int argc, char** argv)
 {
-    std::istringstream is("abc def ghi");
+    std::istringstream is(
+        " stream purchases(goods_id: int, user_id: int)"
+        " relation goods(id: int, price: int)"
+        " stream result {"
+        "   join purchases with goods where purchases.id = goods.goods_id"
+        "   selection price < 5000"
+        "   mean goods.price count 5 slide 5"
+        " }"
+    );
     currentia::Lexer lexer(&is);
     currentia::Lexer::Token token;
 
