@@ -27,20 +27,23 @@ def configure(conf):
 def build(bld):
     bld.recurse(subdirs)
 
-def gen_lexer(bld):
+def __run_command(bld, cmd):
     try:
         import waflib
-        (out, err) = bld.cmd_and_log(
-            're2c -i -o src/currentia/query/lexer.h src/currentia/query/lexer.re',
-            output=waflib.Context.BOTH
-        )
+        (out, err) = bld.cmd_and_log(cmd, output=waflib.Context.BOTH)
         if out:
             print(out)
         if err:
             print(err)
     except Exception as e:
-        if e.stdout:
-            print(e.stdout)
-        if e.stderr:
-            print(e.stderr)
+        print(e)
 
+def generate_lexer(bld):
+    __run_command(bld, "cd src/currentia/query/; re2c -i -o lexer.h lexer.re")
+
+def generate_parser(bld):
+    __run_command(bld, "cd src/currentia/query/; lemon parser.y;")
+
+def generate_lexer_parser(bld):
+    generate_parser(bld)
+    generate_lexer(bld)
