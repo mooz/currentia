@@ -2,7 +2,7 @@
 
 %extra_argument { currentia::CPLContainer* cpl_container }
 
-%name CPL
+%name CPLParse
 %token_prefix TOKEN_
 
 %include {
