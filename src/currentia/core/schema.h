@@ -42,7 +42,7 @@ namespace currentia {
         }
 
         void freeze() {
-            ScopedLock lock(&schema_lock_);
+            thread::ScopedLock lock(&schema_lock_);
             is_schema_freezed_ = true;
         }
 
@@ -52,7 +52,7 @@ namespace currentia {
 
         // TODO: condsider (schema) relation name.
         int add_attribute(const std::string& name, Object::Type type) {
-            ScopedLock lock(&schema_lock_);
+            thread::ScopedLock lock(&schema_lock_);
 
             if (!is_schema_freezed_)
                 attributes_.push_back(Attribute(name, type));

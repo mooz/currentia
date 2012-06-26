@@ -158,7 +158,7 @@ void* process_stream_thread_body(void* argument)
 
         while (true) {
             scheduler.process_next();
-            sched_yield();
+            thread::scheduler_yield();
         }
     } catch (const char* error_message) {
         std::cerr << "Error while processing stream: " << error_message << std::endl;

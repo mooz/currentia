@@ -59,7 +59,7 @@ namespace currentia {
         // handler to execute specific action (e.g., window-join,
         // aggregation).
         void enqueue_logical(const Tuple::ptr_t& input_tuple) {
-            ScopedLock lock(&mutex_);
+            thread::ScopedLock lock(&mutex_);
 
             newcomer_tuples_[newcomer_count_] = input_tuple;
             newcomer_count_++;

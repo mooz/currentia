@@ -57,7 +57,7 @@ namespace currentia {
         Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
             Object target_attribute_value = input_tuple->get_value_by_index(target_attribute_column_in_stream_);
 
-            ScopedLock lock = relation_->get_scoped_lock();
+            thread::ScopedLock lock = relation_->get_scoped_lock();
 
             for (std::list<Tuple::ptr_t>::const_iterator relation_iterator = relation_->get_tuple_iterator();
                  relation_iterator != relation_->get_tuple_iterator_end();

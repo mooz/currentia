@@ -30,7 +30,7 @@ namespace currentia {
 
         // TODO: not exception safe
         void enqueue(Tuple::ptr_t tuple_ptr) {
-            ScopedLock lock(&mutex_);
+            thread::ScopedLock lock(&mutex_);
 
             tuple_ptrs_.push_front(tuple_ptr);
             // tell arrival of a tuple to waiting threads
@@ -45,7 +45,7 @@ namespace currentia {
         // TODO: not exception safe
         // timeout version
         Tuple::ptr_t dequeue_timed_wait(const struct timespec* timeout) {
-            ScopedLock lock(&mutex_);
+            thread::ScopedLock lock(&mutex_);
 
             while (tuple_ptrs_.empty()) {
                 // wait for the next tuple arrival to the queue
@@ -63,7 +63,7 @@ namespace currentia {
 
         // Dequeue an elemen from stream. If the stream is empty, returns NULL.
         Tuple::ptr_t non_blocking_dequeue() {
-            ScopedLock lock(&mutex_);
+            thread::ScopedLock lock(&mutex_);
 
             if (tuple_ptrs_.empty())
                 return Tuple::ptr_t();
