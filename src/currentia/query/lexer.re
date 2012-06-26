@@ -252,7 +252,7 @@ namespace currentia {
 
               STRING            { return TOKEN_STRING; }
               DIGIT+ [.] DIGIT* { return TOKEN_FLOAT; }
-              DIGIT             { return TOKEN_INTEGER; }
+              DIGIT+            { return TOKEN_INTEGER; }
 
               "["               { return TOKEN_LBRACKET; }
               "]"               { return TOKEN_RBRACKET; }

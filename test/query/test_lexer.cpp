@@ -4,6 +4,19 @@
 
 using namespace currentia;
 
+TEST (testPrimitive, NUMBER) {
+    std::istringstream is("12345 3.14");
+    currentia::Lexer lexer(&is);
+
+    EXPECT_EQ(Lexer::TOKEN_INTEGER, lexer.get_next_token());
+    EXPECT_EQ("12345", lexer.get_token_text());
+
+    EXPECT_EQ(Lexer::TOKEN_FLOAT, lexer.get_next_token());
+    EXPECT_EQ("3.14", lexer.get_token_text());
+
+    EXPECT_EQ(Lexer::TOKEN_EOS, lexer.get_next_token());
+}
+
 TEST (testLexer, empty) {
     std::istringstream is("");
     currentia::Lexer lexer(&is);
