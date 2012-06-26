@@ -16,6 +16,7 @@
 #include "thirdparty/cmdline.h"
 
 #include <sys/time.h>
+#include <sched.h>
 #include <iostream>
 
 using namespace currentia;
@@ -157,7 +158,7 @@ void* process_stream_thread_body(void* argument)
 
         while (true) {
             scheduler.process_next();
-            usleep(100);
+            sched_yield();
         }
     } catch (const char* error_message) {
         std::cerr << "Error while processing stream: " << error_message << std::endl;
