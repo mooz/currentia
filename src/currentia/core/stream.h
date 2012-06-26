@@ -82,6 +82,11 @@ namespace currentia {
             return schema_ptr_;
         }
 
+        void reset() {
+            thread::ScopedLock lock(&mutex_);
+            tuple_ptrs_.clear();
+        }
+
     private:
         Schema::ptr_t schema_ptr_;
 
