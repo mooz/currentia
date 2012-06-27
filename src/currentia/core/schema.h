@@ -158,6 +158,23 @@ namespace currentia {
             return ss.str();
         }
 
+        std::string toString() const {
+            std::stringstream ss;
+
+            ss << "[ ";
+            Schema::attributes_t::const_iterator attributes_iter = attributes_.begin();
+            Schema::attributes_t::const_iterator attributes_iter_end = attributes_.end();
+            for (; attributes_iter != attributes_iter_end; ++attributes_iter) {
+                ss << attributes_iter->toString();
+                if (attributes_iter + 1 != attributes_iter_end)
+                    ss << ", ";
+            }
+            ss << " ]";
+            ss << "#" << id_;
+
+            return ss.str();
+        }
+
     private:
         void assert_has_attribute_(int index) const {
             if (index < 0 || static_cast<unsigned int>(index) >= attributes_.size())
