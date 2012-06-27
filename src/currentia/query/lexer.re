@@ -160,6 +160,7 @@ namespace currentia {
 
               'SELECT' 'ION'?   { return TOKEN_SELECT; }
               'PROJECT' 'ION'?  { return TOKEN_PROJECT; }
+              'COMBINE'         { return TOKEN_COMBINE; }
 
               'FROM'            { return TOKEN_FROM; }
 
@@ -172,6 +173,8 @@ namespace currentia {
 
               'STREAM'          { return TOKEN_STREAM; }
               'RELATION'        { return TOKEN_RELATION; }
+
+              'WHERE'           { return TOKEN_WHERE; }
 
               'NOT'             { return TOKEN_NOT; }
 
@@ -290,32 +293,36 @@ int main(int argc, char** argv)
 {
     std::istringstream is(
         " stream purchases(goods_id: int, user_id: int)"
+        " stream outliers(user_id: int)"
         " relation goods(id: int, price: int)"
         " "
         " stream result"
-        " from purchases, goods [purchases.id = goods.goods_id]"
+        " from purchases [recent 5 slide 5], outliers [recent 5 slide 5]"
+        " where purchases.user_id = outliers.user_id"
         " {"
+        "   combine goods where purchases.id = goods.goods_id"
         "   selection goods.price < 5000"
-        "   mean goods.price recent 5 rows slide 5 rows"
+        "   mean goods.price [recent 5 slide 5]"
         " }"
     );
     currentia::Lexer lexer(&is);
     int token;
 
     currentia::yyParser* parser = reinterpret_cast<currentia::yyParser*>(currentia::CPLParseAlloc(malloc));
-    currentia::CPLContainer cpl_container;
-    std::string current_token_string;
-    cpl_container.current_token_string = &current_token_string;
+    currentia::CPLQueryContainer cpl_container;
 
-    while ((token = lexer.get_next_token()) != TOKEN_EOS) {
-        // std::cout << "token => " << currentia::Lexer::token_to_string(token)
-        //           << " '" << lexer.get_token_text() << "'" << std::endl;
-        current_token_string = lexer.get_token_text();
-        currentia::CPLParse(parser, token, new std::string(current_token_string), &cpl_container);
+    try {
+        while ((token = lexer.get_next_token()) != TOKEN_EOS) {
+            // int current_token;
+            // std::cout << "token: " << lexer.get_token_text() << std::endl;
+            currentia::CPLParse(parser, token, new std::string(lexer.get_token_text()), &cpl_container);
+        }
+
+        currentia::CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
+        currentia::CPLParseFree(parser, free);
+    } catch (const std::string& error_message) {
+        std::cerr << "Parse Error: " << error_message << std::endl;
     }
-
-    currentia::CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
-    currentia::CPLParseFree(parser, free);
 
     return 0;
 }

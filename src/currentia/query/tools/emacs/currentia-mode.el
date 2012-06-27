@@ -37,6 +37,7 @@
 (setq currentia-keywords
       (make-regexp (list
                     "and"
+                    "combine"
                     "day"
                     "elect"
                     "from"
@@ -54,7 +55,8 @@
                     "select\\(ion\\)?"
                     "slide"
                     "stream"
-                    "sum")))
+                    "sum"
+                    "where")))
 
 (setq currentia-comment "#.*$")
 

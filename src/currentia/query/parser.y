@@ -1,6 +1,6 @@
 %token_type { std::string* }
 
-%extra_argument { CPLContainer* cpl_container }
+%extra_argument { CPLQueryContainer* query_container }
 
 %name CPLParse
 %token_prefix TOKEN_
@@ -10,6 +10,9 @@
 #include <string>
 #include <assert.h>
 
+// No error recovery
+#define YYNOERRORRECOVERY 1
+
 #include "currentia/query/cpl.h"
 #include "currentia/query/parser.h"
 
@@ -17,7 +20,7 @@
 }
 
 %syntax_error {
-    std::cerr << "Syntax error near: " << *(cpl_container->current_token_string) << std::endl;
+    std::cerr << "Syntax error near: " << query_container->lexer->get_token_text() << std::endl;
 }
 
 %parse_failure {
@@ -32,9 +35,7 @@
     delete $$;
 }
 
-plan ::= statements. {
-    std::cerr << "OK, parsed statements" << std::endl;
-}
+plan ::= statements.
 plan ::= UNKNOWN. {
     std::cerr << "Unknown token" << std::endl;
 }
@@ -42,29 +43,37 @@ plan ::= UNKNOWN. {
 statements ::= statements statement.
 statements ::= statement.
 
-statement ::= define_relation.
-statement ::= define_stream.
+statement ::= define_relation(RelationDeclaration). {
+    RelationDeclaration->declare(query_container);
+    delete RelationDeclaration;
+}
+statement ::= define_stream(StreamDeclaration). {
+    StreamDeclaration->declare(query_container);
+    delete StreamDeclaration;
+}
 
 // ------------------------------------------------------------
 // Relation definition
 // ------------------------------------------------------------
 
-// %type define_relation { Operator* }
-define_relation ::= RELATION NAME(RelationName) LPAREN attributes(Attributes) RPAREN. {
-    std::cout << "Relation " << *RelationName << " is defined." << std::endl;
+%type define_relation { CPLRelationDeclaration* }
+%destructor define_relation { delete $$; }
+define_relation(A) ::= RELATION NAME(RelationName) LPAREN attributes(Attributes) RPAREN. {
+    A = new CPLRelationDeclaration(*RelationName, Attributes);
+    delete RelationName;
 }
 
 // ------------------------------------------------------------
 // Stream definition
 // ------------------------------------------------------------
 
-define_stream ::= new_stream(NewStream). {
-    std::cout << "New Stream [" << NewStream->stream_name << "] is defined." << std::endl;
-    // Define new stream into cpl_container;
+%type define_stream { CPLStreamDeclaration* }
+%destructor define_stream { delete $$; }
+define_stream(A) ::= new_stream(NewStream). {
+    A = NewStream;
 }
-define_stream ::= derived_stream(DerivedStream). {
-    std::cout << "Derived Stream [" << DerivedStream->stream_name << "] is defined." << std::endl;
-    // Define new stream into cpl_container;
+define_stream(A) ::= derived_stream(DerivedStream). {
+    A = DerivedStream;
 }
 
 // ------------------------------------------------------------
@@ -74,8 +83,7 @@ define_stream ::= derived_stream(DerivedStream). {
 %type new_stream { CPLNewStream* }
 %destructor new_stream { delete $$; }
 new_stream(A) ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. {
-    A = new CPLNewStream();
-    A->stream_name = *StreamName;
+    A = new CPLNewStream(*StreamName);
     A->attributes_ptr = Attributes;
 }
 
@@ -87,27 +95,28 @@ new_stream(A) ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. 
 %type derived_stream { CPLDerivedStream* }
 %destructor derived_stream { delete $$; }
 derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE operations(Operations) RBRACE. {
-    LOG("OperationCount => " << Operations->size());
     DeriveInfo->stream_name = *NewStreamName;
+    DeriveInfo->operations_ptr = Operations;
     A = DeriveInfo;
 }
 derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE RBRACE. {
     DeriveInfo->stream_name = *NewStreamName;
+    DeriveInfo->operations_ptr = NULL;
     A = DeriveInfo;
 }
 derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo). {
     DeriveInfo->stream_name = *NewStreamName;
+    DeriveInfo->operations_ptr = NULL;
     A = DeriveInfo;
 }
 
-// CPLDerivedStream
 %type derived_from { CPLDerivedStream* }
 %destructor derived_from { delete $$; }
-derived_from(A) ::= NAME(Left) COMMA NAME(Right) LBRACKET condition(Condition) RBRACKET. {
-    A = new CPLDerivedStream(*Left, *Right, Condition);
+derived_from(A) ::= NAME(Left) window(W1) COMMA NAME(Right) window(W2) WHERE condition_term_attribute(Condition). {
+    A = new CPLJoinedStream(*Left, *W1, *Right, *W2, Condition);
 }
-derived_from(A) ::= NAME(Single). {
-    A = new CPLDerivedStream(*Single);
+derived_from(A) ::= NAME(StreamName). {
+    A = new CPLSingleStream(*StreamName);
 }
 
 // ------------------------------------------------------------
@@ -126,12 +135,15 @@ operations(Operations) ::= operation(NewOperation). {
 }
 
 %type operation { CPLOperationInfo* }
-%destructor attribute { delete $$; }
+%destructor operation { delete $$; }
 operation(A) ::= SELECT condition(C).       { A = new CPLOperationInfo(CPLOperationInfo::SELECT, C); }
 operation(A) ::= PROJECT fields(F).         { A = new CPLOperationInfo(CPLOperationInfo::PROJECT, F); }
 operation(A) ::= MEAN fields(F) window(W).  { A = new CPLOperationInfo(CPLOperationInfo::MEAN, F, W); }
 operation(A) ::= SUM fields(F) window(W).   { A = new CPLOperationInfo(CPLOperationInfo::SUM, F, W); }
 operation(A) ::= ELECT fields(F) window(W). { A = new CPLOperationInfo(CPLOperationInfo::ELECT, F, W); }
+operation(A) ::= COMBINE NAME(N) WHERE condition(C). {
+    A = new CPLOperationInfo(CPLOperationInfo::COMBINE, *N, C);
+}
 
 // ------------------------------------------------------------
 // Window
@@ -139,16 +151,22 @@ operation(A) ::= ELECT fields(F) window(W). { A = new CPLOperationInfo(CPLOperat
 
 %type window { Window* }
 %destructor window { delete $$; }
-window(A) ::= RECENT window_value_tuple(Width) SLIDE window_value_tuple(Slide). {
+window(A) ::= LBRACKET window_info(Info) RBRACKET. {
+    A = Info;
+}
+
+%type window_info { Window* }
+%destructor window_info { delete $$; }
+window_info(A) ::= RECENT window_value_tuple(Width) SLIDE window_value_tuple(Slide). {
     A = new Window(Width, Slide, Window::TUPLE_BASE);
 }
-window(A) ::= RECENT window_value_tuple(Width). {
+window_info(A) ::= RECENT window_value_tuple(Width). {
     A = new Window(Width, Width, Window::TUPLE_BASE);
 }
-window(A) ::= RECENT window_value_time(Width) SLIDE window_value_time(Slide). {
+window_info(A) ::= RECENT window_value_time(Width) SLIDE window_value_time(Slide). {
     A = new Window(Width, Slide, Window::TIME_BASE);
 }
-window(A) ::= RECENT window_value_time(Width). {
+window_info(A) ::= RECENT window_value_time(Width). {
     A = new Window(Width, Width, Window::TIME_BASE);
 }
  
@@ -212,19 +230,30 @@ condition_conjunction(A) ::= OR.  { A = ConditionConjunctive::OR; }
 
 %type condition_term { Condition* }
 %destructor condition_term { delete $$; }
-condition_term(A) ::= field(F1) bin_op(OP) field(F2). {
-    A = new ConditionAttributeComparator(F1->field_name, OP, F2->field_name);
+condition_term(A) ::= condition_term_attribute(C). {
+    A = C;
 }
-condition_term(A) ::= field(F1) bin_op(OP) object(O1). {
-    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
-}
-condition_term(A) ::= object(O1) bin_op(OP) field(F1). {
-    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
+condition_term(A) ::= condition_term_constant(C). {
+    A = C;
 }
 condition_term(A) ::= NOT condition_term(C). {
     A = C;
     C->negate();
 }
+%type condition_term_attribute { ConditionAttributeComparator* }
+%destructor condition_term_attribute { delete $$; }
+condition_term_attribute(A) ::= field(F1) bin_op(OP) field(F2). {
+    A = new ConditionAttributeComparator(F1->field_name, OP, F2->field_name);
+}
+%type condition_term_constant { ConditionConstantComparator* }
+%destructor condition_term_constant { delete $$; }
+condition_term_constant(A) ::= field(F1) bin_op(OP) object(O1). {
+    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
+}
+condition_term_constant(A) ::= object(O1) bin_op(OP) field(F1). {
+    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
+}
+
 
 // ------------------------------------------------------------
 // Comparator

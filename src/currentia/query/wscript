@@ -9,9 +9,4 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
-    bld.program(
-      source   = "parser.c",
-      target   = "parser",
-      includes = ". ../../"
-    )
     bld.recurse(subdirs)
