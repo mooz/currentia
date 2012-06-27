@@ -10,8 +10,6 @@
 #include <string>
 #include <assert.h>
 
-#include "currentia/core/operator/comparator.h"
-#include "currentia/core/operator/condition.h"
 #include "currentia/query/cpl.h"
 #include "currentia/query/parser.h"
 
@@ -60,31 +58,185 @@ define_relation ::= RELATION NAME(RelationName) LPAREN attributes(Attributes) RP
 // Stream definition
 // ------------------------------------------------------------
 
-define_stream ::= new_stream.
-define_stream ::= derived_stream.
+define_stream ::= new_stream(NewStream). {
+    std::cout << "New Stream [" << NewStream->stream_name << "] is defined." << std::endl;
+    // Define new stream into cpl_container;
+}
+define_stream ::= derived_stream(DerivedStream). {
+    std::cout << "Derived Stream [" << DerivedStream->stream_name << "] is defined." << std::endl;
+    // Define new stream into cpl_container;
+}
 
 // ------------------------------------------------------------
 // Stream definition / New Stream
 // ------------------------------------------------------------
 
-new_stream ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. {
-    std::cout << "New Stream " << *StreamName << " is defined." << std::endl;
+%type new_stream { CPLNewStream* }
+%destructor new_stream { delete $$; }
+new_stream(A) ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. {
+    A = new CPLNewStream();
+    A->stream_name = *StreamName;
+    A->attributes_ptr = Attributes;
 }
 
 // ------------------------------------------------------------
 // Stream definition / Derived Stream
+// Create a stream from a sequence of operation
 // ------------------------------------------------------------
 
-// Create a stream from a sequence of operation
-derived_stream ::= STREAM NAME(StreamName) FROM derived_from LBRACE operations RBRACE. {
-    LOG("Derived Stream");
-    // std::cout << "Derived Stream " << *StreamName << " is defined." << std::endl;
+%type derived_stream { CPLDerivedStream* }
+%destructor derived_stream { delete $$; }
+derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE operations(Operations) RBRACE. {
+    LOG("OperationCount => " << Operations->size());
+    DeriveInfo->stream_name = *NewStreamName;
+    A = DeriveInfo;
+}
+derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE RBRACE. {
+    DeriveInfo->stream_name = *NewStreamName;
+    A = DeriveInfo;
+}
+derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo). {
+    DeriveInfo->stream_name = *NewStreamName;
+    A = DeriveInfo;
 }
 
-derived_from ::= NAME(A) COMMA NAME(B) LBRACKET condition RBRACKET. {
-    std::cout << "Join " << *A << " with " << *B << std::endl;
+// CPLDerivedStream
+%type derived_from { CPLDerivedStream* }
+%destructor derived_from { delete $$; }
+derived_from(A) ::= NAME(Left) COMMA NAME(Right) LBRACKET condition(Condition) RBRACKET. {
+    A = new CPLDerivedStream(*Left, *Right, Condition);
 }
-derived_from ::= NAME.
+derived_from(A) ::= NAME(Single). {
+    A = new CPLDerivedStream(*Single);
+}
+
+// ------------------------------------------------------------
+// Operation (Operator)
+// ------------------------------------------------------------
+
+%type operations { std::list<CPLOperationInfo*>* }
+%destructor operations { delete $$; }
+operations(Operations) ::= operations(PastOperations) operation(NewOperation). {
+    PastOperations->push_back(NewOperation);
+    Operations = PastOperations;
+}
+operations(Operations) ::= operation(NewOperation). {
+    Operations = new std::list<CPLOperationInfo*>();
+    Operations->push_back(NewOperation);
+}
+
+%type operation { CPLOperationInfo* }
+%destructor attribute { delete $$; }
+operation(A) ::= SELECT condition(C).       { A = new CPLOperationInfo(CPLOperationInfo::SELECT, C); }
+operation(A) ::= PROJECT fields(F).         { A = new CPLOperationInfo(CPLOperationInfo::PROJECT, F); }
+operation(A) ::= MEAN fields(F) window(W).  { A = new CPLOperationInfo(CPLOperationInfo::MEAN, F, W); }
+operation(A) ::= SUM fields(F) window(W).   { A = new CPLOperationInfo(CPLOperationInfo::SUM, F, W); }
+operation(A) ::= ELECT fields(F) window(W). { A = new CPLOperationInfo(CPLOperationInfo::ELECT, F, W); }
+
+// ------------------------------------------------------------
+// Window
+// ------------------------------------------------------------
+
+%type window { Window* }
+%destructor window { delete $$; }
+window(A) ::= RECENT window_value_tuple(Width) SLIDE window_value_tuple(Slide). {
+    A = new Window(Width, Slide, Window::TUPLE_BASE);
+}
+window(A) ::= RECENT window_value_tuple(Width). {
+    A = new Window(Width, Width, Window::TUPLE_BASE);
+}
+window(A) ::= RECENT window_value_time(Width) SLIDE window_value_time(Slide). {
+    A = new Window(Width, Slide, Window::TIME_BASE);
+}
+window(A) ::= RECENT window_value_time(Width). {
+    A = new Window(Width, Width, Window::TIME_BASE);
+}
+ 
+// --- tuple-base window value
+%type window_value_tuple { long }
+window_value_tuple(A) ::= number(N) window_type_tuple. {
+    A = static_cast<long>(N);
+}
+window_value_tuple(A) ::= number(N). {
+    A = static_cast<long>(N);
+}
+window_type_tuple ::= ROWS.
+
+// --- time-base window value
+%type window_value_time { long }
+window_value_time(A) ::= number(N) window_type_time(T). {
+    A = static_cast<long>(N * T);
+}
+%type window_type_time { double }
+window_type_time(T) ::= MSEC. { T = 1.0; }
+window_type_time(T) ::= SEC.  { T = 1000.0; }
+window_type_time(T) ::= MIN.  { T = 1000.0 * 60; }
+window_type_time(T) ::= HOUR. { T = 1000.0 * 60 * 60; }
+window_type_time(T) ::= DAY.  { T = 1000.0 * 60 * 60 * 24; }
+
+// ------------------------------------------------------------
+// Field (stream.field1)
+// ------------------------------------------------------------
+
+%type fields { std::list<CPLField*>* }
+%destructor fields { delete $$; }
+fields(A) ::= fields(Fields) COMMA field(Field). {
+    A = Fields;
+    Fields->push_back(Field);
+}
+fields(A) ::= field(Field). {
+    A = new std::list<CPLField*>();
+    A->push_back(Field);
+}
+
+%type field { CPLField* }
+%destructor field { delete $$; }
+field(A) ::=  NAME(BaseName) DOT NAME(FieldName). {
+    A = new CPLField(*BaseName, *FieldName);
+}
+
+// ------------------------------------------------------------
+// Condition
+// ------------------------------------------------------------
+
+%type condition { Condition* }
+%destructor condition { delete $$; }
+condition(A) ::= condition(C1) condition_conjunction(CC) condition_term(C2). {
+    A = new ConditionConjunctive(Condition::ptr_t(C1), Condition::ptr_t(C2), CC);
+}
+condition(A) ::= condition_term(T).  { A = T; }
+
+%type condition_conjunction { ConditionConjunctive::Type }
+condition_conjunction(A) ::= AND. { A = ConditionConjunctive::AND; }
+condition_conjunction(A) ::= OR.  { A = ConditionConjunctive::OR; }
+
+%type condition_term { Condition* }
+%destructor condition_term { delete $$; }
+condition_term(A) ::= field(F1) bin_op(OP) field(F2). {
+    A = new ConditionAttributeComparator(F1->field_name, OP, F2->field_name);
+}
+condition_term(A) ::= field(F1) bin_op(OP) object(O1). {
+    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
+}
+condition_term(A) ::= object(O1) bin_op(OP) field(F1). {
+    A = new ConditionConstantComparator(F1->field_name, OP, *O1);
+}
+condition_term(A) ::= NOT condition_term(C). {
+    A = C;
+    C->negate();
+}
+
+// ------------------------------------------------------------
+// Comparator
+// ------------------------------------------------------------
+
+%type bin_op { Comparator::Type }
+bin_op(OP) ::= EQUAL.              { OP = Comparator::EQUAL; }
+bin_op(OP) ::= NOT_EQUAL.          { OP = Comparator::NOT_EQUAL; }
+bin_op(OP) ::= LESS_THAN.          { OP = Comparator::LESS_THAN; }
+bin_op(OP) ::= LESS_THAN_EQUAL.    { OP = Comparator::LESS_THAN_EQUAL; }
+bin_op(OP) ::= GREATER_THAN.       { OP = Comparator::GREATER_THAN; }
+bin_op(OP) ::= GREATER_THAN_EQUAL. { OP = Comparator::GREATER_THAN_EQUAL; }
 
 // ------------------------------------------------------------
 // Attributes
@@ -109,88 +261,39 @@ attribute(A) ::=  NAME(Name) COLON type(Type). {
     A = new Attribute(*Name, Type);
 }
 
+// ------------------------------------------------------------
+// Object Types
+// ------------------------------------------------------------
+
 %type type { Object::Type }
 type(A) ::= TYPE_INT.    { A = Object::INT; }
 type(A) ::= TYPE_FLOAT.  { A = Object::FLOAT; }
 type(A) ::= TYPE_STRING. { A = Object::STRING; }
 type(A) ::= TYPE_BLOB.   { A = Object::BLOB; }
 
-%type operations { Operator* }
-%destructor operations { delete $$; }
-operations(Operations) ::= operations(PastOperations) operation(NewOperation). {
-    LOG("Concat operations");
-}
-operations(Operations) ::= operation(NewOperation). {
-    LOG("Parsed an operation: " << *(cpl_container->current_token_string));
-    Operations = NewOperation;
-}
-
-%type operation { Operator* }
-%destructor attribute { delete $$; }
-operation ::= SELECT condition.    { LOG("SELECT"); }
-operation ::= PROJECT fields.      { LOG("PROJECT"); }
-operation ::= MEAN fields window.  { LOG("MEAN"); }
-operation ::= SUM fields window.   { LOG("SUM"); }
-operation ::= ELECT fields window. { LOG("ELECT"); }
-
-window ::= RECENT window_value_tuple SLIDE window_value_tuple. { LOG("tuple base window"); }
-window ::= RECENT window_value_time SLIDE window_value_time. { LOG("time base window"); }
-
-window_value_tuple ::= INTEGER window_type_tuple.
-window_value_tuple ::= INTEGER.
-window_value_time ::= INTEGER window_type_time.
-window_value_time ::= FLOAT window_type_time.
-
-window_type_tuple ::= ROWS.
-window_type_time ::= MSEC.
-window_type_time ::= SEC.
-window_type_time ::= MIN.
-window_type_time ::= HOUR.
-window_type_time ::= DAY.
-
-fields ::= field.
-fields ::= fields COMMA field.
-field ::=  NAME DOT NAME.
-
-condition ::= condition condition_conjunction condition_term. { LOG("condition"); }
-condition ::= condition_term.  { LOG("condition (term)"); }
-
-%type condition_term { Condition* }
-condition_term ::= field(F1) bin_op(OP) field(F2). {
-}
-condition_term ::= field(F1) bin_op(OP) object(O1). {
-}
-condition_term ::= object(O1) bin_op(OP) field(F1). {
-}
-condition_term ::= NOT condition_term(OP). {
-}
+// ------------------------------------------------------------
+// Object
+// ------------------------------------------------------------
 
 %type object { Object* }
 %destructor attribute { delete $$; }
 object(O) ::= STRING(S). { O = new Object(*S); }
 object(O) ::= INTEGER(I). {
-    std::stringstream ss;
-    int value_int;
-    ss << I;
-    ss >> value_int;
-    O = new Object(value_int);
+    O = new Object(Lexer::parse_int(*I));
 }
 object(O) ::= FLOAT(F). {
-    std::stringstream ss;
-    double value_float;
-    ss << F;
-    ss >> value_float;
-    O = new Object(value_float);
+    O = new Object(Lexer::parse_float(*F));
 }
 object(O) ::= BLOB(B). { O = new Object(*B); }
 
-condition_conjunction ::= AND.
-condition_conjunction ::= OR.
+// ------------------------------------------------------------
+// Number
+// ------------------------------------------------------------
 
-%type bin_op { Comparator::Type }
-bin_op(OP) ::= EQUAL(TK).              { OP = Lexer::token_to_comparator(TK);T }
-bin_op(OP) ::= NOT_EQUAL(TK).          { OP = Lexer::token_to_comparator(TK);T }
-bin_op(OP) ::= LESS_THAN(TK).          { OP = Lexer::token_to_comparator(TK);T }
-bin_op(OP) ::= LESS_THAN_EQUAL(TK).    { OP = Lexer::token_to_comparator(TK);T }
-bin_op(OP) ::= GREATER_THAN(TK).       { OP = Lexer::token_to_comparator(TK);T }
-bin_op(OP) ::= GREATER_THAN_EQUAL(TK). { OP = Lexer::token_to_comparator(TK);T }
+%type number { double }
+number(N) ::= INTEGER(I). {
+    N = static_cast<double>(Lexer::parse_int(*I));
+}
+number(N) ::= FLOAT(F). {
+    N = Lexer::parse_float(*F);
+}

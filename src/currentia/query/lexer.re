@@ -263,6 +263,22 @@ namespace currentia {
                 throw "comparator type not given";
             };
         }
+
+        static int parse_int(const std::string& str) {
+            std::stringstream ss;
+            int value_int;
+            ss << str;
+            ss >> value_int;
+            return value_int;
+        }
+
+        static double parse_float(const std::string& str) {
+            std::stringstream ss;
+            double value_double;
+            ss << str;
+            ss >> value_double;
+            return value_double;
+        }
     };
 }
 
@@ -286,7 +302,7 @@ int main(int argc, char** argv)
     currentia::Lexer lexer(&is);
     int token;
 
-    yyParser* parser = reinterpret_cast<yyParser*>(CPLParseAlloc(malloc));
+    currentia::yyParser* parser = reinterpret_cast<currentia::yyParser*>(currentia::CPLParseAlloc(malloc));
     currentia::CPLContainer cpl_container;
     std::string current_token_string;
     cpl_container.current_token_string = &current_token_string;
@@ -295,11 +311,11 @@ int main(int argc, char** argv)
         // std::cout << "token => " << currentia::Lexer::token_to_string(token)
         //           << " '" << lexer.get_token_text() << "'" << std::endl;
         current_token_string = lexer.get_token_text();
-        CPLParse(parser, token, new std::string(current_token_string), &cpl_container);
+        currentia::CPLParse(parser, token, new std::string(current_token_string), &cpl_container);
     }
 
-    CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
-    CPLParseFree(parser, free);
+    currentia::CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
+    currentia::CPLParseFree(parser, free);
 
     return 0;
 }
