@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_OPERATOR_JOIN_H_
-#define CURRENTIA_OPERATOR_JOIN_H_
+#ifndef CURRENTIA_OPERATOR_MEAN_H_
+#define CURRENTIA_OPERATOR_MEAN_H_
 
 #include "currentia/core/attribute.h"
 #include "currentia/core/object.h"
@@ -71,4 +71,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_OPERATOR_JOIN_H_ */
+#endif  /* ! CURRENTIA_OPERATOR_MEAN_H_ */
