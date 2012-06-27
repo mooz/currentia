@@ -17,9 +17,9 @@
 namespace currentia {
     class OperatorJoin: public DoubleInputOperator {
     public:
-        OperatorJoin(Operator::ptr_t parent_left_operator_ptr,
+        OperatorJoin(const Operator::ptr_t& parent_left_operator_ptr,
                      Window left_window,
-                     Operator::ptr_t parent_right_operator_ptr,
+                     const Operator::ptr_t& parent_right_operator_ptr,
                      Window right_window,
                      ConditionAttributeComparator::ptr_t attribute_comparator):
             DoubleInputOperator(parent_left_operator_ptr,
