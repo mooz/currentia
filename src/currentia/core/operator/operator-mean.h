@@ -19,22 +19,22 @@ namespace currentia {
     class OperatorMean: public SingleInputOperator {
         Window window_;
         Synopsis synopsis_;
-        Attribute target_attribute_;
+        std::string target_attribute_name_;
         Object sum_;
         Object window_width_object_;
 
     public:
         OperatorMean(Operator::ptr_t parent_operator_ptr,
                      Window window,
-                     Attribute target_attribute):
+                     const std::string& target_attribute_name):
             SingleInputOperator(parent_operator_ptr),
             window_(window),
             synopsis_(window),
-            target_attribute_(target_attribute),
+            target_attribute_name_(target_attribute_name),
             sum_(0.0),
             window_width_object_(static_cast<double>(window.width)) {
             Schema::ptr_t output_stream_schema(new Schema());
-            output_stream_schema->add_attribute(target_attribute.name, Object::FLOAT);
+            output_stream_schema->add_attribute(target_attribute_name, Object::FLOAT);
             set_output_stream(Stream::from_schema(output_stream_schema));
             // Setup handler
             Synopsis::callback_t on_accept = std::tr1::bind(&OperatorMean::calculate_mean_, this);
@@ -55,7 +55,7 @@ namespace currentia {
             for (; iter != iter_end; ++iter) {
                 sum_ = operations::operation_add(
                     sum_,
-                    (*iter)->get_value_by_attribute_name(target_attribute_.name) // TODO: build index
+                    (*iter)->get_value_by_attribute_name(target_attribute_name_) // TODO: build index
                 );
             }
 
