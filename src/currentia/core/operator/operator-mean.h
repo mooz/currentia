@@ -27,7 +27,7 @@ namespace currentia {
         OperatorMean(Operator::ptr_t parent_operator_ptr,
                      Window window,
                      Attribute target_attribute):
-            SingleInputOperator(parent_operator_ptr_),
+            SingleInputOperator(parent_operator_ptr),
             window_(window),
             synopsis_(window),
             target_attribute_(target_attribute),
