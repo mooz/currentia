@@ -19,6 +19,7 @@ namespace currentia {
     class OperatorSimpleRelationJoin: public SingleInputOperator,
                                       public Pointable<OperatorSimpleRelationJoin> {
         Relation::ptr_t relation_;
+        Condition::ptr_t join_condition_;
 
         std::string join_attribute_name_stream_;
         std::string join_attribute_name_relation_;
@@ -27,50 +28,31 @@ namespace currentia {
         Schema::ptr_t relation_schema_ptr_;
         Schema::ptr_t joined_schema_ptr_;
 
-        int target_attribute_column_in_stream_;
-        int target_attribute_column_in_relation_;
-
     public:
         typedef Pointable<OperatorSimpleRelationJoin>::ptr_t ptr_t;
 
         OperatorSimpleRelationJoin(Operator::ptr_t parent_operator_ptr,
-                                   const std::string& join_attribute_name_stream,
                                    Relation::ptr_t relation,
-                                   const std::string& join_attribute_name_relation):
+                                   const Condition::ptr_t& join_condition):
             SingleInputOperator(parent_operator_ptr),
             // Initialize members
             relation_(relation),
-            join_attribute_name_stream_(join_attribute_name_stream),
-            join_attribute_name_relation_(join_attribute_name_relation),
+            join_condition_(join_condition),
             // set schema
             stream_schema_ptr_(parent_operator_ptr_->get_output_schema_ptr()),
             relation_schema_ptr_(relation->get_schema_ptr()),
             joined_schema_ptr_(build_joined_schema_()) {
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
-            // get column numbers for fast access
-            target_attribute_column_in_stream_ =
-                stream_schema_ptr_->get_attribute_index_by_name(join_attribute_name_stream_);
-            target_attribute_column_in_relation_ =
-                relation_schema_ptr_->get_attribute_index_by_name(join_attribute_name_relation_);
         }
 
         Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
-            Object target_attribute_value = input_tuple->get_value_by_index(target_attribute_column_in_stream_);
-
             thread::ScopedLock lock = relation_->get_scoped_lock();
 
-            for (std::list<Tuple::ptr_t>::const_iterator relation_iterator = relation_->get_tuple_iterator();
-                 relation_iterator != relation_->get_tuple_iterator_end();
-                 ++relation_iterator) {
-                Object value_in_relation =
-                    (*relation_iterator)->get_value_by_index(target_attribute_column_in_relation_);
-
-                // check equality
-                bool is_qualified_tuple = target_attribute_value.compare(value_in_relation, Comparator::EQUAL);
-
-                if (is_qualified_tuple) {
-                    // join
-                    Tuple::data_t combined_data = input_tuple->get_concatenated_data(*relation_iterator);
+            std::list<Tuple::ptr_t>::const_iterator relation_iter = relation_->get_tuple_iterator();
+            std::list<Tuple::ptr_t>::const_iterator relation_iter_end = relation_->get_tuple_iterator_end();
+            for (; relation_iter != relation_iter_end; ++relation_iter) {
+                if (join_condition_->check(input_tuple, *relation_iter)) {
+                    Tuple::data_t combined_data = input_tuple->get_concatenated_data(*relation_iter);
                     output_tuple(Tuple::create(joined_schema_ptr_, combined_data));
                 }
             }
