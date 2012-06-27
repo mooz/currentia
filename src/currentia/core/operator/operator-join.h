@@ -54,9 +54,6 @@ namespace currentia {
         }
 
     private:
-        Operator::ptr_t parent_left_operator_ptr_;
-        Operator::ptr_t parent_right_operator_ptr_;
-
         Window left_window_;
         Window right_window_;
 
