@@ -32,7 +32,7 @@ namespace currentia {
         }
 
         virtual std::string toString() {
-            return "Election";
+            return parent_operator_ptr_->toString() + std::string(" -> Election");
         }
     };
 }

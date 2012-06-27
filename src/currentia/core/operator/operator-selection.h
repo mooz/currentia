@@ -49,7 +49,7 @@ namespace currentia {
 
     public:
         virtual std::string toString() {
-            return "Selection";
+            return parent_operator_ptr_->toString() + std::string(" -> Selection");
         }
     };
 }

@@ -65,8 +65,8 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() {
-            return "Mean";
+        std::string toString() {
+            return parent_operator_ptr_->toString() + std::string(" -> Mean");
         }
     };
 }

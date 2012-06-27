@@ -90,7 +90,7 @@ namespace currentia {
 
     public:
         virtual std::string toString() {
-            return "Relation-Join";
+            return parent_operator_ptr_->toString() + std::string(" -> Relation-Join");
         }
     };
 }

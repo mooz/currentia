@@ -98,7 +98,9 @@ namespace currentia {
 
     public:
         virtual std::string toString() {
-            return "Join";
+            return std::string("{ [ ") + parent_left_operator_ptr_->toString() +
+                std::string(" ], [ ") + parent_right_operator_ptr_->toString() +
+                std::string(" ] } -> Join");
         }
     };
 }

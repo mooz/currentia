@@ -73,7 +73,7 @@ namespace currentia {
 
     public:
         virtual std::string toString() {
-            return "Projection";
+            return parent_operator_ptr_->toString() + std::string(" -> Projection");
         }
     };
 }
