@@ -1,0 +1,14 @@
+# -*- currentia -*-
+
+stream purchases(goods_id: int, user_id: int)
+stream outliers(user_id: int)
+relation goods(id: int, price: int)
+
+stream result
+from purchases [recent 5 slide 5], outliers [recent 10 slide 5]
+where purchases.user_id = outliers.user_id
+{
+  combine goods where purchases.id = goods.goods_id
+  select goods.price < 5000
+  mean goods.price [recent 5 slide 5]
+}
