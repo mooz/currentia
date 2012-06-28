@@ -48,9 +48,9 @@ def generate_lexer(bld):
 def generate_parser(bld):
     __run_command(bld,
                   """cd src/currentia/query/; \
-                  ./tools/lemon/lemon parser.y T=./tools/lemon/lempar-currentia.c; \
-                  indent -kr -ts4 --no-tabs ./parser.c; \
-                  ./tools/generate_token_to_string.rb < ./parser.h > ./token_to_string.h""")
+                  ./tools/lemon/lemon cpl-parser.y T=./tools/lemon/lempar-currentia.c; \
+                  indent -kr -ts4 --no-tabs ./cpl-parser.c; \
+                  ./tools/generate_token_to_string.rb < ./cpl-parser.h > ./cpl-token-to-string.h""")
 
 def generate_lexer_parser(bld):
     generate_parser(bld)
