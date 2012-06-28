@@ -66,19 +66,6 @@ namespace currentia {
         }
     };
 
-    // TODO: correct place
-    Schema::ptr_t create_schema_from_attributes(std::list<Attribute*>* attributes_ptr) {
-        Schema* schema = new Schema();
-
-        std::list<Attribute*>::const_iterator iter = attributes_ptr->begin();
-        std::list<Attribute*>::const_iterator iter_end = attributes_ptr->end();
-        for (; iter != iter_end; ++iter)
-            schema->add_attribute(**iter);
-        schema->freeze();
-
-        return Schema::ptr_t(schema);
-    }
-
     struct CPLRelationDeclaration {
         std::string relation_name;
         std::list<Attribute*>* attributes_ptr;
@@ -90,7 +77,7 @@ namespace currentia {
         }
 
         Relation::ptr_t get_relation(CPLQueryContainer* query_container) {
-            return Relation::ptr_t(new Relation(create_schema_from_attributes(attributes_ptr)));
+            return Relation::ptr_t(new Relation(Schema::from_attribute_pointers(*attributes_ptr)));
         };
         void declare(CPLQueryContainer* query_container) {
             query_container->define_relation(
