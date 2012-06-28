@@ -43,7 +43,7 @@ def __run_command(bld, cmd):
 def generate_lexer(bld):
     __run_command(bld,
                   """cd src/currentia/query/; \
-                  re2c -o cpl-lexer.h -i cpl-lexer.re""")
+                  re2c -s --no-generation-date -o cpl-lexer.h -i cpl-lexer.re""")
 
 def generate_parser(bld):
     __run_command(bld,
