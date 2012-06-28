@@ -93,9 +93,6 @@ namespace currentia {
             int yy_marker_offset = yy_marker_ - buffer_;
             int yy_limit_offset = yy_limit_ - buffer_;
 
-            // dump(yy_cursor_offset);
-            // dump(yy_limit_offset);
-
             if (remained_characters_count + n >= buffer_size_) {
                 // Extend buffer
                 log("We need to extend buffer");
@@ -115,10 +112,7 @@ namespace currentia {
 
             // This line is very important (fill buffer with EOF)
             int empty_buffer_count = (buffer_ + buffer_size_) - yy_limit_;
-            // dump(empty_buffer_count);
-            // dump(buffer_);
             memset(yy_limit_, '\0', sizeof(char) * empty_buffer_count);
-            // dump(buffer_);
 
             // Read characters from input stream
             ifs_ptr_->read(yy_limit_, empty_buffer_count);
@@ -127,9 +121,6 @@ namespace currentia {
             if (ifs_ptr_->gcount() == 0 && *(yy_limit_ - 1) != '\0') {
                 *(++yy_limit_) = '\0';
             }
-
-            // log("Read");
-            // dump(buffer_);
 
             return true;
         }
