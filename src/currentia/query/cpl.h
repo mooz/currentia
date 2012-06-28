@@ -299,7 +299,7 @@ namespace currentia {
     struct CPLJoinedStream : public CPLDerivedStream {
         std::string ancestor_stream_name1;
         std::string ancestor_stream_name2;
-        ConditionAttributeComparator::ptr_t condition_ptr;
+        Condition::ptr_t condition_ptr;
 
         Window window1;
         Window window2;
@@ -308,7 +308,7 @@ namespace currentia {
                         Window window1,
                         const std::string& right_name,
                         Window window2,
-                        ConditionAttributeComparator* condition_ptr):
+                        Condition* condition_ptr):
             CPLDerivedStream(),
             ancestor_stream_name1(left_name),
             ancestor_stream_name2(right_name),

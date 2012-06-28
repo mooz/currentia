@@ -21,7 +21,7 @@ namespace currentia {
                      Window left_window,
                      const Operator::ptr_t& parent_right_operator_ptr,
                      Window right_window,
-                     ConditionAttributeComparator::ptr_t attribute_comparator):
+                     Condition::ptr_t join_condition):
             DoubleInputOperator(parent_left_operator_ptr,
                                 parent_right_operator_ptr),
             left_window_(left_window),
@@ -29,8 +29,8 @@ namespace currentia {
             // init synopsises
             left_synopsis_(left_window_),
             right_synopsis_(right_window_),
-            // set attribute comparator
-            attribute_comparator_(attribute_comparator) {
+            // set join condition
+            join_condition_(join_condition) {
             // build new schema and index
             joined_schema_ptr_ = build_joined_schema_();
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
@@ -39,7 +39,7 @@ namespace currentia {
             left_synopsis_.set_on_accept(on_accept);
             right_synopsis_.set_on_accept(on_accept);
             // obey schema
-            attribute_comparator->obey_schema(
+            join_condition->obey_schema(
                 parent_left_operator_ptr->get_output_stream()->get_schema(),
                 parent_left_operator_ptr->get_output_stream()->get_schema()
             );
@@ -65,7 +65,7 @@ namespace currentia {
         Synopsis left_synopsis_;
         Synopsis right_synopsis_;
 
-        ConditionAttributeComparator::ptr_t attribute_comparator_;
+        Condition::ptr_t join_condition_;
 
         Schema::ptr_t joined_schema_ptr_;
 
@@ -93,7 +93,7 @@ namespace currentia {
             // For now, just conduct a nested-loop join
             for (; left_iter != left_iter_end; ++left_iter) {
                 for (; right_iter != right_iter_end; ++right_iter) {
-                    if (attribute_comparator_->check(*left_iter, *right_iter)) {
+                    if (join_condition_->check(*left_iter, *right_iter)) {
                         output_tuple(Tuple::create(joined_schema_ptr_,
                                                    (*left_iter)->get_concatenated_data(*right_iter)));
                     }
@@ -106,7 +106,7 @@ namespace currentia {
             std::stringstream ss;
             ss << "(\n {\n  " << parent_left_operator_ptr_->toString()
                << "\n },\n {\n  " << parent_right_operator_ptr_->toString()
-               << "\n }\n)\n -> Join(" << attribute_comparator_->toString() << ")";
+               << "\n }\n)\n -> Join(" << join_condition_->toString() << ")";
             return ss.str();
         }
     };

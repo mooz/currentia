@@ -110,7 +110,7 @@ derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo). 
 
 %type derived_from { CPLDerivedStream* }
 %destructor derived_from { delete $$; }
-derived_from(A) ::= NAME(Left) window(W1) COMMA NAME(Right) window(W2) WHERE condition_term_attribute(Condition). {
+derived_from(A) ::= NAME(Left) window(W1) COMMA NAME(Right) window(W2) WHERE condition(Condition). {
     A = new CPLJoinedStream(*Left, *W1, *Right, *W2, Condition);
 }
 derived_from(A) ::= NAME(StreamName). {
