@@ -290,7 +290,7 @@ int main(int argc, char** argv)
         " \n"
         " stream result\n"
         " from purchases [recent 5 slide 5], outliers [recent 5 slide 5]\n"
-        " here purchases.user_id = outliers.user_id\n"
+        " where purchases.user_id = outliers.user_id\n"
         " {\n"
         "   combine goods where purchases.id = goods.goods_id\n"
         "   selection goods.price < 5000\n"
