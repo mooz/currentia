@@ -104,20 +104,24 @@ namespace currentia {
 
     // stream foo(x: int, y: string)
     struct CPLNewStream : public CPLStreamDeclaration {
-        std::list<Attribute*>* attributes_ptr;
         std::string stream_name;
+        std::list<Attribute*>* attributes_ptr;
 
-        CPLNewStream(const std::string& stream_name):
-            stream_name(stream_name) {
+        CPLNewStream(const std::string& stream_name,
+                     std::list<Attribute*>* attributes_ptr):
+            stream_name(stream_name),
+            attributes_ptr(attributes_ptr) {
             std::cout << "New Stream " << stream_name << std::endl;
         }
 
         ~CPLNewStream() {
-            std::list<Attribute*>::const_iterator iter = attributes_ptr->begin();
-            std::list<Attribute*>::const_iterator iter_end = attributes_ptr->end();
-            for (; iter != iter_end; ++iter)
-                delete *iter;
-            delete attributes_ptr;
+            if (attributes_ptr) {
+                std::list<Attribute*>::const_iterator iter = attributes_ptr->begin();
+                std::list<Attribute*>::const_iterator iter_end = attributes_ptr->end();
+                for (; iter != iter_end; ++iter)
+                    delete *iter;
+                delete attributes_ptr;
+            }
         }
 
         std::string get_stream_name() {

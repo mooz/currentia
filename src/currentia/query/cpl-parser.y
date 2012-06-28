@@ -81,8 +81,7 @@ define_stream(A) ::= derived_stream(DerivedStream). {
 %type new_stream { CPLNewStream* }
 %destructor new_stream { delete $$; }
 new_stream(A) ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. {
-    A = new CPLNewStream(*StreamName);
-    A->attributes_ptr = Attributes;
+    A = new CPLNewStream(*StreamName, Attributes);
 }
 
 // ------------------------------------------------------------
