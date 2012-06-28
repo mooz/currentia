@@ -17,7 +17,8 @@ namespace currentia {
                     public Pointable<Relation> {
         Schema::ptr_t schema_ptr_;
 
-        std::list<Tuple::ptr_t> tuple_ptrs_;
+        typedef std::list<Tuple::ptr_t> RelationContainerType;
+        RelationContainerType tuple_ptrs_;
 
         pthread_mutex_t read_mutex_;
 
@@ -33,7 +34,7 @@ namespace currentia {
 
         Relation(Schema::ptr_t schema_ptr,
                  // optional
-                 std::list<Tuple::ptr_t> tuple_ptrs = std::list<Tuple::ptr_t>()):
+                 RelationContainerType tuple_ptrs = RelationContainerType()):
             schema_ptr_(schema_ptr),
             tuple_ptrs_(tuple_ptrs),
             version_number_(0) {
@@ -84,7 +85,7 @@ namespace currentia {
         // Blocking
         Relation::ptr_t copy() {
             thread::ScopedLock lock(&read_mutex_);
-            std::list<Tuple::ptr_t> new_tuple_ptrs = tuple_ptrs_;
+            RelationContainerType new_tuple_ptrs = tuple_ptrs_;
 
             return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs));
         }
@@ -94,11 +95,11 @@ namespace currentia {
             return schema_ptr_;
         }
 
-        std::list<Tuple::ptr_t>::const_iterator get_tuple_iterator() const {
+        RelationContainerType::const_iterator get_tuple_iterator() const {
             return tuple_ptrs_.begin();
         }
 
-        std::list<Tuple::ptr_t>::const_iterator get_tuple_iterator_end() const {
+        RelationContainerType::const_iterator get_tuple_iterator_end() const {
             return tuple_ptrs_.end();
         }
     };
