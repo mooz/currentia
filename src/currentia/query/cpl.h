@@ -237,17 +237,13 @@ namespace currentia {
             case ELECT:
                 op = new OperatorElection(parent_operator, window_ptr->width);
                 break;
-            case COMBINE: {
-                Relation::ptr_t relation = query_container->get_relation_by_name(relation_name);
-                condition_ptr->obey_schema(parent_operator->get_output_stream()->get_schema(),
-                                           relation->get_schema());
+            case COMBINE:
                 op = new OperatorSimpleRelationJoin(
                     parent_operator,
-                    relation,
+                    query_container->get_relation_by_name(relation_name),
                     condition_ptr
                 );
                 break;
-            }
             default:
                 break;
             }
@@ -327,9 +323,6 @@ namespace currentia {
                 query_container->get_stream_by_name(ancestor_stream_name1);
             Stream::ptr_t ancestor_stream2 =
                 query_container->get_stream_by_name(ancestor_stream_name2);
-
-            condition_ptr->obey_schema(ancestor_stream1->get_schema(),
-                                       ancestor_stream2->get_schema());
 
             return OperatorJoin::ptr_t(
                 new OperatorJoin(

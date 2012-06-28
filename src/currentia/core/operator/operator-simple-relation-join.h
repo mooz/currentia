@@ -43,6 +43,11 @@ namespace currentia {
             relation_schema_ptr_(relation->get_schema()),
             joined_schema_ptr_(build_joined_schema_()) {
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
+            // obey schema
+            join_condition_->obey_schema(
+                parent_operator_ptr->get_output_stream()->get_schema(),
+                relation->get_schema()
+            );
         }
 
         Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {

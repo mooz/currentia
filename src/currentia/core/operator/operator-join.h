@@ -38,6 +38,11 @@ namespace currentia {
             Synopsis::callback_t on_accept = std::tr1::bind(&OperatorJoin::join_synopsis_, this);
             left_synopsis_.set_on_accept(on_accept);
             right_synopsis_.set_on_accept(on_accept);
+            // obey schema
+            attribute_comparator->obey_schema(
+                parent_left_operator_ptr->get_output_stream()->get_schema(),
+                parent_left_operator_ptr->get_output_stream()->get_schema()
+            );
         }
 
         typedef std::list<Tuple::ptr_t> join_results_t;
