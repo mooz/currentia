@@ -59,9 +59,11 @@ namespace currentia {
                 );
             }
 
-            Tuple::data_t data;
-            data.push_back(operations::operation_divide(sum_, window_width_object_));
-            output_tuple(Tuple::create(get_output_schema_ptr(), data));
+            Tuple::ptr_t mean_tuple = Tuple::create_easy(
+                get_output_schema_ptr(),
+                operations::operation_divide(sum_, window_width_object_)
+            );
+            output_tuple(mean_tuple);
         }
 
     public:
