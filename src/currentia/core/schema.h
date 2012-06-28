@@ -41,12 +41,30 @@ namespace currentia {
             pthread_mutex_init(&schema_lock_, NULL);
         }
 
+        static Schema::ptr_t from_attributes(const std::list<Attribute>& attributes) {
+            Schema* schema = new Schema();
+            std::list<Attribute>::const_iterator attribute_iter = attributes.begin();
+            for (; attribute_iter != attributes.end(); ++attribute_iter)
+                schema->add_attribute(*attribute_iter);
+            schema->freeze();
+            return Schema::ptr_t(schema);
+        }
+
+        static Schema::ptr_t from_attribute_pointers(const std::list<Attribute*>& attributes) {
+            Schema* schema = new Schema();
+            std::list<Attribute*>::const_iterator attribute_iter = attributes.begin();
+            for (; attribute_iter != attributes.end(); ++attribute_iter)
+                schema->add_attribute(**attribute_iter);
+            schema->freeze();
+            return Schema::ptr_t(schema);
+        }
+
         void freeze() {
             thread::ScopedLock lock(&schema_lock_);
             is_schema_freezed_ = true;
         }
 
-        int add_attribute(Attribute& attribute) {
+        int add_attribute(const Attribute& attribute) {
             return add_attribute(attribute.name, attribute.type);
         }
 
