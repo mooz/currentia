@@ -20,7 +20,7 @@
 }
 
 %syntax_error {
-    std::cerr << "Syntax error near: " << query_container->lexer->get_token_text() << std::endl;
+    query_container->state = CPLQueryContainer::ERROR;
 }
 
 %parse_failure {

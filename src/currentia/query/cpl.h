@@ -26,10 +26,20 @@
 
 namespace currentia {
     struct CPLQueryContainer {
+        enum ParseState {
+            ERROR,
+            NEUTRAL
+        };
+
+        ParseState state;
         Lexer* lexer;
 
         std::map<std::string, Relation::ptr_t> relations;
         std::map<std::string, Stream::ptr_t> streams;
+
+        CPLQueryContainer():
+            state(NEUTRAL) {
+        }
 
         void define_relation(const std::string& relation_name,
                              const Relation::ptr_t& relation) {

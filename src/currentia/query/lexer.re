@@ -292,36 +292,46 @@ namespace currentia {
 int main(int argc, char** argv)
 {
     std::istringstream is(
-        " stream purchases(goods_id: int, user_id: int)"
-        " stream outliers(user_id: int)"
-        " relation goods(id: int, price: int)"
-        " "
-        " stream result"
-        " from purchases [recent 5 slide 5], outliers [recent 5 slide 5]"
-        " where purchases.user_id = outliers.user_id"
-        " {"
-        "   combine goods where purchases.id = goods.goods_id"
-        "   selection goods.price < 5000"
-        "   mean goods.price [recent 5 slide 5]"
-        " }"
+        " stream purchases(goods_id: int, user_id: int)\n"
+        " stream outliers(user_id: int)\n"
+        " relation goods(id: int, price: int)\n"
+        " \n"
+        " stream result\n"
+        " from purchases [recent 5 slide 5], outliers [recent 5 slide 5]\n"
+        " here purchases.user_id = outliers.user_id\n"
+        " {\n"
+        "   combine goods where purchases.id = goods.goods_id\n"
+        "   selection goods.price < 5000\n"
+        "   mean goods.price [recent 5 slide 5]\n"
+        " }\n"
     );
     currentia::Lexer lexer(&is);
     int token;
 
     currentia::yyParser* parser = reinterpret_cast<currentia::yyParser*>(currentia::CPLParseAlloc(malloc));
     currentia::CPLQueryContainer cpl_container;
+    cpl_container.lexer = &lexer;
 
     try {
         while ((token = lexer.get_next_token()) != TOKEN_EOS) {
             // int current_token;
             // std::cout << "token: " << lexer.get_token_text() << std::endl;
-            currentia::CPLParse(parser, token, new std::string(lexer.get_token_text()), &cpl_container);
+            currentia::CPLParse(parser,
+                                token,
+                                new std::string(lexer.get_token_text()),
+                                &cpl_container);
+
+            if (cpl_container.state == currentia::CPLQueryContainer::ERROR) {
+                std::cerr << "Parse error at line " << lexer.get_current_line_number() << " near token " << token << std::endl;
+                break;
+            }
         }
 
-        currentia::CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
+        if (cpl_container.state == currentia::CPLQueryContainer::NEUTRAL)
+            currentia::CPLParse(parser, TOKEN_EOS, NULL, &cpl_container);
         currentia::CPLParseFree(parser, free);
     } catch (const std::string& error_message) {
-        std::cerr << "Parse Error: " << error_message << std::endl;
+        std::cerr << "Fatal error: " << error_message << std::endl;
     }
 
     return 0;
