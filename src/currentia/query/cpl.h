@@ -105,13 +105,16 @@ namespace currentia {
 
         virtual std::string get_stream_name() = 0;
         virtual Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) = 0;
-        virtual Stream::ptr_t get_stream(CPLQueryContainer* query_container) = 0;
+        virtual Stream::ptr_t get_stream(CPLQueryContainer* query_container,
+                                         const Operator::ptr_t& operator_tree) = 0;
 
         void declare(CPLQueryContainer* query_container) {
+            Operator::ptr_t operator_tree = get_operator_tree(query_container);
+
             query_container->define_stream(
                 get_stream_name(),
-                get_stream(query_container),
-                get_operator_tree(query_container)
+                get_stream(query_container, operator_tree),
+                operator_tree
             );
         }
     };
@@ -147,7 +150,8 @@ namespace currentia {
             return Operator::ptr_t();
         }
 
-        Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
+        Stream::ptr_t get_stream(CPLQueryContainer* query_container,
+                                 const Operator::ptr_t& operator_tree) {
             return Stream::from_schema(Schema::from_attribute_pointers(*attributes_ptr));
         }
     };
@@ -289,8 +293,9 @@ namespace currentia {
             return current_root;
         }
 
-        Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
-            return get_operator_tree(query_container)->get_output_stream();
+        Stream::ptr_t get_stream(CPLQueryContainer* query_container,
+                                 const Operator::ptr_t& operator_tree) {
+            return operator_tree->get_output_stream();
         }
 
         virtual Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) = 0;
