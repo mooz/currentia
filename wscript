@@ -10,7 +10,7 @@ testdir   = "test"
 subdirs   = " ".join([sourcedir, testdir])
 
 # cxx flags
-cxxflags = ["-O2", "-Wall", "-g", "-pipe"]
+cxxflags = ["-O3", "-Wall", "-g", "-pipe", "-std=gnu++0x"]
 
 def options(opt):
     opt.load("unittestt", tooldir=testdir)
