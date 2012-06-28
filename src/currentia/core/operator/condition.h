@@ -314,7 +314,7 @@ namespace currentia {
         }
 
         bool check(Tuple::ptr_t tuple_ptr) const {
-            throw "Error: ConditionConstantComparator doesn't support comparison of tuple and constant";
+            throw "Error: ConditionAttributeComparator doesn't support comparison of tuple and constant";
         }
 
         bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
