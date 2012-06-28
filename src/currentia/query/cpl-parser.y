@@ -6,6 +6,7 @@
 %token_prefix TOKEN_
 
 %include {
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <assert.h>
