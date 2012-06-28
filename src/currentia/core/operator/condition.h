@@ -268,8 +268,9 @@ namespace currentia {
                 target_tuple_is_left_ = false;
             } else {
                 std::stringstream ss;
-                ss << "Attribute specified by condition " << this->toString()
-                   << " is missing in schemas";
+                ss << "Attribute in (" << this->toString()
+                   << ") is missing in schemas " << left_schema->toString()
+                   << " and " << right_schema->toString();
             }
         }
 
@@ -369,8 +370,9 @@ namespace currentia {
 
             // Schemas don't have required attribute value.
             std::stringstream ss;
-            ss << "Attribute(s) specified by condition " << this->toString()
-               << " are missing in schemas";
+            ss << "Attribute(s) in (" << this->toString()
+               << ") are missing in schemas " << left_schema->toString()
+               << " or " << right_schema->toString();
             throw ss.str();
         }
 
