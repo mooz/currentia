@@ -23,20 +23,23 @@ namespace currentia {
         pthread_mutex_t mutex_;
         pthread_cond_t reader_wait_;
 
-        std::vector<Tuple::ptr_t> tuples_;
-        std::vector<Tuple::ptr_t> newcomer_tuples_;
         Window window_;
         long index_;
         long newcomer_count_;
 
         callback_t on_accept_;
 
+        std::vector<Tuple::ptr_t> tuples_;
+        std::vector<Tuple::ptr_t> newcomer_tuples_;
+
     public:
         Synopsis(Window &window):
             window_(window),
             index_(0),
             newcomer_count_(0),
-            on_accept_(NULL) {
+            on_accept_(NULL),
+            tuples_(window.width),
+            newcomer_tuples_(window.width) {
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
         }
