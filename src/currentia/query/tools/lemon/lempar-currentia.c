@@ -8,6 +8,7 @@
 %%
 
 namespace currentia {
+namespace lemon {
 
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
@@ -853,4 +854,5 @@ void Parse(
   return;
 }
 
+} // namespace lemon
 } // namespace currentia
