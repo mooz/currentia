@@ -17,5 +17,5 @@ def build(bld):
             target   = name,
             uselib   = 'GTEST_MAIN'
         )
-    do_test("test_server")
+    # do_test("test_server")
     bld.recurse(subdirs)
