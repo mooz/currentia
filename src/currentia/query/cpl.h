@@ -239,7 +239,7 @@ namespace currentia {
                 throw "SUM is not supported for now";
                 break;
             case ELECT:
-                op = new OperatorElection(parent_operator, window_ptr->width);
+                op = new OperatorElection(parent_operator, *window_ptr);
                 break;
             case COMBINE:
                 op = new OperatorSimpleRelationJoin(

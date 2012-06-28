@@ -8,17 +8,15 @@
 #include "currentia/core/operation/operations.h"
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/single-input-operator.h"
-#include "currentia/core/operator/synopsis.h"
+#include "currentia/core/operator/aggregation-operator.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
-#include "currentia/core/window.h"
 
 #include <tr1/functional>
 
 namespace currentia {
-    class OperatorMean: public SingleInputOperator {
-        Window window_;
-        Synopsis synopsis_;
+    class OperatorMean: public SingleInputOperator,
+                        public AggregationOperator {
         std::string target_attribute_name_;
         Object sum_;
         Object window_width_object_;
@@ -28,17 +26,15 @@ namespace currentia {
                      Window window,
                      const std::string& target_attribute_name):
             SingleInputOperator(parent_operator_ptr),
-            window_(window),
-            synopsis_(window),
+            AggregationOperator(window,
+                                std::tr1::bind(&OperatorMean::calculate_mean_, this)),
             target_attribute_name_(target_attribute_name),
             sum_(0.0),
             window_width_object_(static_cast<double>(window.width)) {
+            // Setup schema
             Schema::ptr_t output_stream_schema(new Schema());
             output_stream_schema->add_attribute(target_attribute_name, Object::FLOAT);
             set_output_stream(Stream::from_schema(output_stream_schema));
-            // Setup handler
-            Synopsis::callback_t on_accept = std::tr1::bind(&OperatorMean::calculate_mean_, this);
-            synopsis_.set_on_accept(on_accept);
         }
 
         Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
