@@ -40,7 +40,7 @@ namespace currentia {
             join_condition_(join_condition),
             // set schema
             stream_schema_ptr_(parent_operator_ptr_->get_output_schema_ptr()),
-            relation_schema_ptr_(relation->get_schema_ptr()),
+            relation_schema_ptr_(relation->get_schema()),
             joined_schema_ptr_(build_joined_schema_()) {
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
         }

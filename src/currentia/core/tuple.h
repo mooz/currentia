@@ -94,7 +94,7 @@ namespace currentia {
             return arrived_time_;
         }
 
-        const Schema::ptr_t get_schema_ptr() {
+        const Schema::ptr_t get_schema() {
             return schema_ptr_;
         }
 

@@ -51,7 +51,7 @@ namespace currentia {
 
         // Returns the schema of this operator's output stream
         Schema::ptr_t get_output_schema_ptr() {
-            return get_output_stream()->get_schema_ptr();
+            return get_output_stream()->get_schema();
         }
 
         void set_output_stream(Stream::ptr_t output_stream) {

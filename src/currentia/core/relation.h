@@ -89,7 +89,7 @@ namespace currentia {
             return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs));
         }
 
-        Schema::ptr_t get_schema_ptr() const {
+        Schema::ptr_t get_schema() const {
             schema_ptr_->freeze();
             return schema_ptr_;
         }

@@ -237,10 +237,18 @@ namespace currentia {
             case ELECT:
                 op = new OperatorElection(parent_operator, window_ptr->width);
                 break;
-            case COMBINE:
-                op = new OperatorSimpleRelationJoin(parent_operator,
-                                                    query_container->get_relation_by_name(relation_name),
-                                                    condition_ptr);
+            case COMBINE: {
+                Relation::ptr_t relation = query_container->get_relation_by_name(relation_name);
+                condition_ptr->obey_schema(parent_operator->get_output_stream()->get_schema(),
+                                           relation->get_schema());
+                op = new OperatorSimpleRelationJoin(
+                    parent_operator,
+                    relation,
+                    condition_ptr
+                );
+                break;
+            }
+            default:
                 break;
             }
 
@@ -295,7 +303,7 @@ namespace currentia {
     struct CPLJoinedStream : public CPLDerivedStream {
         std::string ancestor_stream_name1;
         std::string ancestor_stream_name2;
-        ConditionAttributeComparator::ptr_t condition;
+        ConditionAttributeComparator::ptr_t condition_ptr;
 
         Window window1;
         Window window2;
@@ -304,11 +312,11 @@ namespace currentia {
                         Window window1,
                         const std::string& right_name,
                         Window window2,
-                        ConditionAttributeComparator* condition):
+                        ConditionAttributeComparator* condition_ptr):
             CPLDerivedStream(),
             ancestor_stream_name1(left_name),
             ancestor_stream_name2(right_name),
-            condition(condition) {
+            condition_ptr(condition_ptr) {
         }
 
         ~CPLJoinedStream() {
@@ -320,13 +328,16 @@ namespace currentia {
             Stream::ptr_t ancestor_stream2 =
                 query_container->get_stream_by_name(ancestor_stream_name2);
 
+            condition_ptr->obey_schema(ancestor_stream1->get_schema(),
+                                       ancestor_stream2->get_schema());
+
             return OperatorJoin::ptr_t(
                 new OperatorJoin(
                     OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(ancestor_stream1)),
                     window1,
                     OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(ancestor_stream2)),
                     window2,
-                    condition
+                    condition_ptr
                 )
             );
         }

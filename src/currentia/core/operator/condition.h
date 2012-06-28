@@ -25,13 +25,15 @@ namespace currentia {
         // for selection
         virtual bool check(Tuple::ptr_t tuple_ptr) const = 0;
         // for join
-        virtual bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const = 0;
+        virtual bool check(Tuple::ptr_t left_tuple_ptr, Tuple::ptr_t right_tuple_ptr) const = 0;
 
         Condition* negate() {
             negated_ = !negated_;
             return this;
         }
 
+        virtual void obey_schema(const Schema::ptr_t& left_schema,
+                                 const Schema::ptr_t& right_schema) = 0;
         virtual void de_morgen() = 0;
         virtual void shove_negation() = 0;
         virtual void distribute_disjunction() = 0;
@@ -97,15 +99,21 @@ namespace currentia {
             }
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
+        bool check(Tuple::ptr_t left_tuple_ptr, Tuple::ptr_t right_tuple_ptr) const {
             switch (type_) {
             case ConditionConjunctive::AND:
-                return left_condition_->check(tuple1_ptr, tuple2_ptr)
-                    && right_condition_->check(tuple1_ptr, tuple2_ptr);
+                return left_condition_->check(left_tuple_ptr, right_tuple_ptr)
+                    && right_condition_->check(left_tuple_ptr, right_tuple_ptr);
             case ConditionConjunctive::OR:
-                return left_condition_->check(tuple1_ptr, tuple2_ptr)
-                    || right_condition_->check(tuple1_ptr, tuple2_ptr);
+                return left_condition_->check(left_tuple_ptr, right_tuple_ptr)
+                    || right_condition_->check(left_tuple_ptr, right_tuple_ptr);
             }
+        }
+
+        void obey_schema(const Schema::ptr_t& left_schema,
+                         const Schema::ptr_t& right_schema) {
+            left_condition_->obey_schema(left_schema, right_schema);
+            right_condition_->obey_schema(left_schema, right_schema);
         }
 
         void de_morgen() {
@@ -158,24 +166,24 @@ namespace currentia {
                     inject_target->equal_to(decompose_target->get_left_condition())
                     ? inject_target
                     : Condition::ptr_t(
-                    new ConditionConjunctive(
-                        decompose_target->get_left_condition(), // Q
-                        inject_target,                          // P
-                        OR
-                    )
-                );
+                        new ConditionConjunctive(
+                            decompose_target->get_left_condition(), // Q
+                            inject_target,                          // P
+                            OR
+                        )
+                    );
 
                 // (R || P)
                 Condition::ptr_t new_right =
                     inject_target->equal_to(decompose_target->get_right_condition())
                     ? inject_target
                     : Condition::ptr_t(
-                    new ConditionConjunctive(
-                        decompose_target->get_right_condition(), // Q
-                        inject_target,                           // P
-                        OR
-                    )
-                );
+                        new ConditionConjunctive(
+                            decompose_target->get_right_condition(), // Q
+                            inject_target,                           // P
+                            OR
+                        )
+                    );
 
                 type_ = AND;
                 left_condition_ = new_left;
@@ -190,10 +198,8 @@ namespace currentia {
                 dynamic_pointer_cast<ConditionConjunctive>(target_condition);
 
             bool result = target_conjunctive &&
-                left_condition_->equal_to(target_conjunctive->get_left_condition()) &&
-                right_condition_->equal_to(target_conjunctive->get_right_condition());
-
-            std::cerr << "ConditionConjunctive: Comparing " << toString() << " with " << target_condition->toString() << " => " << result << std::endl;
+                          left_condition_->equal_to(target_conjunctive->get_left_condition()) &&
+                          right_condition_->equal_to(target_conjunctive->get_right_condition());
 
             return result;
         }
@@ -229,6 +235,7 @@ namespace currentia {
         std::string target_attribute_name_;
         Comparator::Type comparator_type_;
         Object condition_value_;
+        bool target_tuple_is_left_;
 
     public:
         ConditionConstantComparator(std::string target_attribute_name,
@@ -236,7 +243,8 @@ namespace currentia {
                                     Object condition_value):
             target_attribute_name_(target_attribute_name),
             comparator_type_(comparator_type),
-            condition_value_(condition_value) {
+            condition_value_(condition_value),
+            target_tuple_is_left_(true) {
         }
 
         bool check(Tuple::ptr_t tuple_ptr) const {
@@ -245,8 +253,24 @@ namespace currentia {
             return target_value.compare(condition_value_, comparator_type_);
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
-            throw "Error: ConditionConstantComparator doesn't support comparison of 2 tuples";
+        bool check(Tuple::ptr_t left_tuple_ptr, Tuple::ptr_t right_tuple_ptr) const {
+            if (target_tuple_is_left_)
+                return check(left_tuple_ptr);
+            else
+                return check(right_tuple_ptr);
+        }
+
+        void obey_schema(const Schema::ptr_t& left_schema,
+                         const Schema::ptr_t& right_schema) {
+            if (left_schema->has_attribute(target_attribute_name_)) {
+                target_tuple_is_left_ = true;
+            } else if (left_schema->has_attribute(target_attribute_name_)) {
+                target_tuple_is_left_ = false;
+            } else {
+                std::stringstream ss;
+                ss << "Attribute specified by condition " << this->toString()
+                   << " is missing in schemas";
+            }
         }
 
         void de_morgen() {
@@ -286,11 +310,9 @@ namespace currentia {
                 dynamic_pointer_cast<ConditionConstantComparator>(target_condition);
 
             bool result = target_constant_comparator &&
-                target_attribute_name_ == target_constant_comparator->get_target_attribute_name() &&
-                comparator_type_ == target_constant_comparator->get_target_comparator_type() &&
-                condition_value_ == target_constant_comparator->get_condition_value();
-
-            std::cerr << "ConditionConstantComparator: Comparing " << toString() << " with " << target_condition->toString() << " => " << result << std::endl;
+                          target_attribute_name_ == target_constant_comparator->get_target_attribute_name() &&
+                          comparator_type_ == target_constant_comparator->get_target_comparator_type() &&
+                          condition_value_ == target_constant_comparator->get_condition_value();
 
             return result;
         }
@@ -298,33 +320,59 @@ namespace currentia {
 
     class ConditionAttributeComparator: public Condition,
                                         public Pointable<ConditionAttributeComparator> {
-        std::string target1_attribute_name_;
-        std::string target2_attribute_name_;
+        std::string left_attribute_name_;
+        std::string right_attribute_name_;
         Comparator::Type comparator_type_;
 
     public:
         typedef Pointable<ConditionAttributeComparator>::ptr_t ptr_t;
 
-        ConditionAttributeComparator(std::string target1_attribute_name,
+        ConditionAttributeComparator(std::string left_attribute_name,
                                      Comparator::Type comparator_type,
-                                     std::string target2_attribute_name):
-            target1_attribute_name_(target1_attribute_name),
-            target2_attribute_name_(target2_attribute_name),
+                                     std::string right_attribute_name):
+            left_attribute_name_(left_attribute_name),
+            right_attribute_name_(right_attribute_name),
             comparator_type_(comparator_type) {
         }
 
         bool check(Tuple::ptr_t tuple_ptr) const {
-            throw "Error: ConditionAttributeComparator doesn't support comparison of tuple and constant";
+            std::stringstream ss;
+            ss << "ConditionAttributeComparator doesn't support comparison of tuple and constant";
+            throw ss.str();
         }
 
-        bool check(Tuple::ptr_t tuple1_ptr, Tuple::ptr_t tuple2_ptr) const {
-            Object tuple1_value = tuple1_ptr->
-                                  get_value_by_attribute_name(target1_attribute_name_);
-            Object tuple2_value = tuple2_ptr->
-                                  get_value_by_attribute_name(target2_attribute_name_);
-            return tuple1_value.compare(tuple2_value, comparator_type_);
+        bool check(Tuple::ptr_t left_tuple_ptr, Tuple::ptr_t right_tuple_ptr) const {
+            Object left_tuple_value = left_tuple_ptr->
+                                      get_value_by_attribute_name(left_attribute_name_);
+            Object right_tuple_value = right_tuple_ptr->
+                                       get_value_by_attribute_name(right_attribute_name_);
+            return left_tuple_value.compare(right_tuple_value, comparator_type_);
         }
 
+        // Called once (by in operator initialization)
+        void obey_schema(const Schema::ptr_t& left_schema,
+                         const Schema::ptr_t& right_schema) {
+            if (left_schema->has_attribute(left_attribute_name_) &&
+                right_schema->has_attribute(right_attribute_name_)) {
+                // as is
+                return;
+            }
+
+            if (left_schema->has_attribute(right_attribute_name_) &&
+                right_schema->has_attribute(left_attribute_name_)) {
+                // swap
+                std::string saved_left_attribute = left_attribute_name_;
+                left_attribute_name_ = right_attribute_name_;
+                right_attribute_name_ = saved_left_attribute;
+                return;
+            }
+
+            // Schemas don't have required attribute value.
+            std::stringstream ss;
+            ss << "Attribute(s) specified by condition " << this->toString()
+               << " are missing in schemas";
+            throw ss.str();
+        }
 
         void de_morgen() {
             // nothing
@@ -339,17 +387,17 @@ namespace currentia {
         }
 
         std::string to_string_expression() const {
-            return target1_attribute_name_ + " " +
+            return left_attribute_name_ + " " +
                 comparator_to_string(comparator_type_) + " " +
-                target2_attribute_name_;
+                right_attribute_name_;
         }
 
-        std::string get_target1_attribute_name() const {
-            return target1_attribute_name_;
+        std::string get_left_attribute_name() const {
+            return left_attribute_name_;
         }
 
-        std::string get_target2_attribute_name() const {
-            return target2_attribute_name_;
+        std::string get_right_attribute_name() const {
+            return right_attribute_name_;
         }
 
         Comparator::Type get_comparator_type() const {
@@ -357,18 +405,14 @@ namespace currentia {
         }
 
         bool equal_to(const Condition::ptr_t& target_condition) const {
-            using namespace std::tr1;
-
             ConditionAttributeComparator::ptr_t target_attribute_comparator =
-                dynamic_pointer_cast<ConditionAttributeComparator>(target_condition);
+                std::dynamic_pointer_cast<ConditionAttributeComparator>(target_condition);
 
             bool result = target_attribute_comparator &&
-                target1_attribute_name_ == target_attribute_comparator->get_target1_attribute_name() &&
-                target2_attribute_name_ == target_attribute_comparator->get_target2_attribute_name() &&
-                target2_attribute_name_ == target_attribute_comparator->get_target2_attribute_name() &&
-                comparator_type_ == target_attribute_comparator->get_comparator_type();
-
-            std::cerr << "ConditionAttributeComparator: Comparing " << toString() << " with " << target_condition->toString() << " => " << result << std::endl;
+                          left_attribute_name_ == target_attribute_comparator->get_left_attribute_name() &&
+                          right_attribute_name_ == target_attribute_comparator->get_right_attribute_name() &&
+                          right_attribute_name_ == target_attribute_comparator->get_right_attribute_name() &&
+                          comparator_type_ == target_attribute_comparator->get_comparator_type();
 
             return result;
         }

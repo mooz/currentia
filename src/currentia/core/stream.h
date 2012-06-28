@@ -17,6 +17,7 @@ namespace currentia {
     class Stream: private NonCopyable<Stream>,
                   public Pointable<Stream> {
     public:
+        explicit
         Stream(Schema::ptr_t schema_ptr):
             schema_ptr_(schema_ptr) {
             // initialize values for thread synchronization
@@ -77,7 +78,7 @@ namespace currentia {
         // TODO: returning private pointer is not a good habit
         //       deeply clone?
         inline
-        Schema::ptr_t get_schema_ptr() const {
+        Schema::ptr_t get_schema() const {
             schema_ptr_->freeze();
             return schema_ptr_;
         }
