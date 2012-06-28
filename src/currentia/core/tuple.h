@@ -261,6 +261,123 @@ namespace currentia {
             data.push_back(Object(t10));
             return Tuple::create(schema, data);
         }
+
+        // Already wrapped with Object
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1) {
+            data_t data;
+            data.push_back(o1);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5, const Object& o6) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            data.push_back(o6);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5, const Object& o6, const Object& o7) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            data.push_back(o6);
+            data.push_back(o7);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5, const Object& o6, const Object& o7, const Object& o8) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            data.push_back(o6);
+            data.push_back(o7);
+            data.push_back(o8);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5, const Object& o6, const Object& o7, const Object& o8, const Object& o9) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            data.push_back(o6);
+            data.push_back(o7);
+            data.push_back(o8);
+            data.push_back(o9);
+            return Tuple::create(schema, data);
+        }
+
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const Object& o1, const Object& o2, const Object& o3, const Object& o4, const Object& o5, const Object& o6, const Object& o7, const Object& o8, const Object& o9, const Object& o10) {
+            data_t data;
+            data.push_back(o1);
+            data.push_back(o2);
+            data.push_back(o3);
+            data.push_back(o4);
+            data.push_back(o5);
+            data.push_back(o6);
+            data.push_back(o7);
+            data.push_back(o8);
+            data.push_back(o9);
+            data.push_back(o10);
+            return Tuple::create(schema, data);
+        }
     };
 }
 
