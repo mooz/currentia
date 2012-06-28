@@ -263,10 +263,12 @@ namespace currentia {
         Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
             Operator::ptr_t current_root = get_source_operator(query_container);
 
-            std::list<CPLOperationInfo*>::const_iterator iter = operations_ptr->begin();
-            std::list<CPLOperationInfo*>::const_iterator iter_end = operations_ptr->end();
-            for (; iter != iter_end; ++iter) {
-                current_root = (*iter)->to_operator(current_root, query_container);
+            if (operations_ptr) {
+                std::list<CPLOperationInfo*>::const_iterator iter = operations_ptr->begin();
+                std::list<CPLOperationInfo*>::const_iterator iter_end = operations_ptr->end();
+                for (; iter != iter_end; ++iter) {
+                    current_root = (*iter)->to_operator(current_root, query_container);
+                }
             }
 
             std::cout << stream_name << ": " << current_root->toString() << std::endl;
