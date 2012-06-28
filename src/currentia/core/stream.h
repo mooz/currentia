@@ -16,6 +16,13 @@ namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
     class Stream: private NonCopyable<Stream>,
                   public Pointable<Stream> {
+        Schema::ptr_t schema_ptr_;
+
+        std::list<Tuple::ptr_t> tuple_ptrs_;
+
+        pthread_mutex_t mutex_;
+        pthread_cond_t reader_wait_;
+
     public:
         explicit
         Stream(Schema::ptr_t schema_ptr):
@@ -88,14 +95,31 @@ namespace currentia {
             tuple_ptrs_.clear();
         }
 
+        void insert_head(std::list<Tuple::ptr_t>& another_tuples) {
+            thread::ScopedLock lock(&mutex_);
+            tuple_ptrs_.insert(tuple_ptrs_.begin(),
+                               another_tuples.begin(),
+                               another_tuples.end());
+        }
+
+        std::string toString() {
+            thread::ScopedLock lock(&mutex_);
+
+            std::stringstream ss;
+            auto iter = tuple_ptrs_.begin();
+            auto iter_end = tuple_ptrs_.end();
+            while (iter != iter_end) {
+                ss << (*iter)->toString();
+                iter++;
+                if (iter == iter_end)
+                    break;
+                ss << ", ";
+            }
+
+            return ss.str();
+        }
+
     private:
-        Schema::ptr_t schema_ptr_;
-
-        std::list<Tuple::ptr_t> tuple_ptrs_;
-
-        pthread_mutex_t mutex_;
-        pthread_cond_t reader_wait_;
-
         inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
             Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
             tuple_ptrs_.pop_back();
