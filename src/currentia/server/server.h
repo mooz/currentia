@@ -128,7 +128,7 @@ namespace currentia {
             output_ptr = &join;
 
 
-            while (Tuple::ptr_t tuple_ptr = output_ptr->next()) {
+            while (Tuple::ptr_t tuple_ptr = output_ptr->process_next()) {
                 std::cout << "Got => " << tuple_ptr->toString()
                           << " at " << tuple_ptr->get_arrived_time() << std::endl;
             }

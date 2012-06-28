@@ -33,7 +33,7 @@ namespace currentia {
         virtual ~Operator() = 0;
 
         // get next tuple from input stream and process
-        Tuple::ptr_t next() {
+        Tuple::ptr_t process_next() {
             Tuple::ptr_t result = next_implementation();
 
             if (!after_process_hook.empty()) {

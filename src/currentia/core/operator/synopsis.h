@@ -91,7 +91,7 @@ namespace currentia {
             }
 
             for (int i = 0; i < read_count; ++i) {
-                tuples_[get_next_index_()] = target_operator->next();
+                tuples_[get_next_index_()] = target_operator->process_next();
             }
         }
 
