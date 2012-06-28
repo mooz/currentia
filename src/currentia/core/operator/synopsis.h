@@ -68,7 +68,7 @@ namespace currentia {
             thread::ScopedLock lock(&mutex_);
 
             newcomer_tuples_[newcomer_count_] = input_tuple;
-            newcomer_count_++;
+            newcomer_count_ = newcomer_count_ + 1 % window_.width;
 
             if (window_filled_) { // Branch prediction, please!
                 if (newcomer_count_ == window_.stride) {
