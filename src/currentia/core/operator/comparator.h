@@ -30,6 +30,8 @@ namespace currentia {
                 return ">";
             case GREATER_THAN_EQUAL:
                 return ">=";
+            default:
+                return "UNKNOWN COMPARATOR";
             }
         }
     }
