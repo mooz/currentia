@@ -26,6 +26,8 @@
 // CPL stands for 'C'urrentia 'P'lan 'L'anguage
 
 namespace currentia {
+    class CPLStreamDeclaration;
+
     struct CPLQueryContainer : public Pointable<CPLQueryContainer> {
         enum ParseState {
             ERROR,
@@ -37,6 +39,7 @@ namespace currentia {
 
         std::map<std::string, Relation::ptr_t> relations;
         std::map<std::string, Stream::ptr_t> streams;
+        std::map<Stream::ptr_t, Operator::ptr_t> root_operators;
 
         CPLQueryContainer():
             state(NEUTRAL) {
@@ -48,8 +51,10 @@ namespace currentia {
         }
 
         void define_stream(const std::string& stream_name,
-                           const Stream::ptr_t& stream) {
+                           const Stream::ptr_t& stream,
+                           const Operator::ptr_t& root_operator = Operator::ptr_t()) {
             streams[stream_name] = stream;
+            root_operators[stream] = root_operator;
         }
 
         Relation::ptr_t get_relation_by_name(const std::string& relation_name) {
@@ -63,6 +68,13 @@ namespace currentia {
             std::map<std::string, Stream::ptr_t>::const_iterator it = streams.find(stream_name);
             if (it == streams.end())
                 throw std::string("Stream ") + stream_name + " is not defined";
+            return it->second;
+        }
+
+        Operator::ptr_t get_root_operator_for_stream(const Stream::ptr_t& stream) {
+            std::map<Stream::ptr_t, Operator::ptr_t>::const_iterator it = root_operators.find(stream);
+            if (it == root_operators.end())
+                return Operator::ptr_t();
             return it->second;
         }
     };
@@ -92,11 +104,14 @@ namespace currentia {
         virtual ~CPLStreamDeclaration() = 0;
 
         virtual std::string get_stream_name() = 0;
+        virtual Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) = 0;
         virtual Stream::ptr_t get_stream(CPLQueryContainer* query_container) = 0;
+
         void declare(CPLQueryContainer* query_container) {
             query_container->define_stream(
                 get_stream_name(),
-                get_stream(query_container)
+                get_stream(query_container),
+                get_operator_tree(query_container)
             );
         }
     };
@@ -126,6 +141,10 @@ namespace currentia {
 
         std::string get_stream_name() {
             return stream_name;
+        }
+
+        Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) {
+            return Operator::ptr_t();
         }
 
         Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
@@ -252,7 +271,7 @@ namespace currentia {
             return stream_name;
         }
 
-        Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
+        Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) {
             Operator::ptr_t current_root = get_source_operator(query_container);
 
             if (operations_ptr) {
@@ -263,9 +282,11 @@ namespace currentia {
                 }
             }
 
-            std::cout << stream_name << ": " << current_root->toString() << std::endl;
+            return current_root;
+        }
 
-            return current_root->get_output_stream();
+        Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
+            return get_operator_tree(query_container)->get_output_stream();
         }
 
         virtual Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) = 0;
