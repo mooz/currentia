@@ -133,6 +133,134 @@ namespace currentia {
                 throw "This tuple does not have a requested attribute";
             }
         }
+
+    public:
+        // Easy helper (See tools/create_easy_generator.rb)
+
+        template <typename T1>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1) {
+            data_t data;
+            data.push_back(Object(t1));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            data.push_back(Object(t6));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            data.push_back(Object(t6));
+            data.push_back(Object(t7));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            data.push_back(Object(t6));
+            data.push_back(Object(t7));
+            data.push_back(Object(t8));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            data.push_back(Object(t6));
+            data.push_back(Object(t7));
+            data.push_back(Object(t8));
+            data.push_back(Object(t9));
+            return Tuple::create(schema, data);
+        }
+
+        template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
+        static
+        Tuple::ptr_t create_easy(const Schema::ptr_t& schema, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9, const T10& t10) {
+            data_t data;
+            data.push_back(Object(t1));
+            data.push_back(Object(t2));
+            data.push_back(Object(t3));
+            data.push_back(Object(t4));
+            data.push_back(Object(t5));
+            data.push_back(Object(t6));
+            data.push_back(Object(t7));
+            data.push_back(Object(t8));
+            data.push_back(Object(t9));
+            data.push_back(Object(t10));
+            return Tuple::create(schema, data);
+        }
     };
 }
 
