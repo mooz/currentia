@@ -192,10 +192,8 @@ namespace currentia {
         }
 
         bool equal_to(const Condition::ptr_t& target_condition) const {
-            using namespace std::tr1;
-
             ConditionConjunctive::ptr_t target_conjunctive =
-                dynamic_pointer_cast<ConditionConjunctive>(target_condition);
+                std::dynamic_pointer_cast<ConditionConjunctive>(target_condition);
 
             bool result = target_conjunctive &&
                           left_condition_->equal_to(target_conjunctive->get_left_condition()) &&
@@ -305,10 +303,8 @@ namespace currentia {
         }
 
         bool equal_to(const Condition::ptr_t& target_condition) const {
-            using namespace std::tr1;
-
             ConditionConstantComparator::ptr_t target_constant_comparator =
-                dynamic_pointer_cast<ConditionConstantComparator>(target_condition);
+                std::dynamic_pointer_cast<ConditionConstantComparator>(target_condition);
 
             bool result = target_constant_comparator &&
                           target_attribute_name_ == target_constant_comparator->get_target_attribute_name() &&
