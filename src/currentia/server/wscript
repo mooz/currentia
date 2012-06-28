@@ -9,12 +9,12 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
-    bld.program(
-      source   = "server.cpp",
-      target   = "currentiaserver",
-      includes = ". ../../",
-      lib      = ["pthread"],
-    )
+    # bld.program(
+    #   source   = "server.cpp",
+    #   target   = "currentiaserver",
+    #   includes = ". ../../",
+    #   lib      = ["pthread"],
+    # )
 
     bld.program(
       source   = "experiment_lock.cpp",
