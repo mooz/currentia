@@ -31,7 +31,7 @@ namespace currentia {
         std::string toString() const {
             std::stringstream ss;
 
-            ss << "[ width " << width << " | stride " << stride << "] ";
+            ss << "[ width " << width << " | stride " << stride << " ] ";
 
             switch (type) {
             case TUPLE_BASE:
