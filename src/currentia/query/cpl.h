@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_CPL_H_
-#define CURRENTIA_CPL_H_
+#ifndef CURRENTIA_QUERY_CPL_H_
+#define CURRENTIA_QUERY_CPL_H_
 
 #include "currentia/core/attribute.h"
 #include "currentia/core/operator/condition.h"
@@ -21,11 +21,12 @@
 #include "currentia/core/stream.h"
 #include "currentia/core/window.h"
 #include "currentia/query/cpl-lexer.h"
+#include "currentia/trait/pointable.h"
 
 // CPL stands for 'C'urrentia 'P'lan 'L'anguage
 
 namespace currentia {
-    struct CPLQueryContainer {
+    struct CPLQueryContainer : public Pointable<CPLQueryContainer> {
         enum ParseState {
             ERROR,
             NEUTRAL
@@ -324,4 +325,4 @@ namespace currentia {
     };
 }
 
-#endif  /* ! CURRENTIA_CPL_H_ */
+#endif  /* ! CURRENTIA_QUERY_CPL_H_ */
