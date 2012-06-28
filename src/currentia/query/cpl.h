@@ -20,7 +20,7 @@
 #include "currentia/core/relation.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/window.h"
-#include "currentia/query/lexer.h"
+#include "currentia/query/cpl-lexer.h"
 
 // CPL stands for 'C'urrentia 'P'lan 'L'anguage
 
@@ -32,7 +32,7 @@ namespace currentia {
         };
 
         ParseState state;
-        Lexer* lexer;
+        CPLLexer* lexer;
 
         std::map<std::string, Relation::ptr_t> relations;
         std::map<std::string, Stream::ptr_t> streams;
@@ -124,7 +124,7 @@ namespace currentia {
         }
 
         Stream::ptr_t get_stream(CPLQueryContainer* query_container) {
-            return Stream::from_schema(create_schema_from_attributes(attributes_ptr));
+            return Stream::from_schema(Schema::from_attribute_pointers(*attributes_ptr));
         }
     };
 

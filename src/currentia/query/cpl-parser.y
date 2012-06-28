@@ -14,9 +14,7 @@
 #define YYNOERRORRECOVERY 1
 
 #include "currentia/query/cpl.h"
-#include "currentia/query/parser.h"
-
-#define LOG(str) std::cerr << str << std::endl
+#include "currentia/query/cpl-parser.h"
 }
 
 %syntax_error {
@@ -308,10 +306,10 @@ type(A) ::= TYPE_BLOB.   { A = Object::BLOB; }
 %destructor attribute { delete $$; }
 object(O) ::= STRING(S). { O = new Object(*S); }
 object(O) ::= INTEGER(I). {
-    O = new Object(Lexer::parse_int(*I));
+    O = new Object(CPLLexer::parse_int(*I));
 }
 object(O) ::= FLOAT(F). {
-    O = new Object(Lexer::parse_float(*F));
+    O = new Object(CPLLexer::parse_float(*F));
 }
 object(O) ::= BLOB(B). { O = new Object(*B); }
 
@@ -321,8 +319,8 @@ object(O) ::= BLOB(B). { O = new Object(*B); }
 
 %type number { double }
 number(N) ::= INTEGER(I). {
-    N = static_cast<double>(Lexer::parse_int(*I));
+    N = static_cast<double>(CPLLexer::parse_int(*I));
 }
 number(N) ::= FLOAT(F). {
-    N = Lexer::parse_float(*F);
+    N = CPLLexer::parse_float(*F);
 }
