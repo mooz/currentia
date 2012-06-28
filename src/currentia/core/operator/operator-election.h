@@ -31,7 +31,7 @@ namespace currentia {
             return Tuple::ptr_t();
         }
 
-        virtual std::string toString() {
+        virtual std::string toString() const {
             return parent_operator_ptr_->toString() + std::string(" -> Election");
         }
     };

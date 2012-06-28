@@ -97,10 +97,12 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() {
-            return std::string("{ [ ") + parent_left_operator_ptr_->toString() +
-                std::string(" ], [ ") + parent_right_operator_ptr_->toString() +
-                std::string(" ] } -> Join");
+        virtual std::string toString() const {
+            std::stringstream ss;
+            ss << "(\n {\n  " << parent_left_operator_ptr_->toString()
+               << "\n },\n {\n  " << parent_right_operator_ptr_->toString()
+               << "\n }\n)\n -> Join(" << attribute_comparator_->toString() << ")";
+            return ss.str();
         }
     };
 }

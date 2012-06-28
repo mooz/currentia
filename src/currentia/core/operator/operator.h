@@ -71,7 +71,7 @@ namespace currentia {
             after_process_hook.push_back(hook);
         }
 
-        virtual std::string toString() = 0;
+        virtual std::string toString() const = 0;
     };
 
     Operator::~Operator() {}

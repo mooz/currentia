@@ -72,8 +72,20 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() {
-            return parent_operator_ptr_->toString() + std::string(" -> Projection");
+        virtual std::string toString() const {
+            std::stringstream ss;
+            ss << parent_operator_ptr_->toString() << "\n -> Projection(";
+
+            target_attribute_names_t::const_iterator iter = target_attribute_names_.begin();
+            while (iter != target_attribute_names_.end()) {
+                ss << *iter;
+                iter++;
+                if (iter != target_attribute_names_.end())
+                    ss << ", ";
+            }
+
+            ss << ")";
+            return ss.str();
         }
     };
 }

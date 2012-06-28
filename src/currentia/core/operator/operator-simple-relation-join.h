@@ -71,8 +71,10 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() {
-            return parent_operator_ptr_->toString() + std::string(" -> Relation-Join");
+        virtual std::string toString() const {
+            std::stringstream ss;
+            ss << parent_operator_ptr_->toString() << "\n -> Relation-Join(" << join_condition_->toString() << ")";
+            return ss.str();
         }
     };
 }
