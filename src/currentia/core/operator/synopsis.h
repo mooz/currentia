@@ -32,6 +32,8 @@ namespace currentia {
         std::vector<Tuple::ptr_t> tuples_;
         std::vector<Tuple::ptr_t> newcomer_tuples_;
 
+        bool window_filled_;
+
     public:
         Synopsis(Window &window):
             window_(window),
@@ -39,7 +41,8 @@ namespace currentia {
             newcomer_count_(0),
             on_accept_(NULL),
             tuples_(window.width),
-            newcomer_tuples_(window.width) {
+            newcomer_tuples_(window.width),
+            window_filled_(false) {
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
         }
@@ -66,8 +69,17 @@ namespace currentia {
 
             newcomer_tuples_[newcomer_count_] = input_tuple;
             newcomer_count_++;
-            if (newcomer_count_ == window_.stride)
-                accept_newcomers_logical_();
+
+            if (window_filled_) { // Branch prediction, please!
+                if (newcomer_count_ == window_.stride) {
+                    accept_newcomers_logical_();
+                }
+            } else {
+                if (newcomer_count_ == window_.width) {
+                    accept_newcomers_logical_();
+                    window_filled_ = true;
+                }
+            }
         }
 
         // read tuples to prepare for next join
@@ -129,10 +141,8 @@ namespace currentia {
     private:
 
         void accept_newcomers_logical_() {
-            assert(newcomer_count_ == window_.stride);
-
             // TODO: this breaks the order of tuples in `tuples_`
-            for (int i = 0; i < window_.stride; ++i)
+            for (int i = 0; i < newcomer_count_; ++i)
                 tuples_[get_next_index_()] = newcomer_tuples_[i];
 
             newcomer_count_ = 0;
