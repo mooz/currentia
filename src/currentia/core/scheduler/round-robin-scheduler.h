@@ -22,7 +22,7 @@ namespace currentia {
 
         void wake_up() {
             Operator* next_operator = get_next_operator_();
-            next_operator->procecss_next();
+            next_operator->process_next();
         }
 
     private:
