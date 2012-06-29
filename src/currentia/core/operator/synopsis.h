@@ -82,38 +82,6 @@ namespace currentia {
             }
         }
 
-        // read tuples to prepare for next join
-        void read_next_tuples(const Operator::ptr_t& target_operator) {
-            switch (window_.type) {
-            case Window::TUPLE_BASE:
-                return read_next_tuples_logical(target_operator);
-            case Window::TIME_BASE:
-                // TODO: support physical window (is it possible in pull-style processing?)
-                return read_next_tuples_logical(target_operator);
-            }
-        }
-
-        inline void read_next_tuples_logical(const Operator::ptr_t& target_operator) {
-            long tuples_count = tuples_.size();
-            long read_count;
-
-            if (tuples_count != window_.width) {
-                // this is the first time
-                read_count = window_.width;
-                tuples_.resize(window_.width);
-            } else {
-                read_count = window_.stride; // read a tuple ${stride of sliding window} times
-            }
-
-            for (int i = 0; i < read_count; ++i) {
-                tuples_[get_next_index_()] = target_operator->process_next();
-            }
-        }
-
-        inline void read_next_tuples_physical(const Operator::ptr_t& target_operator) const {
-            // not implemented yet
-        }
-
         inline std::vector<Tuple::ptr_t>::const_iterator begin() const {
             return tuples_.begin();
         }
