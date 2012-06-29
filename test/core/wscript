@@ -20,4 +20,5 @@ def build(bld):
     do_test("test_tuple")
     do_test("test_object")
     do_test("test_operation")
+    do_test("test_stream")
     bld.recurse(subdirs)
