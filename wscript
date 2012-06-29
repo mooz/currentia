@@ -10,7 +10,8 @@ testdir   = "test"
 subdirs   = " ".join([sourcedir, testdir])
 
 # cxx flags
-cxxflags = ["-O3", "-Wall", "-g", "-pipe", "-std=gnu++0x"]
+cxxflags = ["-O3", "-Wall", "-g", "-pipe",
+            "-std=gnu++0x", "-DCURRENTIA_ENABLE_TRANSACTION"]
 
 def options(opt):
     opt.load("unittestt", tooldir=testdir)
@@ -22,6 +23,7 @@ def configure(conf):
     conf.env.append_value("CXXFLAGS", cxxflags)
     conf.load("unittestt", tooldir=testdir)
     conf.check_cxx(lib="gtest_main", uselib_store="GTEST_MAIN")
+    conf.check_cxx(lib="pthread", uselib_store="PTHREAD")
     conf.recurse(subdirs)
 
 def build(bld):

@@ -12,7 +12,7 @@
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
 
-#include <tr1/functional>
+#include <functional>
 
 namespace currentia {
     class OperatorMean: public SingleInputOperator,
@@ -27,7 +27,7 @@ namespace currentia {
                      const std::string& target_attribute_name):
             SingleInputOperator(parent_operator_ptr),
             AggregationOperator(window,
-                                std::tr1::bind(&OperatorMean::calculate_mean_, this)),
+                                std::bind(&OperatorMean::calculate_mean_, this)),
             target_attribute_name_(target_attribute_name),
             sum_(0.0),
             window_width_object_(static_cast<double>(window.width)) {

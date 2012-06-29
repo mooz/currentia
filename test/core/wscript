@@ -15,10 +15,11 @@ def build(bld):
             source   = name + '.cpp',
             includes = '../../src',
             target   = name,
-            uselib   = 'GTEST_MAIN'
+            uselib   = 'GTEST_MAIN PTHREAD'
         )
     do_test("test_tuple")
     do_test("test_object")
     do_test("test_operation")
     do_test("test_stream")
+    do_test("test_synopsis")
     bld.recurse(subdirs)

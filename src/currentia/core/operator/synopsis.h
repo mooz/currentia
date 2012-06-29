@@ -5,9 +5,10 @@
 
 #include <vector>
 #include <assert.h>
-#include <tr1/functional>
+#include <functional>
 
 #include "currentia/core/operator/operator.h"
+#include "currentia/core/relation.h"
 #include "currentia/core/thread.h"
 #include "currentia/core/tuple.h"
 #include "currentia/core/window.h"
@@ -17,7 +18,7 @@ namespace currentia {
     class Synopsis: private NonCopyable<Synopsis> {
     public:
         typedef std::vector<Tuple::ptr_t>::const_iterator const_iterator;
-        typedef std::tr1::function<void(void)> callback_t;
+        typedef std::function<void(void)> callback_t;
 
     private:
         pthread_mutex_t mutex_;
@@ -104,6 +105,32 @@ namespace currentia {
 
         void set_on_accept(callback_t on_accept) {
             on_accept_ = on_accept;
+        }
+
+        bool has_reference_consistency() {
+            // TODO: stop queueing (take lock)
+
+            auto tuple_iter = begin();
+            auto tuple_iter_end = end();
+
+            Tuple::ptr_t first_tuple = *tuple_iter++;
+
+            for (; tuple_iter != tuple_iter_end; ++tuple_iter) {
+                Tuple::ptr_t non_first_tuple = *tuple_iter; // cost
+
+                auto first_version_iter = first_tuple->referenced_version_numbers_begin();
+                auto first_version_iter_end = first_tuple->referenced_version_numbers_end();
+
+                for (; first_version_iter != first_version_iter_end; ++first_version_iter) {
+                    Relation::ptr_t relation = first_version_iter->first;
+                    long version = first_version_iter->second;
+                    if (non_first_tuple->get_referenced_version_number(relation) != version) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
     private:
