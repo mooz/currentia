@@ -104,6 +104,7 @@ namespace currentia {
                                another_stream->tuple_ptrs_.end());
         }
 
+        // TODO: take all iterable
         void insert_head(const QueueType& another_tuples) {
             thread::ScopedLock lock(&mutex_);
             tuple_ptrs_.insert(tuple_ptrs_.end(),
