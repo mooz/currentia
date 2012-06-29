@@ -33,11 +33,21 @@ namespace currentia {
         typedef std::vector<Attribute> attributes_t;
         typedef std::map<std::string, int> attributes_index_t;
 
+    private:
+        long id_;
+        // TODO: give relation name
+        pthread_mutex_t schema_lock_;
+        bool is_schema_freezed_;
+
+        attributes_t attributes_;
+        attributes_index_t attributes_index_;
+
+    public:
         // TODO: use builder pattern? (e.g., builder.add_attribute(xx).add_attribute(yy).build())
         // TODO: Schema decides relation. So we need relation name!
         Schema():
+            id_(get_next_schema_id()),
             is_schema_freezed_(false) {
-            id_ = get_next_schema_id();
             pthread_mutex_init(&schema_lock_, NULL);
         }
 
@@ -198,14 +208,6 @@ namespace currentia {
             if (index < 0 || static_cast<unsigned int>(index) >= attributes_.size())
                 throw "This schema does not have a requested attribute";
         }
-
-        long id_;
-        // TODO: give relation name
-        pthread_mutex_t schema_lock_;
-        bool is_schema_freezed_;
-
-        attributes_t attributes_;
-        attributes_index_t attributes_index_;
     };
 }
 
