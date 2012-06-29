@@ -34,9 +34,9 @@ namespace currentia {
 
         virtual void obey_schema(const Schema::ptr_t& left_schema,
                                  const Schema::ptr_t& right_schema) = 0;
-        virtual void de_morgen() = 0;
-        virtual void shove_negation() = 0;
-        virtual void distribute_disjunction() = 0;
+        virtual void de_morgen() {}
+        virtual void shove_negation() {}
+        virtual void distribute_disjunction() {}
 
         virtual std::string to_string_expression() const = 0;
         virtual bool equal_to(const Condition::ptr_t& target_condition) const = 0;
@@ -272,18 +272,6 @@ namespace currentia {
             }
         }
 
-        void de_morgen() {
-            // nothing
-        }
-
-        void shove_negation() {
-            // nothing
-        }
-
-        void distribute_disjunction() {
-            // nothing
-        }
-
         std::string to_string_expression() const {
             return target_attribute_name_ + " " +
                 comparator_to_string(comparator_type_) + " " +
@@ -370,18 +358,6 @@ namespace currentia {
                << ") are missing in schemas " << left_schema->toString()
                << " or " << right_schema->toString();
             throw ss.str();
-        }
-
-        void de_morgen() {
-            // nothing
-        }
-
-        void shove_negation() {
-            // nothing
-        }
-
-        void distribute_disjunction() {
-            // nothing
         }
 
         std::string to_string_expression() const {
