@@ -1,1 +1,1 @@
-((c++-mode . ((flymake-additional-compilation-flags . ("-I/home/masa/src/currentia/src/" "-std=gnu++0x")))))
+((c++-mode . ((flymake-additional-compilation-flags . ("-I/home/masa/src/currentia/src/" "-std=gnu++0x" "-DCURRENTIA_ENABLE_TRANSACTION")))))
