@@ -39,7 +39,7 @@ namespace currentia {
             return true;
         }
 
-        Tuple::ptr_t next_implementation() {
+        void next_implementation() {
             Tuple::ptr_t left_input_tuple = left_input_stream_->non_blocking_dequeue();
             if (is_concrete_input(left_input_tuple))
                 process_left_input(left_input_tuple);
@@ -47,12 +47,10 @@ namespace currentia {
             Tuple::ptr_t right_input_tuple = right_input_stream_->non_blocking_dequeue();
             if (is_concrete_input(right_input_tuple))
                 process_right_input(right_input_tuple);
-
-            return Tuple::ptr_t();
         }
 
-        virtual Tuple::ptr_t process_left_input(Tuple::ptr_t input) = 0;
-        virtual Tuple::ptr_t process_right_input(Tuple::ptr_t input) = 0;
+        virtual void process_left_input(Tuple::ptr_t input) = 0;
+        virtual void process_right_input(Tuple::ptr_t input) = 0;
 
     public:
         const Operator::ptr_t get_parent_left_operator() const {

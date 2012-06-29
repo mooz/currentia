@@ -20,9 +20,8 @@ namespace currentia {
             set_output_stream(Stream::from_schema(input_stream_ptr->get_schema()));
         }
 
-        Tuple::ptr_t next_implementation() {
+        void next_implementation() {
             output_tuple(input_stream_ptr_->dequeue());
-            return Tuple::ptr_t();
         }
 
     public:

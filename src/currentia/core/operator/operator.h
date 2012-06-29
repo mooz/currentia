@@ -15,7 +15,7 @@ namespace currentia {
     class Operator: private NonCopyable<Operator>,
                     public Pointable<Operator> {
     public:
-        typedef void (*process_hook_t)(const Tuple::ptr_t&);
+        typedef void (*process_hook_t)();
 
     private:
         std::list<process_hook_t> after_process_hook;
@@ -33,21 +33,19 @@ namespace currentia {
         virtual ~Operator() = 0;
 
         // get next tuple from input stream and process
-        Tuple::ptr_t process_next() {
-            Tuple::ptr_t result = next_implementation();
+        void process_next() {
+            next_implementation();
 
-            if (!after_process_hook.empty()) {
-                for (std::list<process_hook_t>::iterator process_iterator = after_process_hook.begin();
-                     process_iterator != after_process_hook.end();
-                     ++process_iterator) {
-                    (*process_iterator)(result);
-                }
-            }
-
-            return result;
+            // if (!after_process_hook.empty()) {
+            //     for (std::list<process_hook_t>::iterator process_iterator = after_process_hook.begin();
+            //          process_iterator != after_process_hook.end();
+            //          ++process_iterator) {
+            //         (*process_iterator)();
+            //     }
+            // }
         }
 
-        virtual Tuple::ptr_t next_implementation() = 0;
+        virtual void next_implementation() = 0;
 
         // Returns the schema of this operator's output stream
         Schema::ptr_t get_output_schema_ptr() {

@@ -21,9 +21,8 @@ namespace currentia {
             set_output_stream(Stream::from_schema(parent_operator_ptr->get_output_schema_ptr()));
         }
 
-        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
+        void process_single_input(Tuple::ptr_t input_tuple) {
             output_tuple(input_tuple);
-            return Tuple::ptr_t();
         }
 
         virtual std::string toString() const {

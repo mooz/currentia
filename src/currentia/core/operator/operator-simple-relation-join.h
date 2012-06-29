@@ -50,7 +50,7 @@ namespace currentia {
             );
         }
 
-        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
+        void process_single_input(Tuple::ptr_t input_tuple) {
             thread::ScopedLock lock = relation_->get_scoped_lock();
 
             std::list<Tuple::ptr_t>::const_iterator relation_iter = relation_->get_tuple_iterator();
@@ -61,8 +61,6 @@ namespace currentia {
                     output_tuple(Tuple::create(joined_schema_ptr_, combined_data));
                 }
             }
-
-            return Tuple::ptr_t();
         }
 
         void set_current_relation(const Relation::ptr_t& new_relation) {

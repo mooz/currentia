@@ -25,9 +25,8 @@ namespace currentia {
             set_output_stream(Stream::from_schema(new_schema_ptr_));
         }
 
-        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
+        void process_single_input(Tuple::ptr_t input_tuple) {
             output_tuple(project_attributes(input_tuple));
-            return Tuple::ptr_t();
         }
 
     private:

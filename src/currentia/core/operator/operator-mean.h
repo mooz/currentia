@@ -37,9 +37,8 @@ namespace currentia {
             set_output_stream(Stream::from_schema(output_stream_schema));
         }
 
-        Tuple::ptr_t process_single_input(Tuple::ptr_t input_tuple) {
+        void process_single_input(Tuple::ptr_t input_tuple) {
             synopsis_.enqueue(input_tuple);
-            return Tuple::ptr_t();
         }
 
     private:

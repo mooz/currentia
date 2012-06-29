@@ -48,14 +48,12 @@ namespace currentia {
         typedef std::list<Tuple::ptr_t> join_results_t;
 
 
-        Tuple::ptr_t process_left_input(Tuple::ptr_t input) {
+        void process_left_input(Tuple::ptr_t input) {
             left_synopsis_.enqueue(input);
-            return Tuple::ptr_t();
         }
 
-        Tuple::ptr_t process_right_input(Tuple::ptr_t input) {
+        void process_right_input(Tuple::ptr_t input) {
             right_synopsis_.enqueue(input);
-            return Tuple::ptr_t();
         }
 
     private:
