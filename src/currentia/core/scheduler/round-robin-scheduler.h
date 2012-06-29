@@ -22,6 +22,14 @@ namespace currentia {
             operators_ = serializer_.get_sorted_operators();
         }
 
+        static bool is_aggregation_operator(const Operator* op) {
+            return !!dynamic_cast<const TraitAggregationOperator*>(op);
+        }
+
+        static bool is_resource_reference_operator(const Operator* op) {
+            return !!dynamic_cast<const TraitResourceReferenceOperator*>(op);
+        }
+
         void wake_up() {
             Operator* next_operator = get_next_operator_();
             try {
