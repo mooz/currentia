@@ -19,7 +19,6 @@ namespace currentia {
     class Tuple: private NonCopyable<Tuple>,
                  public Pointable<Tuple> {
     public:
-        // typedef std::shared_ptr<std::vector<Object> > data_ptr_t;
         typedef std::vector<Object> data_t;
 
         enum Type {
@@ -27,6 +26,24 @@ namespace currentia {
             EOS,    // Punctuation (End of Stream)
         };
 
+    private:
+        Type type_;
+
+        Schema::ptr_t schema_ptr_;
+        data_t data_;
+        time_t arrived_time_; // system timestamp
+
+        Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time):
+            type_(DATA),
+            schema_ptr_(schema_ptr),
+            data_(data),
+            arrived_time_(arrived_time) {
+        }
+
+        Tuple(Type type): type_(type) {
+        }
+
+    public:
         static Tuple::ptr_t create_eos() {
             return Tuple::ptr_t(new Tuple(EOS));
         }
@@ -111,22 +128,6 @@ namespace currentia {
         }
 
     private:
-        Type type_;
-
-        Schema::ptr_t schema_ptr_;
-        data_t data_;
-        time_t arrived_time_; // system timestamp
-
-        Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time):
-            type_(DATA),
-            schema_ptr_(schema_ptr),
-            data_(data),
-            arrived_time_(arrived_time) {
-        }
-
-        Tuple(Type type): type_(type) {
-        }
-
         void assert_has_attribute_(int index) const {
             if (index < 0 || static_cast<unsigned int>(index) >= data_.size()) {
                 std::cerr << "Requested " << index << " but size is " << data_.size() << std::endl;
