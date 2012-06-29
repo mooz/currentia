@@ -6,6 +6,7 @@
 #include "currentia/core/object.h"
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/single-input-operator.h"
+#include "currentia/core/operator/trait-resource-reference-operator.h"
 #include "currentia/core/operator/synopsis.h"
 #include "currentia/core/relation.h"
 #include "currentia/core/stream.h"
@@ -17,6 +18,7 @@
 namespace currentia {
     // Equi-Join
     class OperatorSimpleRelationJoin: public SingleInputOperator,
+                                      public TraitResourceReferenceOperator,
                                       public Pointable<OperatorSimpleRelationJoin> {
         Relation::ptr_t relation_;
         Condition::ptr_t join_condition_;
@@ -35,6 +37,7 @@ namespace currentia {
                                    Relation::ptr_t relation,
                                    const Condition::ptr_t& join_condition):
             SingleInputOperator(parent_operator_ptr),
+            TraitResourceReferenceOperator({ relation }),
             // Initialize members
             relation_(relation),
             join_condition_(join_condition),

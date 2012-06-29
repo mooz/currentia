@@ -3,9 +3,10 @@
 #ifndef CURRENTIA_ROUND_ROBIN_SCHEDULER_H_
 #define CURRENTIA_ROUND_ROBIN_SCHEDULER_H_
 
-#include "currentia/core/scheduler/abstract-scheduler.h"
 #include "currentia/core/operator/operator-visitor-serializer.h"
-#include "currentia/core/operator/aggregation-operator.h"
+#include "currentia/core/operator/trait-aggregation-operator.h"
+#include "currentia/core/operator/trait-resource-reference-operator.h"
+#include "currentia/core/scheduler/abstract-scheduler.h"
 
 namespace currentia {
     class RoundRobinScheduler : public AbstractScheduler {

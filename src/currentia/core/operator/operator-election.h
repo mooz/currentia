@@ -5,19 +5,19 @@
 
 #include "currentia/core/tuple.h"
 #include "currentia/core/operator/single-input-operator.h"
-#include "currentia/core/operator/aggregation-operator.h"
+#include "currentia/core/operator/trait-aggregation-operator.h"
 
 #include <tr1/functional>
 
 namespace currentia {
     // Election (Aggregation operator)
     class OperatorElection: public SingleInputOperator,
-                            public AggregationOperator {
+                            public TraitAggregationOperator {
     public:
         OperatorElection(Operator::ptr_t parent_operator_ptr, Window window):
             SingleInputOperator(parent_operator_ptr),
-            AggregationOperator(window,
-                                std::tr1::bind(&OperatorElection::elect_tuple_, this)) {
+            TraitAggregationOperator(window,
+                                     std::tr1::bind(&OperatorElection::elect_tuple_, this)) {
             set_output_stream(Stream::from_schema(parent_operator_ptr->get_output_schema_ptr()));
         }
 

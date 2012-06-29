@@ -8,7 +8,7 @@
 #include "currentia/core/operation/operations.h"
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/single-input-operator.h"
-#include "currentia/core/operator/aggregation-operator.h"
+#include "currentia/core/operator/trait-aggregation-operator.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
 
@@ -16,7 +16,7 @@
 
 namespace currentia {
     class OperatorMean: public SingleInputOperator,
-                        public AggregationOperator {
+                        public TraitAggregationOperator {
         std::string target_attribute_name_;
         Object sum_;
         Object window_width_object_;
@@ -26,8 +26,8 @@ namespace currentia {
                      Window window,
                      const std::string& target_attribute_name):
             SingleInputOperator(parent_operator_ptr),
-            AggregationOperator(window,
-                                std::bind(&OperatorMean::calculate_mean_, this)),
+            TraitAggregationOperator(window,
+                                     std::bind(&OperatorMean::calculate_mean_, this)),
             target_attribute_name_(target_attribute_name),
             sum_(0.0),
             window_width_object_(static_cast<double>(window.width)) {

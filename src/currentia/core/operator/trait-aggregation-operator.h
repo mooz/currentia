@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_OPERATOR_AGGREGATION_H_
-#define CURRENTIA_OPERATOR_AGGREGATION_H_
+#ifndef CURRENTIA_TRAIT_AGGREGATION_OPERATOR_H_
+#define CURRENTIA_TRAIT_AGGREGATION_OPERATOR_H_
 
 #include "currentia/core/window.h"
 #include "currentia/core/operator/synopsis.h"
@@ -10,7 +10,7 @@
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
-    class AggregationOperator {
+    class TraitAggregationOperator {
     public:
         enum Error {
             LOST_CONSISTENCY
@@ -22,16 +22,16 @@ namespace currentia {
 
         Synopsis::callback_t on_accept_;
 
-        AggregationOperator(Window window,
-                            const Synopsis::callback_t& on_accept):
+        TraitAggregationOperator(Window window,
+                                 const Synopsis::callback_t& on_accept):
             window_(window),
             synopsis_(window),
             on_accept_(on_accept) {
             // Setup handler
-            synopsis_.set_on_accept(std::bind(&AggregationOperator::on_accept_wrapper_, this));
+            synopsis_.set_on_accept(std::bind(&TraitAggregationOperator::on_accept_wrapper_, this));
         }
 
-        virtual ~AggregationOperator() = 0;
+        virtual ~TraitAggregationOperator() = 0;
 
     private:
         void on_accept_wrapper_() {
@@ -44,7 +44,7 @@ namespace currentia {
         }
     };
 
-    AggregationOperator::~AggregationOperator() {}
+    TraitAggregationOperator::~TraitAggregationOperator() {}
 }
 
-#endif  /* ! CURRENTIA_OPERATOR_AGGREGATION_H_ */
+#endif  /* ! CURRENTIA_TRAIT_AGGREGATION_OPERATOR_H_ */
