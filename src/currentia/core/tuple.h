@@ -13,8 +13,6 @@
 #include <vector>
 #include <ctime>
 
-#define CURRENTIA_ENABLE_TRANSACTION
-
 #ifdef CURRENTIA_ENABLE_TRANSACTION
 #include <unordered_map>
 #endif
@@ -46,17 +44,27 @@ namespace currentia {
         time_t arrived_time_; // system timestamp
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-        std::map<std::shared_ptr<Relation>, long> read_version_numbers_;
+        typedef std::map<std::shared_ptr<Relation>, long> version_numbers_t;
+        version_numbers_t referenced_version_numbers_;
 
     public:
-        void set_read_version_number(const std::shared_ptr<Relation>& relation, long verison) {
-            read_version_numbers_[relation] = verison;
+        void set_referenced_version_number(const std::shared_ptr<Relation>& relation, long verison) {
+            referenced_version_numbers_[relation] = verison;
         }
 
-        long get_read_version_number(const std::shared_ptr<Relation>& relation) {
-            if (read_version_numbers_.find(relation) != read_version_numbers_.end())
-                return read_version_numbers_[relation];
+        long get_referenced_version_number(const std::shared_ptr<Relation>& relation) const {
+            auto it = referenced_version_numbers_.find(relation);
+            if (it != referenced_version_numbers_.end())
+                return it->second;
             return -1;
+        }
+
+        version_numbers_t::const_iterator referenced_version_numbers_begin() const {
+            return referenced_version_numbers_.begin();
+        }
+
+        version_numbers_t::const_iterator referenced_version_numbers_end() const {
+            return referenced_version_numbers_.end();
         }
 
     private:
@@ -112,6 +120,19 @@ namespace currentia {
                 break;
             }
             ss << ")";
+
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            ss << "[";
+            auto iter = referenced_version_numbers_begin();
+            auto iter_end = referenced_version_numbers_end();
+            while (iter != iter_end) {
+                ss << iter->second;
+                if (++iter == iter_end)
+                    break;
+                ss << ", ";
+            }
+            ss << "]";
+#endif
 
             return ss.str();
         }

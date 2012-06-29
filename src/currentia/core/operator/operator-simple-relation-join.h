@@ -61,7 +61,7 @@ namespace currentia {
                     Tuple::ptr_t combined_tuple = Tuple::create(joined_schema_ptr_, combined_data);
 
 // #ifdef CURRENTIA_ENABLE_TRANSACTION
-                    combined_tuple->set_read_version_number(relation_, relation_->get_version_number());
+                    combined_tuple->set_referenced_version_number(relation_, relation_->get_version_number());
 // #endif
 
                     output_tuple(combined_tuple);
