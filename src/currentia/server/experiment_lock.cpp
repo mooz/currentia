@@ -12,7 +12,6 @@
 #include "currentia/query/cpl-parse.h"
 
 #include <sys/time.h>
-#include <sched.h>
 #include <iostream>
 
 using namespace currentia;
