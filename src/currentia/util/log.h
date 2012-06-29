@@ -13,8 +13,13 @@
 #include "currentia/trait/non-copyable.h"
 
 namespace currentia {
-    namespace core {
+    namespace system {
         // http://stackoverflow.com/questions/2638654/redirect-c-stdclog-to-syslog-on-unix
+        //
+        // == Usage ==
+        //
+        // std::clog.rdbuf(new system::Log("currentia"));
+        // std::clog << "Test" << std::endl;
 
         enum LogPriority {
             kLogEmerg   = LOG_EMERG,   // system is unusable
