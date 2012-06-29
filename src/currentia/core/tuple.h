@@ -3,16 +3,19 @@
 #ifndef CURRENTIA_TUPLE_H_
 #define CURRENTIA_TUPLE_H_
 
-#include "currentia/core/schema.h"
 #include "currentia/core/object.h"
 #include "currentia/core/pointer.h"
-
+#include "currentia/core/schema.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
 
 #include <sstream>              // string_stream
 #include <vector>
 #include <ctime>
+
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+#include <unordered_map>
+#endif
 
 namespace currentia {
     // Immutable
@@ -32,6 +35,28 @@ namespace currentia {
         Schema::ptr_t schema_ptr_;
         data_t data_;
         time_t arrived_time_; // system timestamp
+
+#define CURRENTIA_ENABLE_TRANSACTION
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        // (Since relation.h refers tuple.h, we cannot include
+        // relation.h and use Relation::ptr)
+        // TODO: more flexible (Do not hard-code 'Relation', allow user to select 'Tuple' or 'Page')
+        class Relation;
+        std::map<std::shared_ptr<Relation>, long> read_version_numbers_;
+
+    public:
+        void set_read_version_number(const std::shared_ptr<Relation>& relation, long verison) {
+            read_version_numbers_[relation] = verison;
+        }
+
+        long get_read_version_number(const std::shared_ptr<Relation>& relation) {
+            if (read_version_numbers_.find(relation) != read_version_numbers_.end())
+                return read_version_numbers_[relation];
+            return -1;
+        }
+
+    private:
+#endif
 
         Tuple(Schema::ptr_t schema_ptr, data_t data, time_t arrived_time):
             type_(DATA),
