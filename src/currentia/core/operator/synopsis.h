@@ -121,6 +121,9 @@ namespace currentia {
                 auto first_version_iter = first_tuple->referenced_version_numbers_begin();
                 auto first_version_iter_end = first_tuple->referenced_version_numbers_end();
 
+                // For all rerations in first tuple's lineage, check
+                // if the reference consistency is same for all other
+                // relations.
                 for (; first_version_iter != first_version_iter_end; ++first_version_iter) {
                     Relation::ptr_t relation = first_version_iter->first;
                     long version = first_version_iter->second;
