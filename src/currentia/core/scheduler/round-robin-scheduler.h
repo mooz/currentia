@@ -34,8 +34,8 @@ namespace currentia {
             Operator* next_operator = get_next_operator_();
             try {
                 next_operator->process_next();
-            } catch (AggregationOperator::Error x) {
-                if (x == AggregationOperator::LOST_CONSISTENCY)
+            } catch (TraitAggregationOperator::Error x) {
+                if (x == TraitAggregationOperator::LOST_CONSISTENCY)
                     std::cout << "Consistency Failure" << std::endl;
                 else
                     throw x;
