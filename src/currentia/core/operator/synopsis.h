@@ -133,6 +133,37 @@ namespace currentia {
             return true;
         }
 
+        std::string get_versions_string() {
+            std::stringstream ss;
+
+            auto tuple_iter = begin();
+            auto tuple_iter_end = end();
+
+            ss << "(";
+
+            for (; tuple_iter != tuple_iter_end;) {
+                Tuple::ptr_t non_first_tuple = *tuple_iter; // cost
+
+                auto version_iter = (*tuple_iter)->referenced_version_numbers_begin();
+                auto version_iter_end = (*tuple_iter)->referenced_version_numbers_end();
+
+                for (; version_iter != version_iter_end; ++version_iter) {
+                    Relation::ptr_t relation = version_iter->first;
+                    long version = version_iter->second;
+                    ss << version;
+                }
+
+                ++tuple_iter;
+                if (tuple_iter == tuple_iter_end)
+                    break;
+                ss << ", ";
+            }
+
+            ss << ")";
+
+            return ss.str();
+        }
+
     private:
 
         void accept_newcomers_logical_() {
