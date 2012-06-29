@@ -100,12 +100,16 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() const {
+        std::string toString() const {
             std::stringstream ss;
             ss << "(\n {\n  " << parent_left_operator_ptr_->toString()
                << "\n },\n {\n  " << parent_right_operator_ptr_->toString()
-               << "\n }\n)\n -> Join(" << join_condition_->toString() << ")";
+               << "\n }\n)\n -> " << get_name() << "(" << join_condition_->toString() << ")";
             return ss.str();
+        }
+
+        std::string get_name() const {
+            return std::string("Join");
         }
     };
 }

@@ -25,8 +25,12 @@ namespace currentia {
             output_tuple(input_tuple);
         }
 
-        virtual std::string toString() const {
-            return parent_operator_ptr_->toString() + std::string(" -> Election");
+        std::string toString() const {
+            return parent_operator_ptr_->toString() + std::string(" -> ") + get_name();
+        }
+
+        std::string get_name() const {
+            return std::string("Election");
         }
 
     private:

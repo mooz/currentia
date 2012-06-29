@@ -71,9 +71,9 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() const {
+        std::string toString() const {
             std::stringstream ss;
-            ss << parent_operator_ptr_->toString() << "\n -> Projection(";
+            ss << parent_operator_ptr_->toString() << "\n -> " << get_name() << "(";
 
             target_attribute_names_t::const_iterator iter = target_attribute_names_.begin();
             while (iter != target_attribute_names_.end()) {
@@ -85,6 +85,10 @@ namespace currentia {
 
             ss << ")";
             return ss.str();
+        }
+
+        std::string get_name() const {
+            return std::string("Projection");
         }
     };
 }

@@ -47,10 +47,15 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() const {
+        std::string toString() const {
             std::stringstream ss;
-            ss << parent_operator_ptr_->toString() << "\n -> Selection(" << condition_ptr_->toString() << ")";
+            ss << parent_operator_ptr_->toString() << "\n -> " << get_name()
+               << "(" << condition_ptr_->toString() << ")";
             return ss.str();
+        }
+
+        std::string get_name() const {
+            return std::string("Selection");
         }
     };
 }

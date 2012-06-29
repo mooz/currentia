@@ -64,8 +64,12 @@ namespace currentia {
     public:
         std::string toString() const {
             std::stringstream ss;
-            ss << parent_operator_ptr_->toString() << "\n -> Mean(" << window_.toString() << ")";
+            ss << parent_operator_ptr_->toString() << "\n -> " << get_name() << "(" << window_.toString() << ")";
             return ss.str();
+        }
+
+        std::string get_name() const {
+            return std::string("Mean");
         }
     };
 }

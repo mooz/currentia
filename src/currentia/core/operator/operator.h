@@ -70,6 +70,7 @@ namespace currentia {
         }
 
         virtual std::string toString() const = 0;
+        virtual std::string get_name() const = 0;
     };
 
     Operator::~Operator() {}

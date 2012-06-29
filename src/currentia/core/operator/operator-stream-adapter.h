@@ -25,7 +25,11 @@ namespace currentia {
         }
 
     public:
-        virtual std::string toString() const {
+        std::string toString() const {
+            return get_name();
+        }
+
+        std::string get_name() const {
             return std::string("Stream-Adapter");
         }
     };
