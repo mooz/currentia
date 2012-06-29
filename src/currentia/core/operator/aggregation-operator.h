@@ -11,6 +11,11 @@
 
 namespace currentia {
     class AggregationOperator {
+    public:
+        enum Error {
+            LOST_CONSISTENCY
+        };
+
     protected:
         Window window_;
         Synopsis synopsis_;
@@ -30,10 +35,12 @@ namespace currentia {
 
     private:
         void on_accept_wrapper_() {
+            std::cout << synopsis_.has_reference_consistency() << std::endl;
+
             if (synopsis_.has_reference_consistency())
                 on_accept_();
             else
-                throw std::string("Consistency Failure");
+                throw LOST_CONSISTENCY;
         }
     };
 

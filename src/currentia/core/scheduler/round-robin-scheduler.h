@@ -5,6 +5,7 @@
 
 #include "currentia/core/scheduler/abstract-scheduler.h"
 #include "currentia/core/operator/operator-visitor-serializer.h"
+#include "currentia/core/operator/aggregation-operator.h"
 
 namespace currentia {
     class RoundRobinScheduler : public AbstractScheduler {
@@ -22,7 +23,14 @@ namespace currentia {
 
         void wake_up() {
             Operator* next_operator = get_next_operator_();
-            next_operator->process_next();
+            try {
+                next_operator->process_next();
+            } catch (AggregationOperator::Error x) {
+                if (x == AggregationOperator::LOST_CONSISTENCY)
+                    std::cout << "Consistency Failure" << std::endl;
+                else
+                    throw x;
+            }
         }
 
     private:
