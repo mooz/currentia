@@ -13,11 +13,20 @@
 #include <vector>
 #include <ctime>
 
+#define CURRENTIA_ENABLE_TRANSACTION
+
 #ifdef CURRENTIA_ENABLE_TRANSACTION
 #include <unordered_map>
 #endif
 
 namespace currentia {
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        // (Since relation.h refers tuple.h, we cannot include
+        // relation.h and use Relation::ptr)
+        // TODO: more flexible (Do not hard-code 'Relation', allow user to select 'Tuple' or 'Page')
+    class Relation;
+#endif
+
     // Immutable
     class Tuple: private NonCopyable<Tuple>,
                  public Pointable<Tuple> {
@@ -36,12 +45,7 @@ namespace currentia {
         data_t data_;
         time_t arrived_time_; // system timestamp
 
-#define CURRENTIA_ENABLE_TRANSACTION
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-        // (Since relation.h refers tuple.h, we cannot include
-        // relation.h and use Relation::ptr)
-        // TODO: more flexible (Do not hard-code 'Relation', allow user to select 'Tuple' or 'Page')
-        class Relation;
         std::map<std::shared_ptr<Relation>, long> read_version_numbers_;
 
     public:
