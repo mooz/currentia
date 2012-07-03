@@ -92,19 +92,9 @@ new_stream(A) ::= STREAM NAME(StreamName) LPAREN attributes(Attributes) RPAREN. 
 
 %type derived_stream { CPLDerivedStream* }
 %destructor derived_stream { delete $$; }
-derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE operations(Operations) RBRACE. {
+derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) operations_block(Operations). {
     DeriveInfo->stream_name = *NewStreamName;
     DeriveInfo->operations_ptr = Operations;
-    A = DeriveInfo;
-}
-derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) LBRACE RBRACE. {
-    DeriveInfo->stream_name = *NewStreamName;
-    DeriveInfo->operations_ptr = NULL;
-    A = DeriveInfo;
-}
-derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo). {
-    DeriveInfo->stream_name = *NewStreamName;
-    DeriveInfo->operations_ptr = NULL;
     A = DeriveInfo;
 }
 
@@ -115,6 +105,17 @@ derived_from(A) ::= NAME(Left) window(W1) COMMA NAME(Right) window(W2) WHERE con
 }
 derived_from(A) ::= NAME(StreamName). {
     A = new CPLSingleStream(*StreamName);
+}
+
+%type operations_block { std::list<CPLOperationInfo*>* }
+operations_block(A) ::= LBRACE operations(Operations) RBRACE. {
+    A = Operations;
+}
+operations_block(A) ::= LBRACE RBRACE. {
+    A = NULL;
+}
+operations_block(A) ::= . {
+    A = NULL;
 }
 
 // ------------------------------------------------------------
