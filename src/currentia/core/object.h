@@ -9,12 +9,13 @@
 
 #include "currentia/core/pointer.h"
 #include "currentia/core/operator/comparator.h"
-
+#include "currentia/trait/show.h"
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
     // copyable
-    class Object : public Pointable<Object> {
+    class Object : public Pointable<Object>,
+                   public Show {
     public:
         friend class Operations;
 

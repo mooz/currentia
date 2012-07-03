@@ -5,9 +5,11 @@
 
 #include "currentia/core/object.h"
 #include "currentia/trait/printable.h"
+#include "currentia/trait/show.h"
 
 namespace currentia {
-    struct Attribute : public Printable<Attribute> {
+    struct Attribute : public Printable<Attribute>,
+                       public Show {
         std::string  name;
         Object::Type type;
 
@@ -22,7 +24,8 @@ namespace currentia {
     };
 
     // TODO: is this header file is suitable for placing this class?
-    struct AttributeIdentifier : public Printable<AttributeIdentifier> {
+    struct AttributeIdentifier : public Printable<AttributeIdentifier>,
+                                 public Show {
         std::string name;
         std::string stream_name;
 

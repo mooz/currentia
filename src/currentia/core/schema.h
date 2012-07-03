@@ -11,6 +11,7 @@
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/printable.h"
 #include "currentia/trait/pointable.h"
+#include "currentia/trait/show.h"
 
 #include <map>
 #include <vector>
@@ -27,7 +28,8 @@ namespace currentia {
     }
 
     class Schema: private NonCopyable<Schema>,
-                  public Pointable<Schema> {
+                  public Pointable<Schema>,
+                  public Show {
     public:
         // types
         typedef std::vector<Attribute> attributes_t;

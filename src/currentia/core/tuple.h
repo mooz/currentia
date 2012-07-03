@@ -8,6 +8,7 @@
 #include "currentia/core/schema.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
+#include "currentia/trait/show.h"
 
 #include <sstream>              // string_stream
 #include <vector>
@@ -27,7 +28,8 @@ namespace currentia {
 
     // Immutable
     class Tuple: private NonCopyable<Tuple>,
-                 public Pointable<Tuple> {
+                 public Pointable<Tuple>,
+                 public Show {
     public:
         typedef std::vector<Object> data_t;
 

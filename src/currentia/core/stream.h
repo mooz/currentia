@@ -9,19 +9,21 @@
 #include "currentia/core/thread.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
+#include "currentia/trait/show.h"
 
 #include <deque>
 
 namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
     class Stream: private NonCopyable<Stream>,
-                  public Pointable<Stream> {
+                  public Pointable<Stream>,
+                  public Show {
         Schema::ptr_t schema_ptr_;
 
         typedef std::deque<Tuple::ptr_t> QueueType;
         QueueType tuple_ptrs_;
 
-        pthread_mutex_t mutex_;
+        mutable pthread_mutex_t mutex_;
         pthread_cond_t reader_wait_;
 
     public:
@@ -112,7 +114,7 @@ namespace currentia {
                                another_tuples.end());
         }
 
-        std::string toString() {
+        std::string toString() const {
             thread::ScopedLock lock(&mutex_);
 
             std::stringstream ss;

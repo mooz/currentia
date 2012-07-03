@@ -10,10 +10,12 @@
 
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
+#include "currentia/trait/show.h"
 
 namespace currentia {
     class Operator: private NonCopyable<Operator>,
-                    public Pointable<Operator> {
+                    public Pointable<Operator>,
+                    public Show {
     public:
         typedef void (*process_hook_t)();
 
@@ -69,7 +71,6 @@ namespace currentia {
             after_process_hook.push_back(hook);
         }
 
-        virtual std::string toString() const = 0;
         virtual std::string get_name() const = 0;
     };
 

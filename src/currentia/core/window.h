@@ -5,9 +5,10 @@
 
 #include <string>
 #include <sstream>
+#include "currentia/trait/show.h"
 
 namespace currentia {
-    struct Window {
+    struct Window : public Show {
     public:
         enum Type {
             TUPLE_BASE,

@@ -13,9 +13,11 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/window.h"
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/show.h"
 
 namespace currentia {
-    class Synopsis: private NonCopyable<Synopsis> {
+    class Synopsis: private NonCopyable<Synopsis>,
+                    public Show {
     public:
         typedef std::vector<Tuple::ptr_t>::const_iterator const_iterator;
         typedef std::function<void(void)> callback_t;

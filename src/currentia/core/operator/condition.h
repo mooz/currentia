@@ -9,12 +9,14 @@
 #include "currentia/core/operator/comparator.h"
 #include "currentia/trait/non-copyable.h"
 #include "currentia/trait/pointable.h"
+#include "currentia/trait/show.h"
 
 #include <list>
 
 namespace currentia {
     class Condition: private NonCopyable<Condition>,
-                     public Pointable<Condition> {
+                     public Pointable<Condition>,
+                     public Show {
     protected:
         bool negated_;
 
