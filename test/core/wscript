@@ -21,5 +21,6 @@ def build(bld):
     do_test("test_object")
     do_test("test_operation")
     do_test("test_stream")
+    do_test("test_backedup_stream")
     do_test("test_synopsis")
     bld.recurse(subdirs)

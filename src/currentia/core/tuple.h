@@ -87,9 +87,14 @@ namespace currentia {
             return Tuple::ptr_t(new Tuple(EOS));
         }
 
+        static time_t get_current_time() {
+            static long current_time = 1;
+            return current_time++;
+        }
+
         static Tuple::ptr_t create(Schema::ptr_t schema_ptr,
                                    data_t data) {
-            return Tuple::create(schema_ptr, data, time(NULL));
+            return Tuple::create(schema_ptr, data, get_current_time());
         }
 
         static Tuple::ptr_t create(Schema::ptr_t schema_ptr,
