@@ -12,12 +12,14 @@
 #include "currentia/trait/show.h"
 
 #include <deque>
+#include <algorithm>
 
 namespace currentia {
     /* Stream: just a queue for tuples with concurrent access possiblity */
     class Stream: private NonCopyable<Stream>,
                   public Pointable<Stream>,
                   public Show {
+    protected:
         Schema::ptr_t schema_ptr_;
 
         typedef std::deque<Tuple::ptr_t> QueueType;
@@ -40,7 +42,7 @@ namespace currentia {
         }
 
         // TODO: not exception safe
-        void enqueue(Tuple::ptr_t tuple_ptr) {
+        virtual void enqueue(Tuple::ptr_t tuple_ptr) {
             thread::ScopedLock lock(&mutex_);
 
             tuple_ptrs_.push_front(tuple_ptr);
@@ -131,11 +133,67 @@ namespace currentia {
             return ss.str();
         }
 
-    private:
+    protected:
         inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
             Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
             tuple_ptrs_.pop_back();
             return tuple_ptr;
+        }
+    };
+
+    class BackupStream: private NonCopyable<BackupStream>,
+                          public Pointable<BackupStream>,
+                          public Stream {
+        QueueType backup_tuple_ptrs_;
+
+    public:
+        typedef Pointable<BackupStream>::ptr_t ptr_t;
+
+        explicit
+        BackupStream(Schema::ptr_t schema_ptr):
+            Stream(schema_ptr) {
+        }
+
+        static BackupStream::ptr_t from_schema(const Schema::ptr_t& schema) {
+            return BackupStream::ptr_t(new BackupStream(schema));
+        }
+
+        virtual void enqueue(Tuple::ptr_t tuple_ptr) {
+            thread::ScopedLock lock(&mutex_);
+            tuple_ptrs_.push_front(tuple_ptr);
+            backup_tuple_ptrs_.push_front(tuple_ptr);
+            pthread_cond_broadcast(&reader_wait_);
+        }
+
+        void recover_from_backup() {
+            insert_head(backup_tuple_ptrs_);
+        }
+
+        struct IsOlderThan {
+            int base_time;
+            IsOlderThan(int base_time): base_time(base_time) {
+            }
+            bool operator ()(const Tuple::ptr_t& tuple) const {
+                std::clog << "If " << tuple->get_arrived_time() << " is older than " << base_time << std::endl;
+                return tuple->get_arrived_time() < base_time;
+            }
+        };
+
+        void evict_backup_tuples_older_than(time_t hwm) {
+            thread::ScopedLock lock(&mutex_);
+            backup_tuple_ptrs_.erase(
+                remove_if(backup_tuple_ptrs_.begin(),
+                          backup_tuple_ptrs_.end(), IsOlderThan(hwm)),
+                backup_tuple_ptrs_.end()
+            );
+        }
+
+        QueueType::const_iterator backup_tuple_begin() {
+            return backup_tuple_ptrs_.begin();
+        }
+
+        QueueType::const_iterator backup_tuple_end() {
+            return backup_tuple_ptrs_.end();
         }
     };
 }
