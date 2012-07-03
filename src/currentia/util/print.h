@@ -12,8 +12,11 @@ namespace currentia {
         void print_iterable(Iterator iter,
                             Iterator iter_end,
                             std::string delimiter = ", ") {
-            for (; iter != iter_end; ++iter) {
-                std::cout << *iter << delimiter;
+            for (;;) {
+                std::cout << *iter;
+                if (++iter == iter_end)
+                    break;
+                std::cout << delimiter;
             }
             std::cout << std::endl;
         }
