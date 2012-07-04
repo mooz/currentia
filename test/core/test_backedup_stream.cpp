@@ -9,11 +9,12 @@ using namespace currentia;
 class TestStream : public ::testing::Test {
 protected:
     Schema::ptr_t man_schema;
-    BackupStream::ptr_t stream;
+    Stream::ptr_t stream;
 
     TestStream():
         man_schema(create_man_schema()),
-        stream(BackupStream::from_schema(man_schema)) {
+        stream(Stream::from_schema(man_schema)) {
+        stream->set_backup_state(true);
     }
 
     virtual ~TestStream() {

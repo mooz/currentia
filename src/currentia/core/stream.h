@@ -19,7 +19,7 @@ namespace currentia {
     class Stream: private NonCopyable<Stream>,
                   public Pointable<Stream>,
                   public Show {
-    protected:
+    private:
         Schema::ptr_t schema_ptr_;
 
         typedef std::deque<Tuple::ptr_t> QueueType;
@@ -28,10 +28,14 @@ namespace currentia {
         mutable pthread_mutex_t mutex_;
         pthread_cond_t reader_wait_;
 
+        QueueType backup_tuple_ptrs_;
+        bool do_backup_;
+
     public:
         explicit
         Stream(Schema::ptr_t schema_ptr):
-            schema_ptr_(schema_ptr) {
+            schema_ptr_(schema_ptr),
+            do_backup_(false) {
             // initialize values for thread synchronization
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
@@ -42,10 +46,11 @@ namespace currentia {
         }
 
         // TODO: not exception safe
-        virtual void enqueue(Tuple::ptr_t tuple_ptr) {
+        void enqueue(Tuple::ptr_t tuple_ptr) {
             thread::ScopedLock lock(&mutex_);
-
             tuple_ptrs_.push_front(tuple_ptr);
+            if (do_backup_)
+                backup_tuple_ptrs_.push_front(tuple_ptr);
             // tell arrival of a tuple to waiting threads
             pthread_cond_broadcast(&reader_wait_);
         }
@@ -133,36 +138,18 @@ namespace currentia {
             return ss.str();
         }
 
-    protected:
+    private:
         inline Tuple::ptr_t dequeue_a_tuple_ptr_() {
             Tuple::ptr_t tuple_ptr = tuple_ptrs_.back();
             tuple_ptrs_.pop_back();
             return tuple_ptr;
         }
-    };
 
-    class BackupStream: private NonCopyable<BackupStream>,
-                        public Pointable<BackupStream>,
-                        public Stream {
-        QueueType backup_tuple_ptrs_;
-
+        // Backup
     public:
-        typedef Pointable<BackupStream>::ptr_t ptr_t;
-
-        explicit
-        BackupStream(Schema::ptr_t schema_ptr):
-            Stream(schema_ptr) {
-        }
-
-        static BackupStream::ptr_t from_schema(const Schema::ptr_t& schema) {
-            return BackupStream::ptr_t(new BackupStream(schema));
-        }
-
-        virtual void enqueue(Tuple::ptr_t tuple_ptr) {
+        void set_backup_state(bool backup) {
             thread::ScopedLock lock(&mutex_);
-            tuple_ptrs_.push_front(tuple_ptr);
-            backup_tuple_ptrs_.push_front(tuple_ptr);
-            pthread_cond_broadcast(&reader_wait_);
+            do_backup_ = backup;
         }
 
         void recover_from_backup() {
