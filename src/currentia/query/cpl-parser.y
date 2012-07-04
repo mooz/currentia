@@ -183,13 +183,19 @@ window_info(A) ::= RECENT window_value_tuple(Width) SLIDE window_value_tuple(Sli
 window_info(A) ::= RECENT window_value_tuple(Width). {
     A = new Window(Width, Width, Window::TUPLE_BASE);
 }
+window_info(A) ::= window_value_tuple(Width). {
+    A = new Window(Width, Width, Window::TUPLE_BASE);
+}
 window_info(A) ::= RECENT window_value_time(Width) SLIDE window_value_time(Slide). {
     A = new Window(Width, Slide, Window::TIME_BASE);
 }
 window_info(A) ::= RECENT window_value_time(Width). {
     A = new Window(Width, Width, Window::TIME_BASE);
 }
- 
+window_info(A) ::= window_value_time(Width). {
+    A = new Window(Width, Width, Window::TIME_BASE);
+}
+
 // --- tuple-base window value
 %type window_value_tuple { long }
 window_value_tuple(A) ::= number(N) window_type_tuple. {
