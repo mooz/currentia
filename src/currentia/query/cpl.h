@@ -77,6 +77,10 @@ namespace currentia {
                 return Operator::ptr_t();
             return it->second;
         }
+
+        Operator::ptr_t get_root_operator_by_stream_name(const std::string& name) {
+            return get_root_operator_for_stream(get_stream_by_name(name));
+        }
     };
 
     struct CPLRelationDeclaration {
@@ -147,12 +151,13 @@ namespace currentia {
         }
 
         Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) {
-            return Operator::ptr_t();
+            Stream::ptr_t stream = Stream::from_schema(Schema::from_attribute_pointers(*attributes_ptr));
+            return OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(stream));
         }
 
         Stream::ptr_t get_stream(CPLQueryContainer* query_container,
                                  const Operator::ptr_t& operator_tree) {
-            return Stream::from_schema(Schema::from_attribute_pointers(*attributes_ptr));
+            return operator_tree->get_output_stream();
         }
     };
 
@@ -279,6 +284,10 @@ namespace currentia {
             return stream_name;
         }
 
+        bool is_anonymous_stream() {
+            return stream_name == "";
+        }
+
         Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) {
             Operator::ptr_t current_root = get_source_operator(query_container);
 
@@ -302,38 +311,35 @@ namespace currentia {
     };
 
     struct CPLJoinedStream : public CPLDerivedStream {
-        std::string ancestor_stream_name1;
-        std::string ancestor_stream_name2;
+        Operator::ptr_t* left_operator_ptr_;
+        Operator::ptr_t* right_operator_ptr_;
         Condition::ptr_t condition_ptr;
 
         Window window1;
         Window window2;
 
-        CPLJoinedStream(const std::string& left_name,
+        CPLJoinedStream(Operator::ptr_t* left_operator_ptr,
                         Window window1,
-                        const std::string& right_name,
+                        Operator::ptr_t* right_operator_ptr,
                         Window window2,
                         Condition* condition_ptr):
             CPLDerivedStream(),
-            ancestor_stream_name1(left_name),
-            ancestor_stream_name2(right_name),
+            left_operator_ptr_(left_operator_ptr),
+            right_operator_ptr_(right_operator_ptr),
             condition_ptr(condition_ptr) {
         }
 
         ~CPLJoinedStream() {
+            delete left_operator_ptr_;
+            delete right_operator_ptr_;
         }
 
         Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) {
-            Stream::ptr_t ancestor_stream1 =
-                query_container->get_stream_by_name(ancestor_stream_name1);
-            Stream::ptr_t ancestor_stream2 =
-                query_container->get_stream_by_name(ancestor_stream_name2);
-
             return OperatorJoin::ptr_t(
                 new OperatorJoin(
-                    OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(ancestor_stream1)),
+                    Operator::ptr_t(*left_operator_ptr_),
                     window1,
-                    OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(ancestor_stream2)),
+                    Operator::ptr_t(*right_operator_ptr_),
                     window2,
                     condition_ptr
                 )
@@ -342,19 +348,19 @@ namespace currentia {
     };
 
     struct CPLSingleStream : public CPLDerivedStream {
-        std::string ancestor_stream_name;
+        Operator::ptr_t* root_operator_;
 
-        CPLSingleStream(const std::string& ancestor_stream_name):
+        CPLSingleStream(Operator::ptr_t* root_operator):
             CPLDerivedStream(),
-            ancestor_stream_name(ancestor_stream_name) {
+            root_operator_(root_operator) {
+        }
+
+        ~CPLSingleStream() {
+            delete root_operator_;
         }
 
         Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) {
-            Stream::ptr_t ancestor_stream =
-                query_container->get_stream_by_name(ancestor_stream_name);
-            return OperatorStreamAdapter::ptr_t(
-                new OperatorStreamAdapter(ancestor_stream)
-            );
+            return Operator::ptr_t(*root_operator_);
         }
     };
 }

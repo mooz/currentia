@@ -100,11 +100,32 @@ derived_stream(A) ::= STREAM NAME(NewStreamName) FROM derived_from(DeriveInfo) o
 
 %type derived_from { CPLDerivedStream* }
 %destructor derived_from { delete $$; }
-derived_from(A) ::= NAME(Left) window(W1) COMMA NAME(Right) window(W2) WHERE condition(Condition). {
-    A = new CPLJoinedStream(*Left, *W1, *Right, *W2, Condition);
+derived_from(A) ::= stream_subtree(LeftRoot) window(W1) COMMA stream_subtree(RightRoot) window(W2) WHERE condition(Condition). {
+    A = new CPLJoinedStream(LeftRoot, *W1, RightRoot, *W2, Condition);
 }
-derived_from(A) ::= NAME(StreamName). {
-    A = new CPLSingleStream(*StreamName);
+derived_from(A) ::= stream_subtree(Root). {
+    A = new CPLSingleStream(Root);
+}
+
+%type stream_subtree { Operator::ptr_t* }
+%destructor stream_subtree { delete $$; }
+// Since lemon retain rule values in union, we cannot use
+// Oparator::ptr_t, which have a constructor. And if we get raw
+// pointer Oparator* by shared_ptr.get(), it breaks the memory
+// management of shared_ptr. So, as a workaround, we use dynamically
+// allocated shared_ptr to share the reference counter.
+stream_subtree(A) ::= NAME(StreamName). {
+    A = new Operator::ptr_t(query_container->get_root_operator_by_stream_name(*StreamName));
+}
+stream_subtree(A) ::= derived_anonymous_stream(DerivedInfo). {
+    A = new Operator::ptr_t(DerivedInfo->get_operator_tree(query_container));
+}
+
+%type derived_anonymous_stream { CPLDerivedStream* }
+%destructor derived_anonymous_stream { delete $$; }
+derived_anonymous_stream(A) ::= LPAREN STREAM FROM derived_from(DeriveInfo) operations_block(Operations) RPAREN. {
+    DeriveInfo->operations_ptr = Operations;
+    A = DeriveInfo;
 }
 
 %type operations_block { std::list<CPLOperationInfo*>* }
