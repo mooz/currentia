@@ -35,36 +35,37 @@
                          "blob")))
 
 (setq currentia-keywords
-      (make-regexp (list
-                    "and"
-                    "combine"
-                    "day"
-                    "elect"
-                    "from"
-                    "hour"
-                    "mean"
-                    "min"
-                    "msec"
-                    "not"
-                    "or"
-                    "project\\(ion\\)?"
-                    "recent"
-                    "relation"
-                    "rows"
-                    "sec"
-                    "select\\(ion\\)?"
-                    "slide"
-                    "stream"
-                    "sum"
-                    "where")))
+      (make-regexp (mapcar (lambda (keyword) (concat "\\_<" keyword "\\_>"))
+                           (list
+                            "and"
+                            "combine"
+                            "day"
+                            "elect"
+                            "from"
+                            "hour"
+                            "mean"
+                            "min"
+                            "msec"
+                            "not"
+                            "or"
+                            "project\\(ion\\)?"
+                            "recent"
+                            "relation"
+                            "rows"
+                            "sec"
+                            "select\\(ion\\)?"
+                            "slide"
+                            "stream"
+                            "sum"
+                            "where"))))
 
 (setq currentia-comment "#.*$")
 
 (setq currentia-font-lock-keywords
-  `((,currentia-keywords . font-lock-keyword-face)
+  `((,currentia-comment . font-lock-comment-face)
+    (,currentia-keywords . font-lock-keyword-face)
     (,currentia-types . font-lock-type-face)
-    (,currentia-comment . font-lock-comment-face)
-    ("\\(stream\\|relation\\)[ \t]*\\([a-zA-Z0-9]+\\)" 2 font-lock-variable-name-face)))
+    ("\\(stream\\|relation\\)[ \t]*\\([a-zA-Z0-9_]+\\)" 2 font-lock-variable-name-face)))
 
 (define-derived-mode currentia-mode text-mode
   "Currentia"
