@@ -39,3 +39,34 @@ TEST (TestCommitOperatorFinder, test_commit_operator) {
     EXPECT_EQ(query_container->get_root_operator_by_stream_name("final_join").get(),
               finder.get_commit_operator());
 }
+
+TEST (TestCommitOperatorFinder, test_commit_operator_none) {
+    std::stringstream ss(
+        "relation R(r: int)\n"
+        "stream A(a: int)\n"
+        "stream result from A { combine R where R.r > A.a }"
+    );
+
+    auto query_container = parse_cpl(&ss);
+    auto root_operator = query_container->get_root_operator_by_stream_name("result");
+
+    CommitOperatorFinder finder(root_operator.get());
+
+    EXPECT_EQ(NULL, finder.get_commit_operator());
+}
+
+TEST (TestCommitOperatorFinder, test_commit_operator_aggregate) {
+    std::stringstream ss(
+        "relation R(r: int)\n"
+        "stream A(a: int)\n"
+        "stream result from A { combine R where R.r > A.a mean A.a [10] }"
+    );
+
+    auto query_container = parse_cpl(&ss);
+    auto root_operator = query_container->get_root_operator_by_stream_name("result");
+
+    CommitOperatorFinder finder(root_operator.get());
+
+    EXPECT_EQ(query_container->get_root_operator_by_stream_name("result").get(),
+              finder.get_commit_operator());
+}
