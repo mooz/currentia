@@ -1,0 +1,22 @@
+# -*- currentia -*-
+
+relation R(r: int)
+
+stream A(a: int)
+stream B(b: int)
+stream C(c: int)
+stream D(d: int)
+stream E(e: int)
+
+stream B_R from B { combine R where B.b = R.r }
+stream A_B_R from A[1], B_R[1] where A.a = B.b
+
+stream C_R from C { combine R where C.c = R.r }
+stream D_E from D[1], E[1] where D.d = E.e
+stream C_R_D_E from C_R[1], D_E[1] where C_R.c = D_E.e
+
+stream result from A_B_R[1], C_R_D_E[1] where A.a = C.c
+{
+  mean A_B_R.a [5]
+  select A_B_R.c > 200
+}
