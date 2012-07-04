@@ -1,0 +1,21 @@
+# -*- python -*-
+
+subdirs = ""
+
+def options(opt):
+    opt.recurse(subdirs)
+
+def configure(conf):
+    conf.recurse(subdirs)
+
+def build(bld):
+    def do_test(name):
+        bld.program(
+            features = 'testt',
+            source   = name + '.cpp',
+            includes = '../../src',
+            target   = name,
+            uselib   = 'GTEST_MAIN PTHREAD'
+        )
+    do_test("test_commit_operator_finder")
+    bld.recurse(subdirs)
