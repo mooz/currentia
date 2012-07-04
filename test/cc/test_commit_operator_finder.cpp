@@ -36,8 +36,10 @@ TEST (TestCommitOperatorFinder, test_commit_operator) {
 
     CommitOperatorFinder finder(root_operator.get());
 
-    EXPECT_EQ(query_container->get_root_operator_by_stream_name("final_join").get(),
-              finder.get_commit_operator());
+    auto select_operator = dynamic_cast<SingleInputOperator*>(query_container->get_root_operator_by_stream_name("result").get());
+    auto mean_operator = dynamic_cast<SingleInputOperator*>(select_operator->get_parent_operator().get());
+
+    EXPECT_EQ(mean_operator, finder.get_commit_operator());
 }
 
 TEST (TestCommitOperatorFinder, test_commit_operator_none) {
@@ -67,6 +69,7 @@ TEST (TestCommitOperatorFinder, test_commit_operator_aggregate) {
 
     CommitOperatorFinder finder(root_operator.get());
 
-    EXPECT_EQ(query_container->get_root_operator_by_stream_name("result").get(),
-              finder.get_commit_operator());
+    auto mean_operator = query_container->get_root_operator_by_stream_name("result").get();
+
+    EXPECT_EQ(mean_operator, finder.get_commit_operator());
 }
