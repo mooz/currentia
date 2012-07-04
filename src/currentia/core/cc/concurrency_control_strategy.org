@@ -1,0 +1,31 @@
+Strategies of concurrency control schemes
+
+* General Considerations
+
+** How tackle with overlapping windows?
+
+- In the traditional approach, where sliding windows are processed
+  with synopsis and eliminates the recalculation of shared tuples
+  between windows, results of the window doesn't have reference
+  consistency (except for the first result).
+
+- Hence, we decided to trash traditional not to use traditional
+  approach every time
+
+- This approach requires the recalculation of input streams, enforcing
+  us to keep the part of input streams, which can be trashed in the
+  traditional approach, for a while.
+
+* Concurrency Control Schemes
+
+** Optimistic approach
+
+*** Naive approach
+
+*** Efficient approach (with minimal redo-area)
+
+** Pessimistic approach
+
+*** 2-Phase Locking
+
+*** Snapshot
