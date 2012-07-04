@@ -137,13 +137,13 @@ namespace currentia {
         }
 
         ~CPLNewStream() {
-            if (attributes_ptr) {
-                std::list<Attribute*>::const_iterator iter = attributes_ptr->begin();
-                std::list<Attribute*>::const_iterator iter_end = attributes_ptr->end();
-                for (; iter != iter_end; ++iter)
-                    delete *iter;
-                delete attributes_ptr;
-            }
+            // if (attributes_ptr) {
+            //     std::list<Attribute*>::const_iterator iter = attributes_ptr->begin();
+            //     std::list<Attribute*>::const_iterator iter_end = attributes_ptr->end();
+            //     for (; iter != iter_end; ++iter)
+            //         delete *iter;
+            //     delete attributes_ptr;
+            // }
         }
 
         std::string get_stream_name() {
@@ -207,17 +207,17 @@ namespace currentia {
             condition_ptr(condition_ptr) {
         }
 
-        ~CPLOperationInfo() {
-            if (window_ptr)
-                delete window_ptr;
+        ~CPLOperationInfo() __attribute__((optimize(0))) {
+            // if (window_ptr)
+            //     delete window_ptr;
 
-            if (fields_ptr) {
-                std::list<CPLField*>::const_iterator iter = fields_ptr->begin();
-                std::list<CPLField*>::const_iterator iter_end = fields_ptr->end();
-                for (; iter != iter_end; ++iter)
-                    delete *iter;
-                delete fields_ptr;
-            }
+            // if (fields_ptr) {
+            //     std::list<CPLField*>::const_iterator iter = fields_ptr->begin();
+            //     std::list<CPLField*>::const_iterator iter_end = fields_ptr->end();
+            //     for (; iter != iter_end; ++iter)
+            //         delete *iter;
+            //     delete fields_ptr;
+            // }
         }
 
         Operator::ptr_t to_operator(const Operator::ptr_t& parent_operator,
@@ -271,13 +271,13 @@ namespace currentia {
         }
 
         ~CPLDerivedStream() {
-            if (operations_ptr) {
-                std::list<CPLOperationInfo*>::const_iterator iter = operations_ptr->begin();
-                std::list<CPLOperationInfo*>::const_iterator iter_end = operations_ptr->end();
-                for (; iter != iter_end; ++iter)
-                    delete *iter;
-                delete operations_ptr;
-            }
+            // if (operations_ptr) {
+            //     std::list<CPLOperationInfo*>::const_iterator iter = operations_ptr->begin();
+            //     std::list<CPLOperationInfo*>::const_iterator iter_end = operations_ptr->end();
+            //     for (; iter != iter_end; ++iter)
+            //         delete *iter;
+            //     delete operations_ptr;
+            // }
         }
 
         std::string get_stream_name() {
@@ -330,8 +330,8 @@ namespace currentia {
         }
 
         ~CPLJoinedStream() {
-            delete left_operator_ptr_;
-            delete right_operator_ptr_;
+            // delete left_operator_ptr_;
+            // delete right_operator_ptr_;
         }
 
         Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) {
@@ -356,7 +356,7 @@ namespace currentia {
         }
 
         ~CPLSingleStream() {
-            delete root_operator_;
+            // delete root_operator_;
         }
 
         Operator::ptr_t get_source_operator(CPLQueryContainer* query_container) {
