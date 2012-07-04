@@ -64,11 +64,16 @@ namespace currentia {
 
         void make_operator_output_stream_backedup(Operator* op) {
             redo_streams_.push_back(op->get_output_stream());
+#if 0
             std::clog << "Make operator " << op->get_name() << "'s input backup" << std::endl;
+#endif
             op->get_output_stream()->set_backup_state(true);
         }
 
         void push_operator_into_redo_area(Operator* op) {
+#if 0
+            std::clog << "Push operator " << op->get_name() << " into redo area" << std::endl;
+#endif
             operators_in_redo_area_.push_back(op);
         }
 
@@ -85,7 +90,6 @@ namespace currentia {
             if (is_instance(op, TraitResourceReferenceOperator) &&
                 !upstream_has_reference_operator &&
                 downstream_has_window) {
-                std::clog << "This is the lowest reference operator. Setup redo queue." << std::endl;
                 make_operator_output_stream_backedup(op->get_parent_operator());
                 upstream_has_reference_operator = true;
             }
@@ -114,6 +118,7 @@ namespace currentia {
             auto upstream_has_reference_operator = (left_upstream_has_reference_operator ||
                                                     right_upstream_has_reference_operator);
 
+#if 0
             std::clog << "----------------------------" << std::endl;
             std::clog << "downstream_has_window_for_parent: "
                       << downstream_has_window_for_parent << std::endl;
@@ -123,15 +128,14 @@ namespace currentia {
                       << right_upstream_has_reference_operator << std::endl;
             std::clog << "downstream_has_window_for_parent: "
                       << downstream_has_window_for_parent << std::endl;
+#endif
 
             if (is_window_operator(op) &&
                 upstream_has_reference_operator &&
                 downstream_has_window_for_parent) {
                 if (!left_upstream_has_reference_operator) {
-                    std::clog << "Setup redo queue to the left." << std::endl;
                     make_operator_output_stream_backedup(op->get_parent_left_operator());
                 } else if (!right_upstream_has_reference_operator) {
-                    std::clog << "Setup redo queue to the right." << std::endl;
                     make_operator_output_stream_backedup(op->get_parent_right_operator());
                 }
                 push_operator_into_redo_area(op);
