@@ -18,4 +18,5 @@ def build(bld):
             uselib   = 'GTEST_MAIN PTHREAD'
         )
     do_test("test_commit_operator_finder")
+    do_test("test_redo_area")
     bld.recurse(subdirs)
