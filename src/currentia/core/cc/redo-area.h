@@ -68,6 +68,10 @@ namespace currentia {
             op->get_output_stream()->set_backup_state(true);
         }
 
+        void push_operator_into_redo_area(Operator* op) {
+            operators_in_redo_area_.push_back(op);
+        }
+
         bool is_window_operator(Operator* op) const {
             return is_instance(op, TraitAggregationOperator) || is_instance(op, OperatorJoin);
         }
@@ -86,8 +90,9 @@ namespace currentia {
                 upstream_has_reference_operator = true;
             }
 
-            if (upstream_has_reference_operator && downstream_has_window)
-                operators_in_redo_area_.push_back(op);
+            if (upstream_has_reference_operator &&
+                (downstream_has_window || is_instance(op, TraitAggregationOperator)))
+                push_operator_into_redo_area(op);
 
             return upstream_has_reference_operator;
         }
@@ -129,7 +134,7 @@ namespace currentia {
                     std::clog << "Setup redo queue to the right." << std::endl;
                     make_operator_output_stream_backedup(op->get_parent_right_operator());
                 }
-                operators_in_redo_area_.push_back(op);
+                push_operator_into_redo_area(op);
             }
 
             return upstream_has_reference_operator;

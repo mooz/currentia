@@ -38,6 +38,7 @@ TEST (TestRedoArea, test_redo_area_big) {
     auto root_operator = query_container->get_root_operator_by_stream_name("result");
     RedoArea redo_area(root_operator.get());
     auto redo_streams = redo_area.get_redo_streams();
+    auto redo_operators = redo_area.get_redo_operators();
 
     EXPECT_EQ(4, redo_streams.size());
 
@@ -45,6 +46,8 @@ TEST (TestRedoArea, test_redo_area_big) {
     EXPECT_EQ(query_container->get_stream_by_name("A"), redo_streams[1]);
     EXPECT_EQ(query_container->get_stream_by_name("C"), redo_streams[2]);
     EXPECT_EQ(query_container->get_stream_by_name("D_E"), redo_streams[3]);
+
+    EXPECT_EQ(6, redo_operators.size());
 }
 
 TEST (TestCommitOperatorFinder, test_redo_area_none) {
