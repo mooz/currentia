@@ -41,7 +41,7 @@ namespace currentia {
             // obey schema
             join_condition->obey_schema(
                 parent_left_operator_ptr->get_output_stream()->get_schema(),
-                parent_left_operator_ptr->get_output_stream()->get_schema()
+                parent_right_operator_ptr->get_output_stream()->get_schema()
             );
         }
 
