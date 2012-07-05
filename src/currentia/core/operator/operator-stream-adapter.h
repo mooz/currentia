@@ -22,7 +22,10 @@ namespace currentia {
         }
 
         void next_implementation() {
-            output_tuple(input_stream_ptr_->dequeue());
+            Tuple::ptr_t input_tuple = input_stream_ptr_->non_blocking_dequeue();
+            if (!input_tuple)
+                return;
+            output_tuple(input_tuple);
         }
 
         Stream::ptr_t get_input_stream() {
