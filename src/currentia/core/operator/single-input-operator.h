@@ -16,6 +16,7 @@ namespace currentia {
         Stream::ptr_t input_stream_;
 
         SingleInputOperator(Operator::ptr_t parent_operator_ptr):
+            Operator(),
             parent_operator_ptr_(parent_operator_ptr),
             input_stream_(parent_operator_ptr_->get_output_stream()) {
         }

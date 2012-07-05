@@ -30,8 +30,12 @@ namespace currentia {
         // each operator implementation *MUST* create an instance of
         // output stream.
         Stream::ptr_t output_stream_;
+        bool is_commit_operator_;
 
     public:
+        Operator() {
+            set_is_commit_operator(false);
+        }
         virtual ~Operator() = 0;
 
         // get next tuple from input stream and process
@@ -48,6 +52,14 @@ namespace currentia {
         }
 
         virtual void next_implementation() = 0;
+
+        void set_is_commit_operator(bool is_commit_operator) {
+            is_commit_operator_ = is_commit_operator;
+        }
+
+        bool is_commit_operator(bool is_commit_operator) {
+            return is_commit_operator_;
+        }
 
         // Returns the schema of this operator's output stream
         Schema::ptr_t get_output_schema_ptr() {

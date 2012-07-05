@@ -16,6 +16,7 @@ namespace currentia {
 
     public:
         OperatorStreamAdapter(Stream::ptr_t input_stream_ptr):
+            Operator(),
             input_stream_ptr_(input_stream_ptr) {
             set_output_stream(Stream::from_schema(input_stream_ptr->get_schema()));
         }

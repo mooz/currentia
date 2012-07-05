@@ -19,6 +19,7 @@ namespace currentia {
 
         DoubleInputOperator(const Operator::ptr_t& parent_left_operator_ptr,
                             const Operator::ptr_t& parent_right_operator_ptr):
+            Operator(),
             parent_left_operator_ptr_(parent_left_operator_ptr),
             parent_right_operator_ptr_(parent_right_operator_ptr),
             left_input_stream_(parent_left_operator_ptr_->get_output_stream()),
