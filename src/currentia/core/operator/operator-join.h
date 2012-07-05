@@ -12,7 +12,7 @@
 #include "currentia/core/operator/condition.h"
 #include "currentia/core/operator/synopsis.h"
 
-#include <tr1/functional>
+#include <functional>
 
 namespace currentia {
     class OperatorJoin: public DoubleInputOperator {
@@ -35,7 +35,7 @@ namespace currentia {
             joined_schema_ptr_ = build_joined_schema_();
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
             // set callbacks
-            Synopsis::callback_t on_accept = std::tr1::bind(&OperatorJoin::join_synopsis_, this);
+            Synopsis::callback_t on_accept = std::bind(&OperatorJoin::join_synopsis_, this);
             left_synopsis_.set_on_accept(on_accept);
             right_synopsis_.set_on_accept(on_accept);
             // obey schema
