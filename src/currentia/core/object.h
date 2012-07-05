@@ -70,6 +70,10 @@ namespace currentia {
             holder_.int_number = int_number;
         }
 
+        Object(long int_number): type(INT) {
+            holder_.int_number = int_number;
+        }
+
         Object(double float_number): type(FLOAT) {
             holder_.float_number = float_number;
         }
