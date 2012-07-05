@@ -79,16 +79,15 @@ namespace currentia {
         void enqueue_logical(const Tuple::ptr_t& input_tuple) {
             thread::ScopedLock lock(&mutex_);
 
-            newcomer_tuples_[newcomer_count_] = input_tuple;
-            newcomer_count_ = newcomer_count_ + 1 % window_.width;
+            newcomer_tuples_[newcomer_count_++] = input_tuple;
 
             if (window_filled_) { // Branch prediction, please!
                 if (newcomer_count_ == window_.stride) {
-                    accept_newcomers_logical_();
+                    accept_newcomers_logical_(newcomer_count_);
                 }
             } else {
                 if (newcomer_count_ == window_.width) {
-                    accept_newcomers_logical_();
+                    accept_newcomers_logical_(newcomer_count_);
                     window_filled_ = true;
                 }
             }
@@ -198,14 +197,15 @@ namespace currentia {
 
     private:
 
-        void accept_newcomers_logical_() {
+        void accept_newcomers_logical_(long number_of_newcomer) {
             // TODO: this breaks the order of tuples in `tuples_`
-            int current_window_beginning = index_ - window_.width;
+            int current_window_beginning = get_current_index_() - window_.width;
             if (current_window_beginning < 0)
                 current_window_beginning += window_.width;
             window_beginning_ = current_window_beginning + window_.stride % window_.width;
-            for (int i = 0; i < newcomer_count_; ++i)
+            for (int i = 0; i < number_of_newcomer; ++i) {
                 tuples_[get_next_index_()] = newcomer_tuples_[i];
+            }
 
             newcomer_count_ = 0;
 
@@ -214,7 +214,11 @@ namespace currentia {
         }
 
         inline long get_next_index_() {
-            return index_++ % window_.width;
+            return index_ = (index_ + 1) % window_.width;
+        }
+
+        inline long get_current_index_() {
+            return index_;
         }
     };
 }
