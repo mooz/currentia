@@ -67,7 +67,11 @@ namespace currentia {
                 data.push_back(target_tuple_ptr->get_value_by_index(attribute_index));
             }
 
-            return Tuple::create(new_schema_ptr_, data);
+            auto projected_tuple = Tuple::create(new_schema_ptr_, data);
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            projected_tuple->set_hwm(target_tuple_ptr->get_hwm());
+#endif
+            return projected_tuple;
         }
 
     public:

@@ -138,6 +138,20 @@ namespace currentia {
             return true;
         }
 
+        time_t get_hwm() {
+            auto tuple_iter = begin();
+            auto tuple_iter_end = end();
+
+            time_t hwm = 0;
+            for (; tuple_iter != tuple_iter_end; ++tuple_iter) {
+                time_t hwm_cand = (*tuple_iter)->get_hwm();
+                if (hwm_cand > hwm)
+                    hwm = hwm_cand;
+            }
+
+            return hwm;
+        }
+
         std::string get_versions_string() {
             std::stringstream ss;
 
@@ -167,6 +181,10 @@ namespace currentia {
             ss << ")";
 
             return ss.str();
+        }
+
+        Tuple::ptr_t get_latest_tuple() {
+            return tuples_[index_];
         }
 
     private:

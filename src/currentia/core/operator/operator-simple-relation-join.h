@@ -61,9 +61,11 @@ namespace currentia {
             for (; relation_iter != relation_iter_end; ++relation_iter) {
                 if (join_condition_->check(input_tuple, *relation_iter)) {
                     Tuple::data_t combined_data = input_tuple->get_concatenated_data(*relation_iter);
-                    Tuple::ptr_t combined_tuple = Tuple::create(joined_schema_ptr_, combined_data);
-
+                    Tuple::ptr_t combined_tuple = Tuple::create(joined_schema_ptr_,
+                                                                combined_data,
+                                                                input_tuple->get_arrived_time());
 #ifdef CURRENTIA_ENABLE_TRANSACTION
+                    combined_tuple->set_hwm(input_tuple->get_hwm());
                     combined_tuple->set_referenced_version_number(relation_, relation_->get_version_number());
 #endif
 

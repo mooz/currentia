@@ -46,10 +46,19 @@ namespace currentia {
         time_t arrived_time_; // system timestamp
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION
+        time_t hwm_; // high water mark
         typedef std::map<std::shared_ptr<Relation>, long> version_numbers_t;
         version_numbers_t referenced_version_numbers_;
 
     public:
+        void set_hwm(time_t hwm) {
+            hwm_ = hwm;
+        }
+
+        time_t get_hwm() const {
+            return hwm_;
+        }
+
         void set_referenced_version_number(const std::shared_ptr<Relation>& relation, long verison) {
             referenced_version_numbers_[relation] = verison;
         }
