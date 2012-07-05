@@ -71,6 +71,14 @@ namespace currentia {
             return it->second;
         }
 
+        Stream::ptr_t get_input_stream_by_name(const std::string& stream_name) {
+            Operator::ptr_t op = get_root_operator_by_stream_name(stream_name);
+            if (OperatorStreamAdapter* adapter = dynamic_cast<OperatorStreamAdapter*>(op.get())) {
+                return adapter->get_input_stream();
+            }
+            return Stream::ptr_t();
+        }
+
         Operator::ptr_t get_root_operator_for_stream(const Stream::ptr_t& stream) {
             std::map<Stream::ptr_t, Operator::ptr_t>::const_iterator it = root_operators.find(stream);
             if (it == root_operators.end())

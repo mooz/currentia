@@ -24,6 +24,10 @@ namespace currentia {
             output_tuple(input_stream_ptr_->dequeue());
         }
 
+        Stream::ptr_t get_input_stream() {
+            return input_stream_ptr_;
+        }
+
     public:
         std::string toString() const {
             return get_name();
