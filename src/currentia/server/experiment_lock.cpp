@@ -95,13 +95,12 @@ void* consume_output_stream_thread_body(void* argument)
     return NULL;
 }
 
+RoundRobinScheduler *scheduler;
 void* process_stream_thread_body(void* argument)
 {
     try {
-        RoundRobinScheduler scheduler(query_ptr);
-
         while (true) {
-            scheduler.wake_up();
+            scheduler->wake_up();
             thread::scheduler_yield();
         }
     } catch (const char* error_message) {
@@ -224,6 +223,8 @@ stream result from purchases
     // Record query and result
     result_stream = parse_result->get_stream_by_name("result");
     query_ptr = parse_result->get_root_operator_for_stream(result_stream);
+
+    scheduler = new RoundRobinScheduler(query_ptr);
 }
 
 void set_parameters_from_option(cmdline::parser& cmd_parser)
@@ -312,7 +313,8 @@ int main(int argc, char **argv)
         << "Stream Rate: " << interval_to_rate(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
         << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
         << "Query Throughput: " << throughput_query << " tps" << std::endl
-        << "Update Throughput: " << throughput_update << " qps" << std::endl;
+        << "Update Throughput: " << throughput_update << " qps" << std::endl
+        << "Redo: " << scheduler->get_redo_counts() << " times" << std::endl;
         // << "Selectivity: " << global_selection->get_selectivity() << std::endl
         // << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
 
