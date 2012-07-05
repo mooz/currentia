@@ -51,7 +51,7 @@ namespace currentia {
 
         void wake_up() {
             Operator* next_operator = get_next_operator_();
-            if (next_operator == commit_operator_) {
+            if (next_operator != commit_operator_) {
                 next_operator->process_next();
             } else {
                 try {
