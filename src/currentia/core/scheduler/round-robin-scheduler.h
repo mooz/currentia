@@ -50,6 +50,17 @@ namespace currentia {
         int get_next_operator_index_() {
             return current_operator_index_++ % operators_.size();
         }
+
+        void reset_operators_() {
+            auto iter = redo_operators_.begin();
+            auto iter_end = redo_operators_.end();
+            for (; iter != iter_end; ++iter) {
+                (*iter)->reset();
+                if (*iter != commit_operator_) {
+                    (*iter)->get_output_stream()->clear();
+                }
+            }
+        }
     };
 }
 

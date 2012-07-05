@@ -41,6 +41,10 @@ namespace currentia {
             synopsis_.enqueue(input_tuple);
         }
 
+        void reset() {
+            synopsis_.reset();
+        }
+
     private:
         void calculate_mean_() {
 #ifdef CURRENTIA_ENABLE_TRANSACTION

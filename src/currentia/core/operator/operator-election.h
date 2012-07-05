@@ -33,6 +33,10 @@ namespace currentia {
             return std::string("Election");
         }
 
+        void reset() {
+            synopsis_.reset();
+        }
+
     private:
         void elect_tuple_() {
             output_tuple(*synopsis_.begin());

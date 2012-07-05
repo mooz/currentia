@@ -53,6 +53,9 @@ namespace currentia {
 
         virtual void next_implementation() = 0;
 
+        virtual void reset() {
+        }
+
         void set_is_commit_operator(bool is_commit_operator) {
             is_commit_operator_ = is_commit_operator;
         }

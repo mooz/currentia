@@ -56,6 +56,11 @@ namespace currentia {
             right_synopsis_.enqueue(input);
         }
 
+        void reset() {
+            left_synopsis_.reset();
+            right_synopsis_.reset();
+        }
+
     private:
         Window left_window_;
         Window right_window_;
