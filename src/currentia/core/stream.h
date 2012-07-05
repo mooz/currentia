@@ -161,8 +161,8 @@ namespace currentia {
             IsOlderThan(int base_time): base_time(base_time) {
             }
             bool operator ()(const Tuple::ptr_t& tuple) const {
-                std::clog << "If " << tuple->get_arrived_time() << " is older than " << base_time << std::endl;
-                return tuple->get_arrived_time() < base_time;
+                // std::clog << "If " << tuple->get_arrived_time() << " is older than " << base_time << std::endl;
+                return !tuple->is_system_message() && tuple->get_arrived_time() < base_time;
             }
         };
 
