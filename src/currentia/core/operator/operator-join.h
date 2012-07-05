@@ -45,9 +45,6 @@ namespace currentia {
             );
         }
 
-        typedef std::list<Tuple::ptr_t> join_results_t;
-
-
         void process_left_input(Tuple::ptr_t input) {
             left_synopsis_.enqueue(input);
         }
