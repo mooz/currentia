@@ -36,6 +36,7 @@ namespace currentia {
         std::vector<Tuple::ptr_t> newcomer_tuples_;
 
         bool window_filled_;
+        int window_beginning_;
 
     public:
         Synopsis(Window &window):
@@ -45,9 +46,17 @@ namespace currentia {
             on_accept_(NULL),
             tuples_(window.width),
             newcomer_tuples_(window.width),
-            window_filled_(false) {
+            window_filled_(false),
+            window_beginning_(0) {
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
+        }
+
+        void reset() {
+            index_ = 0;
+            newcomer_count_ = 0;
+            window_filled_ = false;
+            window_beginning_ = 0;
         }
 
         void enqueue(const Tuple::ptr_t& input_tuple) {
@@ -152,6 +161,10 @@ namespace currentia {
             return hwm;
         }
 
+        Tuple::ptr_t get_window_beginning_tuple() {
+            return tuples_[window_beginning_];
+        }
+
         std::string get_versions_string() {
             std::stringstream ss;
 
@@ -183,14 +196,14 @@ namespace currentia {
             return ss.str();
         }
 
-        Tuple::ptr_t get_latest_tuple() {
-            return tuples_[index_];
-        }
-
     private:
 
         void accept_newcomers_logical_() {
             // TODO: this breaks the order of tuples in `tuples_`
+            int current_window_beginning = index_ - window_.width;
+            if (current_window_beginning < 0)
+                current_window_beginning += window_.width;
+            window_beginning_ = current_window_beginning + window_.stride % window_.width;
             for (int i = 0; i < newcomer_count_; ++i)
                 tuples_[get_next_index_()] = newcomer_tuples_[i];
 

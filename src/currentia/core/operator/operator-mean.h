@@ -48,6 +48,9 @@ namespace currentia {
     private:
         void calculate_mean_() {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
+            // Eviction
+            time_t hwm = synopsis_.get_hwm();
+
             if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
                 // redo!
                 throw TraitAggregationOperator::LOST_CONSISTENCY;
@@ -69,11 +72,12 @@ namespace currentia {
                 operations::operation_divide(sum_, window_width_object_)
             );
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-            mean_tuple->set_hwm(synopsis_.get_hwm());
+            mean_tuple->set_hwm(hwm);
 #endif
             output_tuple(mean_tuple);
-
-            // Commit!
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            throw TraitAggregationOperator::COMMIT;
+#endif
         }
 
     public:

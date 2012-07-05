@@ -12,8 +12,9 @@
 namespace currentia {
     class TraitAggregationOperator {
     public:
-        enum Error {
-            LOST_CONSISTENCY
+        enum Message {
+            LOST_CONSISTENCY,
+            COMMIT,
         };
 
     protected:
@@ -22,6 +23,7 @@ namespace currentia {
 
         Synopsis::callback_t on_accept_;
 
+    public:
         TraitAggregationOperator(Window window,
                                  const Synopsis::callback_t& on_accept):
             window_(window),
@@ -33,14 +35,13 @@ namespace currentia {
 
         virtual ~TraitAggregationOperator() = 0;
 
+        time_t get_window_beginning_hwm() {
+            return synopsis_.get_window_beginning_tuple()->get_hwm();
+        }
+
     private:
         void on_accept_wrapper_() {
-            std::cout << synopsis_.has_reference_consistency() << std::endl;
-
-            if (synopsis_.has_reference_consistency())
-                on_accept_();
-            else
-                throw LOST_CONSISTENCY;
+            on_accept_();
         }
     };
 
