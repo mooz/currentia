@@ -43,6 +43,12 @@ namespace currentia {
 
     private:
         void calculate_mean_() {
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
+                // redo!
+                throw TraitAggregationOperator::LOST_CONSISTENCY;
+            }
+#endif
             sum_ = Object(0.0);
             Synopsis::const_iterator iter = synopsis_.begin();
             Synopsis::const_iterator iter_end = synopsis_.end();
@@ -58,7 +64,12 @@ namespace currentia {
                 get_output_schema_ptr(),
                 operations::operation_divide(sum_, window_width_object_)
             );
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            mean_tuple->set_hwm(synopsis_.get_hwm());
+#endif
             output_tuple(mean_tuple);
+
+            // Commit!
         }
 
     public:

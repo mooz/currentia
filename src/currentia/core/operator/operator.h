@@ -57,7 +57,7 @@ namespace currentia {
             is_commit_operator_ = is_commit_operator;
         }
 
-        bool is_commit_operator(bool is_commit_operator) {
+        bool is_commit_operator() {
             return is_commit_operator_;
         }
 

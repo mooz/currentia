@@ -88,12 +88,24 @@ namespace currentia {
             std::cout.flush();
 #endif
 
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+            // decide hwm
+            time_t hwm = std::max(left_synopsis_.get_hwm(),
+                                  right_synopsis_.get_hwm());
+#endif
+
             // For now, just conduct a nested-loop join
             for (; left_iter != left_iter_end; ++left_iter) {
                 for (; right_iter != right_iter_end; ++right_iter) {
                     if (join_condition_->check(*left_iter, *right_iter)) {
-                        output_tuple(Tuple::create(joined_schema_ptr_,
-                                                   (*left_iter)->get_concatenated_data(*right_iter)));
+                        auto combined_tuple = Tuple::create(
+                            joined_schema_ptr_,
+                            (*left_iter)->get_concatenated_data(*right_iter)
+                        );
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+                        combined_tuple->set_hwm(hwm);
+#endif
+                        output_tuple(combined_tuple);
                     }
                 }
             }
