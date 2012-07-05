@@ -37,7 +37,9 @@ namespace currentia {
             schema_ptr_(schema_ptr),
             do_backup_(false) {
             // initialize values for thread synchronization
-            pthread_mutex_init(&mutex_, NULL);
+            pthread_mutexattr_t mutex_attribute;
+            pthread_mutexattr_settype(&mutex_attribute, PTHREAD_MUTEX_RECURSIVE);
+            pthread_mutex_init(&mutex_, &mutex_attribute);
             pthread_cond_init(&reader_wait_, NULL);
         }
 
@@ -102,6 +104,39 @@ namespace currentia {
 
         void clear() {
             thread::ScopedLock lock(&mutex_);
+
+            bool stream_has_system_message = false;
+            {
+                auto iter = tuple_ptrs_.begin();
+                auto iter_end = tuple_ptrs_.end();
+                for (; iter != iter_end; ++iter) {
+                    if ((*iter)->is_system_message()) {
+                        stream_has_system_message = true;
+                        break;
+                    }
+                }
+            }
+
+            if (stream_has_system_message) {
+                bool backup_has_system_message;
+                {
+                    auto iter = backup_tuple_ptrs_.begin();
+                    auto iter_end = backup_tuple_ptrs_.end();
+                    for (; iter != iter_end; ++iter) {
+                        if ((*iter)->is_system_message()) {
+                            backup_has_system_message = true;
+                            break;
+                        }
+                    }
+                }
+                if (backup_has_system_message) {
+                    std::clog << "OK, backup has system message!" << std::endl;
+                } else {
+                    std::clog << "Oh shit!, backup doesn't have system message!" << std::endl;
+                    exit(1);
+                }
+            }
+
             tuple_ptrs_.clear();
         }
 

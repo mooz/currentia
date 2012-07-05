@@ -39,6 +39,15 @@ namespace currentia {
             return synopsis_.get_window_beginning_tuple()->get_hwm();
         }
 
+        void print_synopsis_hwm() {
+            auto iter = synopsis_.begin();
+            auto iter_end = synopsis_.end();
+            for (; iter != iter_end; ++iter) {
+                std::clog << (*iter)->get_hwm() << ", ";
+            }
+            std::clog << std::endl;
+        }
+
     private:
         void on_accept_wrapper_() {
             on_accept_();
