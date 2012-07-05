@@ -22,10 +22,13 @@ namespace currentia {
         std::deque<Operator*> redo_operators_;
         std::deque<Stream::ptr_t> redo_streams_;
 
+        int redo_counts_;
+
     public:
         RoundRobinScheduler(Operator::ptr_t root_operator):
             AbstractScheduler(root_operator),
-            current_operator_index_(0) {
+            current_operator_index_(0),
+            redo_counts_(0) {
             serializer_.dispatch(root_operator.get());
             operators_ = serializer_.get_sorted_operators();
 
@@ -69,6 +72,8 @@ namespace currentia {
                     }
                 }
             }
+        int get_redo_counts() {
+            return redo_counts_;
         }
 
     private:
@@ -81,6 +86,7 @@ namespace currentia {
         }
 
         void prepare_for_redo_() {
+            ++redo_counts_;
             reset_operators_();
             reset_streams_();
             current_operator_index_ = 0;
