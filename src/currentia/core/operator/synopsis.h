@@ -203,7 +203,7 @@ namespace currentia {
             int current_window_beginning = peek_current_index_() - window_.width;
             if (current_window_beginning < 0)
                 current_window_beginning += window_.width;
-            window_beginning_ = current_window_beginning + window_.stride % window_.width;
+            window_beginning_ = (current_window_beginning + window_.stride) % window_.width;
 
             for (int i = 0; i < number_of_newcomer; ++i) {
                 tuples_[get_current_index_and_increment_()] = newcomer_tuples_[i];
