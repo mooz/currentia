@@ -88,7 +88,6 @@ namespace currentia {
             } else {
                 if (newcomer_count_ == window_.width) {
                     accept_newcomers_logical_(newcomer_count_);
-                    window_filled_ = true;
                 }
             }
         }
@@ -212,6 +211,7 @@ namespace currentia {
             }
 
             newcomer_count_ = 0;
+            window_filled_ = true;
 
             if (on_accept_)
                 on_accept_();
