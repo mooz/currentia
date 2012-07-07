@@ -151,6 +151,7 @@ namespace currentia {
                 ss << ", ";
             }
             ss << "]";
+            ss << get_hwm() << std::endl;
 #endif
 
             return ss.str();
