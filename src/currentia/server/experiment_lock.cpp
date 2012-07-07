@@ -5,7 +5,8 @@
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-simple-relation-join.h"
 #include "currentia/core/relation.h"
-#include "currentia/core/scheduler/round-robin-scheduler.h"
+#include "currentia/core/scheduler/abstract-scheduler.h"
+#include "currentia/core/cc/optimistic-cc-scheduler.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/thread.h"
 #include "thirdparty/cmdline.h"
@@ -95,7 +96,7 @@ void* consume_output_stream_thread_body(void* argument)
     return NULL;
 }
 
-RoundRobinScheduler *scheduler;
+AbstractScheduler *scheduler;
 void* process_stream_thread_body(void* argument)
 {
     try {
@@ -307,16 +308,19 @@ int main(int argc, char **argv)
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
     double throughput_update = updated_status_count / elapsed_seconds;
 
-    std::cerr
+    std::clog
         << "Tuples: " << PURCHASE_COUNT << std::endl
         << "Elapsed: " << elapsed_seconds << " secs" << std::endl
         << "Stream Rate: " << interval_to_rate(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
         << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
         << "Query Throughput: " << throughput_query << " tps" << std::endl
-        << "Update Throughput: " << throughput_update << " qps" << std::endl
-        << "Redo: " << scheduler->get_redo_counts() << " times" << std::endl;
-        // << "Selectivity: " << global_selection->get_selectivity() << std::endl
-        // << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
+        << "Update Throughput: " << throughput_update << " qps" << std::endl;
+
+    if (OptimisticCCScheduler* occ = dynamic_cast<OptimisticCCScheduler*>(scheduler)) {
+        std::clog << "Redo: " << occ->get_redo_counts() << " times" << std::endl;
+    }
+    // << "Selectivity: " << global_selection->get_selectivity() << std::endl
+    // << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
 
     return 0;
 }
