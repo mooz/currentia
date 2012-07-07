@@ -40,10 +40,12 @@ namespace currentia {
         bool committed_;
 #endif
         void process_single_input(Tuple::ptr_t input_tuple) {
+#ifdef CURRENTIA_ENABLE_TRANSACTION
             if (in_pessimistic_cc() && committed_) {
                 committed_ = false;
                 throw input_tuple->get_hwm();
             }
+#endif
             synopsis_.enqueue(input_tuple);
         }
 

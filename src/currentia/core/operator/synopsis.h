@@ -195,6 +195,10 @@ namespace currentia {
             return ss.str();
         }
 
+        Tuple::ptr_t get_latest_tuple() {
+            return tuples_[index_];
+        }
+
     private:
 
         void accept_newcomers_logical_(long number_of_newcomer) {
