@@ -169,7 +169,7 @@ namespace currentia {
             ss << "(";
 
             for (; tuple_iter != tuple_iter_end;) {
-                Tuple::ptr_t non_first_tuple = *tuple_iter; // cost
+                Tuple::ptr_t tuple = *tuple_iter; // cost
 
                 auto version_iter = (*tuple_iter)->referenced_version_numbers_begin();
                 auto version_iter_end = (*tuple_iter)->referenced_version_numbers_end();
