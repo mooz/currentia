@@ -93,6 +93,14 @@ namespace currentia {
             return tuple_ptr;
         }
 
+        void lock() const {
+            pthread_mutex_lock(&mutex_);
+        }
+
+        void unlock() const {
+            pthread_mutex_unlock(&mutex_);
+        }
+
         // Used by projection operator
         // TODO: returning private pointer is not a good habit
         //       deeply clone?
