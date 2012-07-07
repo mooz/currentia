@@ -178,6 +178,7 @@ namespace currentia {
                     Relation::ptr_t relation = version_iter->first;
                     long version = version_iter->second;
                     ss << version;
+                    ss << "<" << tuple->get_hwm() << ">";
                 }
 
                 ++tuple_iter;
@@ -186,7 +187,7 @@ namespace currentia {
                 ss << ", ";
             }
 
-            ss << ")";
+            ss << ")[" << get_hwm() << "]";
 
             return ss.str();
         }
