@@ -11,7 +11,7 @@ namespace currentia {
 
     public:
         OptimisticCCScheduler(Operator::ptr_t root_operator):
-            AbstractCCScheduler(root_operator),
+            AbstractCCScheduler(root_operator, Operator::OPTIMISTIC),
             redo_counts_(0) {
         }
 

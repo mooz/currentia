@@ -28,13 +28,24 @@ namespace currentia {
         std::deque<Operator*> redo_operators_;
         std::deque<Stream::ptr_t> redo_streams_;
 
+        // Functor
+        struct SetCCMode {
+            Operator::CCMode cc_mode;
+            SetCCMode(Operator::CCMode cc_mode): cc_mode(cc_mode) {
+            }
+            void operator()(Operator* op) {
+                op->set_cc_mode(cc_mode);
+            }
+        };
+
     public:
         // @Changed
-        AbstractCCScheduler(Operator::ptr_t root_operator):
+        AbstractCCScheduler(Operator::ptr_t root_operator, Operator::CCMode cc_mode):
             AbstractScheduler(root_operator),
             current_operator_index_(0) {
             serializer_.dispatch(root_operator.get());
             operators_ = serializer_.get_sorted_operators();
+            std::for_each(operators_.begin(), operators_.end(), SetCCMode(cc_mode));
 
             // Concurrency Control
             CommitOperatorFinder finder(root_operator.get());

@@ -11,13 +11,13 @@ namespace currentia {
     class LockCCScheduler : public AbstractCCScheduler,
                             public TraitPessimisticCC {
     public:
-        // @Changed
         LockCCScheduler(Operator::ptr_t root_operator, int txn_joint_count = 1):
-            AbstractCCScheduler(root_operator),
+            AbstractCCScheduler(root_operator, Operator::PESSIMISTIC_2PL),
             TraitPessimisticCC(txn_joint_count) {
+            // for each operator in redo_area
+            //   set cc_mode to "2PL"
         }
 
-        // @Changed
         void wake_up() {
             Operator* next_operator = get_next_operator_();
             if (next_operator != commit_operator_) {
