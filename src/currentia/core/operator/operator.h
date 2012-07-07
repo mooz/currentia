@@ -19,6 +19,15 @@ namespace currentia {
     public:
         typedef void (*process_hook_t)();
 
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        // Concurrency Control Mode
+        enum CCMode {
+            PESSIMISTIC_2PL,
+            PESSIMISTIC_SNAPSHOT,
+            OPTIMISTIC
+        };
+#endif
+
     private:
         std::list<process_hook_t> after_process_hook;
 
@@ -31,6 +40,10 @@ namespace currentia {
         // output stream.
         Stream::ptr_t output_stream_;
         bool is_commit_operator_;
+
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        enum CCMode cc_mode_;
+#endif
 
     public:
         Operator() {
@@ -63,6 +76,16 @@ namespace currentia {
         bool is_commit_operator() {
             return is_commit_operator_;
         }
+
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        void set_cc_mode(enum CCMode cc_mode) {
+            cc_mode_ = cc_mode;
+        }
+
+        enum CCMode get_cc_mode() {
+            return cc_mode_;
+        }
+#endif
 
         // Returns the schema of this operator's output stream
         Schema::ptr_t get_output_schema_ptr() {
