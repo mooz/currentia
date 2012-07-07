@@ -67,7 +67,7 @@ namespace currentia {
             if (cc_mode == Operator::PESSIMISTIC_2PL) {
                 release_recursive_locks();
             }
-            first_time_in_txn_ = false;
+            first_time_in_txn_ = true;
         }
     };
 
