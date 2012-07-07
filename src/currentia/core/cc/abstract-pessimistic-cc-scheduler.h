@@ -66,6 +66,27 @@ namespace currentia {
     protected:
         virtual void commit_() = 0;
         virtual void after_commit_(time_t hwm) = 0;
+
+        void evict_and_reset_streams_(time_t hwm) {
+            {
+                // Lock all streams
+                auto iter = redo_streams_.begin();
+                auto iter_end = redo_streams_.end();
+                for (; iter != iter_end; ++iter) {
+                    (*iter)->lock();
+                }
+            }
+            evict_backup_tuples_(hwm);
+            reset_streams_();
+            {
+                // Unlock all streams
+                auto iter = redo_streams_.begin();
+                auto iter_end = redo_streams_.end();
+                for (; iter != iter_end; ++iter) {
+                    (*iter)->unlock();
+                }
+            }
+        }
     };
 }
 

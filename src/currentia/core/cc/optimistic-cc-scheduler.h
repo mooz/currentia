@@ -47,7 +47,10 @@ namespace currentia {
         void prepare_for_redo_() {
             ++redo_counts_;
             std::clog << "Redo: " << redo_counts_ << " times" << std::endl;
-            reset_operators_and_streams_();
+            // Reset streams and operators only (not do eviction)
+            reset_streams_();
+            reset_operators_();
+            current_operator_index_ = 0;
         }
 
         void commit_() {

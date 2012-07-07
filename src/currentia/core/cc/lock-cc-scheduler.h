@@ -27,8 +27,8 @@ namespace currentia {
             // evict tuples!
             std::clog << "Now, evict tuples!" << std::endl;
             // Recover clean state
-            evict_backup_tuples_(hwm);
-            reset_operators_and_streams_();
+            evict_and_reset_streams_(hwm);
+            reset_operators_();
         }
 
         void release_all_locks_() {
