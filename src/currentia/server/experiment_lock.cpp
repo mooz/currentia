@@ -7,6 +7,8 @@
 #include "currentia/core/relation.h"
 #include "currentia/core/scheduler/abstract-scheduler.h"
 #include "currentia/core/cc/optimistic-cc-scheduler.h"
+#include "currentia/core/cc/lock-cc-scheduler.h"
+#include "currentia/core/cc/snapshot-cc-scheduler.h"
 #include "currentia/core/stream.h"
 #include "currentia/core/thread.h"
 #include "thirdparty/cmdline.h"
@@ -193,7 +195,7 @@ std::string method_to_string(ConsistencyPreserveMethod method) {
 // Begin ~ End : Versioning
 // ============================================================
 
-void initialize()
+void initialize(const cmdline::parser& cmd_parser)
 {
     srand(1);
 
@@ -225,7 +227,14 @@ stream result from purchases
     result_stream = parse_result->get_stream_by_name("result");
     query_ptr = parse_result->get_root_operator_for_stream(result_stream);
 
-    scheduler = new RoundRobinScheduler(query_ptr);
+    std::string cc_method = cmd_parser.get<std::string>("method");
+    int txn_joint_count = cmd_parser.get<int>("txn-joint-count");
+    if (cc_method == "optimistic")
+        scheduler = new OptimisticCCScheduler(query_ptr);
+    else if (cc_method == "2pl")
+        scheduler = new LockCCScheduler(query_ptr, txn_joint_count);
+    else
+        scheduler = new SnapshotCCScheduler(query_ptr, txn_joint_count);
 }
 
 void set_parameters_from_option(cmdline::parser& cmd_parser)
@@ -251,8 +260,9 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // cmd_parser.add<std::string>("relation-file", '\0', "Relation file name", false, "");
 
     // Parameter
-    cmd_parser.add<std::string>("method", '\0', "consistency preserving method", false, "none",
-                                cmdline::oneof<std::string>("none", "lock", "versioning"));
+    cmd_parser.add<std::string>("method", '\0', "consistency preserving method", false, "optimistic",
+                                cmdline::oneof<std::string>("optimistic", "2pl", "snapshot"));
+    cmd_parser.add<int>("txn-joint-count", '\0', "Joint count for txn", false, 1);
 
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
     cmd_parser.add<useconds_t>("update-time", '\0', "time needed to update a relation", false, 10);
@@ -272,9 +282,9 @@ int main(int argc, char **argv)
 {
     using namespace currentia;
 
+    // create a parser
+    cmdline::parser cmd_parser;
     try {
-        // create a parser
-        cmdline::parser cmd_parser;
         parse_option(cmd_parser, argc, argv);
         set_parameters_from_option(cmd_parser);
     } catch (const std::string& error) {
@@ -284,7 +294,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        initialize();
+        initialize(cmd_parser);
     } catch (const std::string& error) {
         std::cerr << "Failed to initialize: " << error << std::endl;
         return 1;
@@ -319,6 +329,10 @@ int main(int argc, char **argv)
     if (OptimisticCCScheduler* occ = dynamic_cast<OptimisticCCScheduler*>(scheduler)) {
         std::clog << "Redo: " << occ->get_redo_counts() << " times" << std::endl;
     }
+    if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
+        std::clog << "Consistent Rate: " << acc->get_consistent_rate() << std::endl;
+    }
+
     // << "Selectivity: " << global_selection->get_selectivity() << std::endl
     // << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
 
