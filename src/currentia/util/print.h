@@ -13,12 +13,17 @@ namespace currentia {
                             Iterator iter_end,
                             std::string delimiter = ", ") {
             for (;;) {
-                std::cout << *iter;
+                std::clog << *iter;
                 if (++iter == iter_end)
                     break;
-                std::cout << delimiter;
+                std::clog << delimiter;
             }
-            std::cout << std::endl;
+            std::clog << std::endl;
+        }
+        template <typename Iterable>
+        void print_iterable(const Iterable& iterable,
+                            std::string delimiter = ", ") {
+            print_iterable(iterable.begin(), iterable.end(), delimiter);
         }
     }
 }
