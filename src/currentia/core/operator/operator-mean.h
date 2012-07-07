@@ -19,6 +19,11 @@ namespace currentia {
                         public TraitAggregationOperator {
         std::string target_attribute_name_;
         Object window_width_object_;
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        int total_output_;
+        int consistent_output_;
+        bool committed_;
+#endif
 
     public:
         OperatorMean(Operator::ptr_t parent_operator_ptr,
@@ -29,6 +34,8 @@ namespace currentia {
                                      std::bind(&OperatorMean::calculate_mean_, this)),
             target_attribute_name_(target_attribute_name),
             window_width_object_(static_cast<double>(window.width)),
+            total_output_(0),
+            consistent_output_(0),
             committed_(false) {
             // Setup schema
             Schema::ptr_t output_stream_schema(new Schema());
@@ -36,9 +43,6 @@ namespace currentia {
             set_output_stream(Stream::from_schema(output_stream_schema));
         }
 
-#ifdef CURRENTIA_ENABLE_TRANSACTION
-        bool committed_;
-#endif
         void process_single_input(Tuple::ptr_t input_tuple) {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             if (in_pessimistic_cc() && committed_) {
@@ -62,10 +66,18 @@ namespace currentia {
 
             if (cc_mode_ == OPTIMISTIC) {
                 if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
-                    // redo!
+                    // redo
                     throw TraitAggregationOperator::LOST_CONSISTENCY;
+                } else {
+                    total_output_++;
+                    consistent_output_++;
                 }
+            } else {
+                total_output_++;
+                if (is_commit_operator() && synopsis_.has_reference_consistency())
+                    consistent_output_++;
             }
+
 #endif
         Object sum_ = Object(0.0);
             Synopsis::const_iterator iter = synopsis_.begin();
@@ -95,6 +107,11 @@ namespace currentia {
         }
 
     public:
+        double get_consistent_rate() const {
+            return static_cast<double>(consistent_output_) /
+                static_cast<double>(total_output_);
+        }
+
         std::string toString() const {
             std::stringstream ss;
             ss << parent_operator_ptr_->toString() << "\n -> " << get_name() << "(" << window_.toString() << ")";

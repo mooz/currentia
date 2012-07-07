@@ -73,6 +73,10 @@ namespace currentia {
             return !!dynamic_cast<const TraitResourceReferenceOperator*>(op);
         }
 
+        double get_consistent_rate() const {
+            return dynamic_cast<OperatorMean*>(commit_operator_)->get_consistent_rate();
+        }
+
     protected:
         Operator* get_next_operator_() {
             return operators_[get_next_operator_index_()];
