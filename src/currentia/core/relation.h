@@ -34,10 +34,11 @@ namespace currentia {
 
         Relation(Schema::ptr_t schema_ptr,
                  // optional
-                 RelationContainerType tuple_ptrs = RelationContainerType()):
+                 RelationContainerType tuple_ptrs = RelationContainerType(),
+                 long version_number = 0):
             schema_ptr_(schema_ptr),
             tuple_ptrs_(tuple_ptrs),
-            version_number_(0) {
+            version_number_(version_number) {
             // initialize recursive mutex
             pthread_mutexattr_t mutex_attribute;
             pthread_mutexattr_settype(&mutex_attribute, PTHREAD_MUTEX_RECURSIVE);
@@ -91,7 +92,7 @@ namespace currentia {
             thread::ScopedLock lock(&read_mutex_);
             RelationContainerType new_tuple_ptrs = tuple_ptrs_;
 
-            return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs));
+            return Relation::ptr_t(new Relation(schema_ptr_, new_tuple_ptrs, version_number_));
         }
 
         Schema::ptr_t get_schema() const {

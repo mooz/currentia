@@ -51,6 +51,8 @@ namespace currentia {
                 parent_operator_ptr->get_output_stream()->get_schema(),
                 relation->get_schema()
             );
+            // snapshot pointers
+            set_reference_to_snapshots({ &relation_ });
         }
 
         void process_single_input(Tuple::ptr_t input_tuple) {
