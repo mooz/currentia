@@ -41,15 +41,12 @@ namespace currentia {
     public:
         Synopsis(Window &window):
             window_(window),
-            index_(0),
-            newcomer_count_(0),
             on_accept_(NULL),
             tuples_(window.width),
-            newcomer_tuples_(window.width),
-            window_filled_(false),
-            window_beginning_(0) {
+            newcomer_tuples_(window.width) {
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
+            reset();
         }
 
         void reset() {
