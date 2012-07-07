@@ -3,16 +3,7 @@
 #ifndef CURRENTIA_OPTIMISTIC_CC_SCHEDULER_H_
 #define CURRENTIA_OPTIMISTIC_CC_SCHEDULER_H_
 
-#include "currentia/core/operator/operator-visitor-serializer.h"
-#include "currentia/core/operator/trait-aggregation-operator.h"
-#include "currentia/core/operator/operator-mean.h"
-#include "currentia/core/operator/trait-resource-reference-operator.h"
 #include "currentia/core/cc/abstract-cc-scheduler.h"
-#include "currentia/core/cc/commit-operator-finder.h"
-#include "currentia/core/cc/redo-area.h"
-
-#include "currentia/core/operator/dump-operator-tree.h"
-#include "currentia/util/print.h"
 
 namespace currentia {
     class OptimisticCCScheduler : public AbstractCCScheduler{
