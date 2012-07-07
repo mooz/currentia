@@ -68,6 +68,10 @@ namespace currentia {
         }
 
         // TODO: implement read_lock() and write_lock()
+        void read_lock() {
+            pthread_mutex_lock(&read_mutex_);
+        }
+
         void read_write_lock() {
             pthread_mutex_lock(&read_mutex_);
         }

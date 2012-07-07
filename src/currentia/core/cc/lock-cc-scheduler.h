@@ -13,8 +13,6 @@ namespace currentia {
             AbstractPessimisticCCScheduler(root_operator,
                                            Operator::PESSIMISTIC_2PL,
                                            txn_joint_count) {
-            // for each operator in redo_area
-            //   set cc_mode to "2PL"
         }
 
     protected:
@@ -23,13 +21,22 @@ namespace currentia {
         }
 
         void after_commit_(time_t hwm) {
+            // Release lock
+            std::clog << "Release all locks!" << std::endl;
+            release_all_locks_();
             // evict tuples!
             std::clog << "Now, evict tuples!" << std::endl;
-            // Release lock
-
             // Recover clean state
             evict_backup_tuples_(hwm);
             reset_operators_and_streams_();
+        }
+
+        void release_all_locks_() {
+            auto iter = reference_operators_.begin();
+            auto iter_end = reference_operators_.end();
+            for (; iter != iter_end; ++iter) {
+                (*iter)->transaction_end(Operator::PESSIMISTIC_2PL);
+            }
         }
     };
 }

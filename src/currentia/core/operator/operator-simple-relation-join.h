@@ -54,10 +54,11 @@ namespace currentia {
         }
 
         void process_single_input(Tuple::ptr_t input_tuple) {
-            thread::ScopedLock lock = relation_->get_scoped_lock();
+            reference_operation_begin(cc_mode_);
 
-            std::list<Tuple::ptr_t>::const_iterator relation_iter = relation_->get_tuple_iterator();
-            std::list<Tuple::ptr_t>::const_iterator relation_iter_end = relation_->get_tuple_iterator_end();
+            // TODO: Use index
+            auto relation_iter = relation_->get_tuple_iterator();
+            auto relation_iter_end = relation_->get_tuple_iterator_end();
             for (; relation_iter != relation_iter_end; ++relation_iter) {
                 if (join_condition_->check(input_tuple, *relation_iter)) {
                     Tuple::data_t combined_data = input_tuple->get_concatenated_data(*relation_iter);
@@ -72,6 +73,8 @@ namespace currentia {
                     output_tuple(combined_tuple);
                 }
             }
+
+            reference_operation_end(cc_mode_);
         }
 
         void set_current_relation(const Relation::ptr_t& new_relation) {

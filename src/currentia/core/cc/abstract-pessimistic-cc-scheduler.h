@@ -17,6 +17,8 @@ namespace currentia {
             return commit_count_ >= txn_joint_count_;
         }
 
+        std::deque<TraitResourceReferenceOperator*> reference_operators_;
+
     public:
         AbstractPessimisticCCScheduler(Operator::ptr_t root_operator,
                                        Operator::CCMode cc_mode,
@@ -24,6 +26,16 @@ namespace currentia {
             AbstractCCScheduler(root_operator, cc_mode),
             txn_joint_count_(txn_joint_count),
             commit_count_(0) {
+            // Extract operator relation-join
+            auto iter = operators_.begin();
+            auto iter_end = operators_.end();
+            for (; iter != iter_end; ++iter) {
+                TraitResourceReferenceOperator* op =
+                    dynamic_cast<TraitResourceReferenceOperator*>(*iter);
+                if (op) {
+                    reference_operators_.push_back(op);
+                }
+            }
         }
 
         void wake_up() {
