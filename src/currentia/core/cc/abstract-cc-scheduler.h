@@ -110,6 +110,12 @@ namespace currentia {
                 (*iter)->evict_backup_tuples_older_than(hwm);
             }
         }
+
+        void reset_operators_and_streams_() {
+            reset_operators_();
+            reset_streams_();
+            current_operator_index_ = 0;
+        }
     };
 
     AbstractCCScheduler::~AbstractCCScheduler() {}

@@ -22,10 +22,13 @@ namespace currentia {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         // Concurrency Control Mode
         enum CCMode {
-            PESSIMISTIC_2PL,
-            PESSIMISTIC_SNAPSHOT,
-            OPTIMISTIC
+            OPTIMISTIC           = 0,
+            PESSIMISTIC_2PL      = 2,
+            PESSIMISTIC_SNAPSHOT = 3
+            // PESSIMISTIC_* & 2 != 0
         };
+
+        static const int PESSIMISTIC_MASK = 2;
 #endif
 
     private:
@@ -85,6 +88,10 @@ namespace currentia {
         enum CCMode get_cc_mode() {
             return cc_mode_;
         }
+
+        bool in_pessimistic_cc() {
+            return cc_mode_ & PESSIMISTIC_MASK;
+        }
 #endif
 
         // Returns the schema of this operator's output stream
@@ -101,7 +108,14 @@ namespace currentia {
         }
 
         void output_tuple(const Tuple::ptr_t& tuple) {
+            // if (tuple->is_system_message()) {
+            //     std::clog << "Operator " << get_name() << " output EOS : " << output_stream_ << std::endl;
+            //     output_stream_->enqueue(tuple);
+            //     std::clog << "Operator done!" << std::endl;
+            //     std::clog << output_stream_->toString() << std::endl;
+            // } else {
             output_stream_->enqueue(tuple);
+            // }
         }
 
         // Had been used to achieve pessimistic concurrency control (lock / versioning)

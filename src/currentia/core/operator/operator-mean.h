@@ -18,7 +18,6 @@ namespace currentia {
     class OperatorMean: public SingleInputOperator,
                         public TraitAggregationOperator {
         std::string target_attribute_name_;
-        Object sum_;
         Object window_width_object_;
 
     public:
@@ -29,19 +28,27 @@ namespace currentia {
             TraitAggregationOperator(window,
                                      std::bind(&OperatorMean::calculate_mean_, this)),
             target_attribute_name_(target_attribute_name),
-            sum_(0.0),
-            window_width_object_(static_cast<double>(window.width)) {
+            window_width_object_(static_cast<double>(window.width)),
+            committed_(false) {
             // Setup schema
             Schema::ptr_t output_stream_schema(new Schema());
             output_stream_schema->add_attribute(target_attribute_name, Object::FLOAT);
             set_output_stream(Stream::from_schema(output_stream_schema));
         }
 
+#ifdef CURRENTIA_ENABLE_TRANSACTION
+        bool committed_;
+#endif
         void process_single_input(Tuple::ptr_t input_tuple) {
+            if (in_pessimistic_cc() && committed_) {
+                committed_ = false;
+                throw input_tuple->get_hwm();
+            }
             synopsis_.enqueue(input_tuple);
         }
 
         void reset() {
+            committed_ = false;
             synopsis_.reset();
         }
 
@@ -51,12 +58,14 @@ namespace currentia {
             // Eviction
             time_t hwm = synopsis_.get_hwm();
 
-            if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
-                // redo!
-                throw TraitAggregationOperator::LOST_CONSISTENCY;
+            if (cc_mode_ == OPTIMISTIC) {
+                if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
+                    // redo!
+                    throw TraitAggregationOperator::LOST_CONSISTENCY;
+                }
             }
 #endif
-            sum_ = Object(0.0);
+        Object sum_ = Object(0.0);
             Synopsis::const_iterator iter = synopsis_.begin();
             Synopsis::const_iterator iter_end = synopsis_.end();
 
@@ -76,6 +85,9 @@ namespace currentia {
 #endif
             output_tuple(mean_tuple);
 #ifdef CURRENTIA_ENABLE_TRANSACTION
+            if (cc_mode_ == PESSIMISTIC_2PL ||
+                cc_mode_ == PESSIMISTIC_SNAPSHOT)
+                committed_ = true;
             throw TraitAggregationOperator::COMMIT;
 #endif
         }
