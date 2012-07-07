@@ -44,9 +44,9 @@ namespace currentia {
             on_accept_(NULL),
             tuples_(window.width),
             newcomer_tuples_(window.width) {
+            reset();
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
-            reset();
         }
 
         void reset() {
@@ -199,12 +199,13 @@ namespace currentia {
 
         void accept_newcomers_logical_(long number_of_newcomer) {
             // TODO: this breaks the order of tuples in `tuples_`
-            int current_window_beginning = get_current_index_() - window_.width;
+            int current_window_beginning = peek_current_index_() - window_.width;
             if (current_window_beginning < 0)
                 current_window_beginning += window_.width;
             window_beginning_ = current_window_beginning + window_.stride % window_.width;
+
             for (int i = 0; i < number_of_newcomer; ++i) {
-                tuples_[get_next_index_()] = newcomer_tuples_[i];
+                tuples_[get_current_index_and_increment_()] = newcomer_tuples_[i];
             }
 
             newcomer_count_ = 0;
@@ -214,11 +215,13 @@ namespace currentia {
                 on_accept_();
         }
 
-        inline long get_next_index_() {
-            return index_ = (index_ + 1) % window_.width;
+        inline long get_current_index_and_increment_() {
+            long current_index = index_;
+            index_ = (index_ + 1) % window_.width;
+            return current_index;
         }
 
-        inline long get_current_index_() {
+        inline long peek_current_index_() {
             return index_;
         }
     };
