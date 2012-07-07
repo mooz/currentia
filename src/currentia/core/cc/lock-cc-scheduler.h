@@ -21,12 +21,7 @@ namespace currentia {
         }
 
         void after_commit_(time_t hwm) {
-            // Release lock
-            std::clog << "Release all locks!" << std::endl;
             release_all_locks_();
-            // evict tuples!
-            std::clog << "Now, evict tuples!" << std::endl;
-            // Recover clean state
             evict_and_reset_streams_(hwm);
             reset_operators_();
         }
