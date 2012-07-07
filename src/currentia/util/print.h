@@ -25,6 +25,23 @@ namespace currentia {
                             std::string delimiter = ", ") {
             print_iterable(iterable.begin(), iterable.end(), delimiter);
         }
+        template <typename Iterator>
+        void print_iterable_string(Iterator iter,
+                                   Iterator iter_end,
+                                   std::string delimiter = ", ") {
+            for (;;) {
+                std::clog << (*iter)->toString();
+                if (++iter == iter_end)
+                    break;
+                std::clog << delimiter;
+            }
+            std::clog << std::endl;
+        }
+        template <typename Iterable>
+        void print_iterable_string(const Iterable& iterable,
+                                   std::string delimiter = ", ") {
+            print_iterable_string(iterable.begin(), iterable.end(), delimiter);
+        }
     }
 }
 
