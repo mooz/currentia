@@ -6,7 +6,7 @@
 #include "currentia/core/cc/abstract-cc-scheduler.h"
 
 namespace currentia {
-    class OptimisticCCScheduler : public AbstractCCScheduler{
+    class OptimisticCCScheduler : public AbstractCCScheduler {
         int redo_counts_;
 
     public:
