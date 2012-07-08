@@ -17,7 +17,6 @@ namespace currentia {
 
         void wake_up() {
             Operator* next_operator = get_next_operator_();
-            // std::clog << "Next operator -> " << next_operator->get_name() << std::endl;
             if (next_operator != commit_operator_) {
                 next_operator->process_next();
             } else {
@@ -36,7 +35,6 @@ namespace currentia {
                     }
                 }
             }
-            // std::clog << "Done!" << std::endl;
         }
 
         int get_redo_counts() {
@@ -46,7 +44,6 @@ namespace currentia {
     private:
         void prepare_for_redo_() {
             ++redo_counts_;
-            std::clog << "Redo: " << redo_counts_ << " times" << std::endl;
             // Reset streams and operators only (not do eviction)
             reset_streams_();
             reset_operators_();
@@ -56,7 +53,6 @@ namespace currentia {
         void commit_() {
             time_t hwm = dynamic_cast<TraitAggregationOperator*>(commit_operator_)
                          ->get_window_beginning_hwm();
-            // std::clog << "Commit! Evict tuples older than " << hwm << std::endl;
             evict_backup_tuples_(hwm);
         }
     };
