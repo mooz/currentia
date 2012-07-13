@@ -69,7 +69,7 @@ namespace currentia {
 
             auto projected_tuple = Tuple::create(new_schema_ptr_, data);
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-            projected_tuple->set_hwm(target_tuple_ptr->get_hwm());
+            projected_tuple->set_lwm(target_tuple_ptr->get_lwm());
 #endif
             return projected_tuple;
         }

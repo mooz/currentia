@@ -54,10 +54,10 @@ namespace currentia {
                     default:
                         throw x;
                     }
-                } catch (time_t hwm) {
+                } catch (time_t lwm) {
                     if (commit_count_reached_limit_()) {
                         commit_count_ = 0;
-                        after_commit_(hwm);
+                        after_commit_(lwm);
                     }
                 }
             }
@@ -65,9 +65,9 @@ namespace currentia {
 
     protected:
         virtual void commit_() = 0;
-        virtual void after_commit_(time_t hwm) = 0;
+        virtual void after_commit_(time_t lwm) = 0;
 
-        void evict_and_reset_streams_(time_t hwm) {
+        void evict_and_reset_streams_(time_t lwm) {
             {
                 // Lock all streams
                 auto iter = redo_streams_.begin();
@@ -76,7 +76,7 @@ namespace currentia {
                     (*iter)->lock();
                 }
             }
-            evict_backup_tuples_(hwm);
+            evict_backup_tuples_(lwm);
             reset_streams_();
             {
                 // Unlock all streams

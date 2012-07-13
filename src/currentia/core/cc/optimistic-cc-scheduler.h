@@ -51,9 +51,9 @@ namespace currentia {
         }
 
         void commit_() {
-            time_t hwm = dynamic_cast<TraitAggregationOperator*>(commit_operator_)
-                         ->get_window_beginning_hwm();
-            evict_backup_tuples_(hwm);
+            time_t lwm = dynamic_cast<TraitAggregationOperator*>(commit_operator_)
+                         ->get_window_beginning_lwm();
+            evict_backup_tuples_(lwm);
         }
     };
 }

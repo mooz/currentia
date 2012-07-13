@@ -68,7 +68,7 @@ namespace currentia {
                                                                 combined_data,
                                                                 input_tuple->get_arrived_time());
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-                    combined_tuple->set_hwm(input_tuple->get_hwm());
+                    combined_tuple->set_lwm(input_tuple->get_lwm());
                     combined_tuple->set_referenced_version_number(relation_, relation_->get_version_number());
 #endif
 

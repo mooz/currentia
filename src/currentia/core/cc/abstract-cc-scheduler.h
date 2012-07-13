@@ -106,12 +106,12 @@ namespace currentia {
             }
         }
 
-        void evict_backup_tuples_(int hwm) {
+        void evict_backup_tuples_(int lwm) {
             // eviction
             auto iter = redo_streams_.begin();
             auto iter_end = redo_streams_.end();
             for (; iter != iter_end; ++iter) {
-                (*iter)->evict_backup_tuples_older_than(hwm);
+                (*iter)->evict_backup_tuples_older_than(lwm);
             }
         }
     };

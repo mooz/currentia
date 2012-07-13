@@ -142,18 +142,19 @@ namespace currentia {
             return true;
         }
 
-        time_t get_hwm() {
+        time_t get_lwm() {
             auto tuple_iter = begin();
             auto tuple_iter_end = end();
 
-            time_t hwm = 0;
+            if (tuple_iter == tuple_iter_end)
+                throw "No tuples in the synopsis but lwm is requested";
+
+            time_t lwm = (*tuple_iter++)->get_lwm();
             for (; tuple_iter != tuple_iter_end; ++tuple_iter) {
-                time_t hwm_cand = (*tuple_iter)->get_hwm();
-                if (hwm_cand > hwm)
-                    hwm = hwm_cand;
+                lwm = std::min(lwm, (*tuple_iter)->get_lwm());
             }
 
-            return hwm;
+            return lwm;
         }
 
         Tuple::ptr_t get_window_beginning_tuple() {
@@ -178,7 +179,7 @@ namespace currentia {
                     Relation::ptr_t relation = version_iter->first;
                     long version = version_iter->second;
                     ss << version;
-                    ss << "<" << tuple->get_hwm() << ">";
+                    ss << "<" << tuple->get_lwm() << ">";
                 }
 
                 ++tuple_iter;

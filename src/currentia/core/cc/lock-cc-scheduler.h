@@ -20,9 +20,9 @@ namespace currentia {
             // Nothing
         }
 
-        void after_commit_(time_t hwm) {
+        void after_commit_(time_t lwm) {
             release_all_locks_();
-            evict_and_reset_streams_(hwm);
+            evict_and_reset_streams_(lwm);
             reset_operators_();
         }
 

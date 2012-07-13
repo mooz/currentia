@@ -47,7 +47,7 @@ namespace currentia {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             if (in_pessimistic_cc() && committed_) {
                 committed_ = false;
-                throw input_tuple->get_hwm();
+                throw input_tuple->get_lwm();
             }
 #endif
             synopsis_.enqueue(input_tuple);
@@ -62,7 +62,7 @@ namespace currentia {
         void calculate_mean_() {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             // Eviction
-            time_t hwm = synopsis_.get_hwm();
+            time_t lwm = synopsis_.get_lwm();
 
             if (cc_mode_ == OPTIMISTIC) {
                 if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
@@ -95,7 +95,7 @@ namespace currentia {
                 operations::operation_divide(sum_, window_width_object_)
             );
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-            mean_tuple->set_hwm(hwm);
+            mean_tuple->set_lwm(lwm);
 #endif
             output_tuple(mean_tuple);
 #ifdef CURRENTIA_ENABLE_TRANSACTION

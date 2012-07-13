@@ -209,11 +209,11 @@ namespace currentia {
             }
         };
 
-        void evict_backup_tuples_older_than(time_t hwm) {
+        void evict_backup_tuples_older_than(time_t lwm) {
             thread::ScopedLock lock(&mutex_);
             backup_tuple_ptrs_.erase(
                 remove_if(backup_tuple_ptrs_.begin(),
-                          backup_tuple_ptrs_.end(), IsOlderThan(hwm)),
+                          backup_tuple_ptrs_.end(), IsOlderThan(lwm)),
                 backup_tuple_ptrs_.end()
             );
         }

@@ -91,9 +91,9 @@ namespace currentia {
 #endif
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-            // decide hwm
-            time_t hwm = std::max(left_synopsis_.get_hwm(),
-                                  right_synopsis_.get_hwm());
+            // decide lwm
+            time_t lwm = std::min(left_synopsis_.get_lwm(),
+                                  right_synopsis_.get_lwm());
 #endif
 
             // For now, just conduct a nested-loop join
@@ -105,7 +105,7 @@ namespace currentia {
                             (*left_iter)->get_concatenated_data(*right_iter)
                         );
 #ifdef CURRENTIA_ENABLE_TRANSACTION
-                        combined_tuple->set_hwm(hwm);
+                        combined_tuple->set_lwm(lwm);
 #endif
                         output_tuple(combined_tuple);
                     }

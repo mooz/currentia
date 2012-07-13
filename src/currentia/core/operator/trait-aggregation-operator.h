@@ -35,17 +35,22 @@ namespace currentia {
 
         virtual ~TraitAggregationOperator() = 0;
 
-        time_t get_window_beginning_hwm() {
-            return synopsis_.get_window_beginning_tuple()->get_hwm();
+        time_t get_window_beginning_lwm() const {
+            // print_synopsis_lwm();
+            return synopsis_.get_window_beginning_tuple()->get_lwm();
         }
 
-        void print_synopsis_hwm() {
+        void print_synopsis_lwm() const {
             auto iter = synopsis_.begin();
             auto iter_end = synopsis_.end();
             for (; iter != iter_end; ++iter) {
-                std::clog << (*iter)->get_hwm() << ", ";
+                std::clog << (*iter)->get_lwm() << ", ";
             }
             std::clog << std::endl;
+        }
+
+        Window get_window() const {
+            return window_;
         }
 
     private:
