@@ -6,6 +6,7 @@
 #include "currentia/core/operator/operator-simple-relation-join.h"
 #include "currentia/core/relation.h"
 #include "currentia/core/scheduler/abstract-scheduler.h"
+#include "currentia/core/scheduler/round-robin-scheduler.h"
 #include "currentia/core/cc/optimistic-cc-scheduler.h"
 #include "currentia/core/cc/lock-cc-scheduler.h"
 #include "currentia/core/cc/snapshot-cc-scheduler.h"
@@ -14,6 +15,7 @@
 #include "thirdparty/cmdline.h"
 #include "currentia/query/cpl-parse.h"
 
+#include <boost/thread.hpp>
 #include <sys/time.h>
 #include <iostream>
 
@@ -70,7 +72,9 @@ void* update_status_thread_body(void* argument)
         if (UPDATE_INTERVAL > 0)
             usleep(UPDATE_INTERVAL);
 
+        // std::clog << "UPDATE: try to lock" << std::endl;
         goods_relation->read_write_lock();
+        // std::clog << "UPDATE: updated" << std::endl;
         goods_relation->update();
         usleep(UPDATE_TIME);
         goods_relation->unlock();
@@ -121,6 +125,7 @@ void* stream_sending_thread_body(void* argument)
         begin_time = get_current_time_in_seconds();
 
         Schema::ptr_t schema_ptr = purchase_stream->get_schema();
+        std::clog << "purchase_stream: " << purchase_stream << std::endl;
 
         for (int i = 0; i < PURCHASE_COUNT; ++i) {
             purchase_stream->enqueue(
@@ -134,6 +139,7 @@ void* stream_sending_thread_body(void* argument)
         // std::cout << "Sent EOS !!!" << std::endl;
         // std::cout << "------------------------------------------------------------" << std::endl;
 
+        std::clog << "Sent finish!!!!!!!!!!!!!!" << std::endl;
         purchase_stream->enqueue(Tuple::create_eos()); // Finish!
 
     } catch (const char* error_message) {
@@ -172,25 +178,6 @@ void insert_goods(Relation::ptr_t relation)
 // Goods
 // ============================================================
 
-enum ConsistencyPreserveMethod {
-    NONE,
-    LOCK,
-    VERSIONING
-};
-
-std::string method_to_string(ConsistencyPreserveMethod method) {
-    switch (method) {
-    case NONE:
-        return "none";
-    case LOCK:
-        return "lock";
-    case VERSIONING:
-        return "versioning";
-    default:
-        return "unknown method";
-    }
-}
-
 // }}} ========================================================
 // Begin ~ End : Versioning
 // ============================================================
@@ -198,20 +185,6 @@ std::string method_to_string(ConsistencyPreserveMethod method) {
 void initialize(const cmdline::parser& cmd_parser)
 {
     srand(1);
-
-/*
-
-stream purchases(goods_id: int, user_id: int)
-relation goods(id: int, price: int)
-
-stream result from purchases
-{
-  combine goods where purchases.id = goods.goods_id
-  selection goods.price < 5000
-  mean goods.price [recent 5 slide 5]
-}
-
-*/
 
     std::cout << "Input query:" << std::endl;
     CPLQueryContainer::ptr_t parse_result = parse_cpl(&std::cin);
@@ -233,8 +206,10 @@ stream result from purchases
         scheduler = new OptimisticCCScheduler(query_ptr);
     else if (cc_method == "2pl")
         scheduler = new LockCCScheduler(query_ptr, txn_joint_count);
-    else
+    else if (cc_method == "snapshot")
         scheduler = new SnapshotCCScheduler(query_ptr, txn_joint_count);
+    else
+        scheduler = new RoundRobinScheduler(query_ptr);
 }
 
 void set_parameters_from_option(cmdline::parser& cmd_parser)
@@ -260,8 +235,8 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // cmd_parser.add<std::string>("relation-file", '\0', "Relation file name", false, "");
 
     // Parameter
-    cmd_parser.add<std::string>("method", '\0', "consistency preserving method", false, "optimistic",
-                                cmdline::oneof<std::string>("optimistic", "2pl", "snapshot"));
+    cmd_parser.add<std::string>("method", '\0', "consistency preserving method", false, "none",
+                                cmdline::oneof<std::string>("optimistic", "2pl", "snapshot", "none"));
     cmd_parser.add<int>("txn-joint-count", '\0', "Joint count for txn", false, 1);
 
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
@@ -277,6 +252,90 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // Finish!
     cmd_parser.parse_check(argc, argv);
 }
+
+class StreamSender {
+protected:
+    Stream::ptr_t stream_;
+    Schema::ptr_t schema_;
+
+    long send_count_;
+    long send_interval_;
+    long total_tuples_;
+
+public:
+    StreamSender(const Stream::ptr_t& stream,
+                 long total_tuples,
+                 long send_interval_):
+        stream_(stream),
+        schema_(stream->get_schema()),
+        send_count_(0),
+        send_interval_(0),
+        total_tuples_(total_tuples_) {
+    }
+
+    virtual ~StreamSender() = 0;
+
+    void run() {
+        // boost::thread thread(&StreamSender::run, this);
+        for (int i = 0; i < total_tuples_; ++i) {
+            stream_->enqueue(get_next(i));
+            if (send_interval_ > 0)
+                usleep(send_interval_);
+        }
+        purchase_stream->enqueue(Tuple::create_eos());
+    }
+
+    virtual Tuple::ptr_t get_next(long i) {
+        return Tuple::create_easy(schema_, i % GOODS_COUNT, rand());
+    }
+};
+StreamSender::~StreamSender() {}
+
+class RelationUpdater {
+    Relation::ptr_t relation_;
+
+    long update_count_;
+    long update_interval_;
+
+public:
+    RelationUpdater(const Relation::ptr_t& relation):
+        relation_(relation),
+        update_count_(0),
+        update_interval_(0) {
+    }
+
+    void run() {
+        while (true) {
+            // randomly select a tuple and update it
+            if (update_interval_ > 0)
+                usleep(update_interval_);
+
+            relation_->read_write_lock();
+            relation_->update();
+            usleep(update_interval_);
+            relation_->unlock();
+
+            update_count_++;
+        }
+    }
+};
+
+class PurchaseSender : public StreamSender {
+    int goods_count_;
+
+public:
+    PurchaseSender(const Stream::ptr_t& stream,
+                   long total_tuples,
+                   long send_interval,
+                   long goods_count):
+        StreamSender(stream, total_tuples, send_interval),
+        goods_count_(goods_count) {
+    }
+
+    Tuple::ptr_t get_next(long i) {
+        return Tuple::create_easy(schema_, i % goods_count_, rand());
+    }
+};
 
 int main(int argc, char **argv)
 {
@@ -311,8 +370,8 @@ int main(int argc, char **argv)
     pthread_join(consume_output_stream_thread, NULL);
     pthread_join(stream_sending_thread, NULL);
 
-    pthread_cancel(process_stream_thread);
-    pthread_cancel(update_status_thread);
+    // pthread_cancel(process_stream_thread);
+    // pthread_cancel(update_status_thread);
 
     double elapsed_seconds = end_time - begin_time;
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
@@ -331,7 +390,17 @@ int main(int argc, char **argv)
     }
     if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
         std::clog << "Consistent Rate: " << acc->get_consistent_rate() << std::endl;
+        TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
+        std::clog << "Window: " << op->get_window() << std::endl;
     }
+    // TODO: Create common ancestor class for AbstractCCScheduler and RoundRobinScheduler
+    if (RoundRobinScheduler* rcc = dynamic_cast<RoundRobinScheduler*>(scheduler)) {
+        std::clog << "Consistent Rate: " << rcc->get_consistent_rate() << std::endl;
+        TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(rcc->get_commit_operator());
+        std::clog << "Window: " << op->get_window() << std::endl;
+    }
+
+    std::clog << "Method: " << cmd_parser.get<std::string>("method") << std::endl;
 
     // << "Selectivity: " << global_selection->get_selectivity() << std::endl
     // << "Window: " << AGGREGATION_WINDOW_WIDTH << std::endl;
