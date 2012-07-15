@@ -97,7 +97,6 @@ namespace currentia {
                 release_recursive_locks();
                 break;
             case Operator::PESSIMISTIC_SNAPSHOT:
-                std::clog << "}" << std::endl;
                 break;
             default:
                 break;
