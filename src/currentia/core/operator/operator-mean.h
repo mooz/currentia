@@ -102,7 +102,9 @@ namespace currentia {
             if (cc_mode_ == PESSIMISTIC_2PL ||
                 cc_mode_ == PESSIMISTIC_SNAPSHOT)
                 committed_ = true;
-            throw TraitAggregationOperator::COMMIT;
+
+            if (cc_mode_ != NONE)
+                throw TraitAggregationOperator::COMMIT;
 #endif
         }
 
