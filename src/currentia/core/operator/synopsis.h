@@ -157,7 +157,7 @@ namespace currentia {
             return lwm;
         }
 
-        Tuple::ptr_t get_window_beginning_tuple() {
+        Tuple::ptr_t get_window_beginning_tuple() const {
             return tuples_[window_beginning_];
         }
 
