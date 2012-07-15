@@ -188,7 +188,7 @@ namespace currentia {
                 ss << ", ";
             }
 
-            ss << ")[" << get_hwm() << "]";
+            ss << ")[" << get_lwm() << "]";
 
             return ss.str();
         }
