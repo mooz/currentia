@@ -22,7 +22,8 @@ namespace currentia {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         // Concurrency Control Mode
         enum CCMode {
-            OPTIMISTIC           = 0,
+            NONE                 = 0,
+            OPTIMISTIC           = 1,
             PESSIMISTIC_2PL      = 2,
             PESSIMISTIC_SNAPSHOT = 3
             // PESSIMISTIC_* & 2 != 0
