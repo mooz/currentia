@@ -39,12 +39,23 @@ assert_dir_exist $UPDATE_VS_WINDOW_DIR
 
 # -------------------------------------------------- #
 
-BIN=/home/masa/src/currentia/build/src/currentia/server/experiment_lock
-METHODS="none lock versioning"
+make_query() {
+    echo "stream purchases(goods_id: int, user_id: int)
+     relation goods(id: int, price: int)
+     stream combined_stream from purchases { combine goods where purchases.id = goods.goods_id }
+     stream mean_stream from combined_stream {
+         select goods.price < 50000
+         mean user.user_id [recent 5 slide 2 ]
+     }
+     stream result from mean_stream"
+}
 
-PURCHASE_COUNT=100000
+BIN=/home/masa/src/currentia/build/src/currentia/server/experiment_lock
+METHODS="none optimistic 2pl snapshot"
+
+# PURCHASE_COUNT=100000
+PURCHASE_COUNT=5000
 WINDOW_WIDTH=5
-SELECTION_CONDITION="PRICE < 50000" # 選択率がおよそ 0.5 程度に
 
 interval_to_rate() {
     echo "1000 * 1000 / $1" | bc
@@ -61,15 +72,13 @@ do_bench_query_vs_update() {
     interval=$(interval_to_rate $rate)
 
     echo "---------------------------------------------------------"
-    echo "Query v.s. Update (Update Rate ${rate})"
+    echo "Query v.s. Update (Update Rate: ${rate}, Interval: ${interval}, Method: ${method})"
     echo "---------------------------------------------------------"
 
-    ${BIN} \
+    echo $(make_query) | ${BIN} \
         --purchase-interval 0 \
         --purchase-count ${PURCHASE_COUNT} \
-        --aggregation-window-width ${WINDOW_WIDTH} \
         --method ${method} \
-        --selection-condition "${SELECTION_CONDITION}" \
         --update-interval ${interval} \
         2>&1 | tee ${QUERY_VS_UPDATE_DIR}/${file_name}
 }
@@ -91,9 +100,7 @@ do_bench_update_vs_stream() {
     ${BIN} \
         --purchase-interval ${interval} \
         --purchase-count 10000 \
-        --aggregation-window-width ${WINDOW_WIDTH} \
         --method ${method} \
-        --selection-condition "${SELECTION_CONDITION}" \
         --update-interval 0 \
         2>&1 | tee ${UPDATE_VS_STREAM_DIR}/${file_name}
 }
@@ -116,24 +123,22 @@ do_bench_update_vs_window() {
     ${BIN} \
         --purchase-interval ${interval} \
         --purchase-count 10000 \
-        --aggregation-window-width ${window_size} \
         --method ${method} \
-        --selection-condition "${SELECTION_CONDITION}" \
         --update-interval 0 \
         2>&1 | tee ${UPDATE_VS_WINDOW_DIR}/${file_name}
 }
 
-# for method in ${METHODS}; do
-#     for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
-#         do_bench_query_vs_update ${method} ${rate}
-#     done
-# done
-
 for method in ${METHODS}; do
-    for rate in 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
-        do_bench_update_vs_stream ${method} ${rate}
+    for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
+        do_bench_query_vs_update ${method} ${rate}
     done
 done
+
+# for method in ${METHODS}; do
+#     for rate in 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
+#         do_bench_update_vs_stream ${method} ${rate}
+#     done
+# done
 
 # for method in ${METHODS}; do
 #     for window_size in 1 5 10 15 20 25 30; do
