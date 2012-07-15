@@ -113,6 +113,7 @@ namespace currentia {
         void clear() {
             thread::ScopedLock lock(&mutex_);
 
+#if 0
             bool stream_has_system_message = false;
             {
                 auto iter = tuple_ptrs_.begin();
@@ -144,6 +145,7 @@ namespace currentia {
                     exit(1);
                 }
             }
+#endif
 
             tuple_ptrs_.clear();
         }
