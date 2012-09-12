@@ -41,6 +41,7 @@ namespace currentia {
             version_number_(version_number) {
             // initialize recursive mutex
             pthread_mutexattr_t mutex_attribute;
+            pthread_mutexattr_init(&mutex_attribute);
             pthread_mutexattr_settype(&mutex_attribute, PTHREAD_MUTEX_RECURSIVE);
             pthread_mutex_init(&read_mutex_, &mutex_attribute);
         }
