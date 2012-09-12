@@ -103,6 +103,11 @@ EOF
 
 BASEDIR=$(echo ${1} | sed 's/\/$//')
 
+./format_benchmark.rb ${BASEDIR}/update_vs_window window_size update_throughput > /tmp/input.txt
+plot /tmp/input.txt "Window Range (tuples)" "Update Throughput (txn/s)" LOGSCALE > ./window_range_update_throughput.svg
+
+exit
+
 ./format_benchmark.rb ${BASEDIR}/query_vs_update update_rate consistent_rate > /tmp/update_vs_consistency.txt
 plot /tmp/update_vs_consistency.txt "Update Arrival Rate (query/sec)" "Consistent result ratio" LOGSCALE > ./update_vs_consistency.svg
 
