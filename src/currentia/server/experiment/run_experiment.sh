@@ -40,12 +40,15 @@ assert_dir_exist $UPDATE_VS_WINDOW_DIR
 # -------------------------------------------------- #
 
 make_query() {
+    window_width=$1
+    window_slide=$2
+
     echo "stream purchases(goods_id: int, user_id: int)
      relation goods(id: int, price: int)
      stream combined_stream from purchases { combine goods where purchases.id = goods.goods_id }
      stream mean_stream from combined_stream {
          select goods.price < 50000
-         mean user.user_id [recent 5 slide 2 ]
+         mean user.user_id [recent ${window_width} slide ${window_slide} ]
      }
      stream result from mean_stream"
 }
@@ -53,7 +56,6 @@ make_query() {
 BIN=/home/masa/src/currentia/build/src/currentia/server/experiment_lock
 METHODS="none optimistic 2pl snapshot"
 
-# PURCHASE_COUNT=100000
 PURCHASE_COUNT=5000
 WINDOW_WIDTH=5
 
@@ -75,7 +77,7 @@ do_bench_query_vs_update() {
     echo "Query v.s. Update (Update Rate: ${rate}, Interval: ${interval}, Method: ${method})"
     echo "---------------------------------------------------------"
 
-    echo $(make_query) | ${BIN} \
+    make_query 5 2 | ${BIN} \
         --purchase-interval 0 \
         --purchase-count ${PURCHASE_COUNT} \
         --method ${method} \
@@ -97,9 +99,9 @@ do_bench_update_vs_stream() {
     echo "Update v.s. Stream (Query Rate ${rate})"
     echo "---------------------------------------------------------"
 
-    ${BIN} \
+    make_query 5 2 | ${BIN} \
         --purchase-interval ${interval} \
-        --purchase-count 10000 \
+        --purchase-count ${PURCHASE_COUNT} \
         --method ${method} \
         --update-interval 0 \
         2>&1 | tee ${UPDATE_VS_STREAM_DIR}/${file_name}
@@ -111,28 +113,30 @@ do_bench_update_vs_window() {
 
     method=$1
     window_size=$2
+    window_slide=$(expr ${window_size} / 2)
 
     file_name=${method}_${window_size}.txt
 
-    interval=$(interval_to_rate 10000)
+    purchase_interval=0
+    update_interval=$(interval_to_rate 10000)
 
     echo "---------------------------------------------------------"
-    echo "Update v.s. Window (Window Size ${window_size})"
+    echo "Update v.s. Window (Window Size ${window_size}, Window Slide: ${window_slide})"
     echo "---------------------------------------------------------"
 
-    ${BIN} \
-        --purchase-interval ${interval} \
-        --purchase-count 10000 \
+    make_query ${window_size} ${window_slide} | ${BIN} \
+        --purchase-interval ${purchase_interval} \
+        --purchase-count ${PURCHASE_COUNT} \
         --method ${method} \
-        --update-interval 0 \
+        --update-interval ${update_interval} \
         2>&1 | tee ${UPDATE_VS_WINDOW_DIR}/${file_name}
 }
 
-for method in ${METHODS}; do
-    for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
-        do_bench_query_vs_update ${method} ${rate}
-    done
-done
+# for method in ${METHODS}; do
+#     for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
+#         do_bench_query_vs_update ${method} ${rate}
+#     done
+# done
 
 # for method in ${METHODS}; do
 #     for rate in 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
@@ -140,8 +144,8 @@ done
 #     done
 # done
 
-# for method in ${METHODS}; do
-#     for window_size in 1 5 10 15 20 25 30; do
-#         do_bench_update_vs_window ${method} ${window_size}
-#     done
-# done
+for method in ${METHODS}; do
+    for window_size in 5 50 500; do
+        do_bench_update_vs_window ${method} ${window_size}
+    done
+done
