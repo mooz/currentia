@@ -44,16 +44,20 @@ def __run_command(bld, cmd):
 
 def generate_lexer(bld):
     __run_command(bld,
-                  """cd src/currentia/query/; \
-                  re2c -s --no-generation-date -o cpl-lexer.h -i cpl-lexer.re""")
+                  """
+cd src/currentia/query/;
+re2c -s --no-generation-date -o cpl-lexer.h -i cpl-lexer.re
+""")
 
 def generate_parser(bld):
     __run_command(bld,
-                  """cd src/currentia/query/; \
-                  ./tools/lemon/lemon cpl-parser.y T=./tools/lemon/lempar-currentia.c; \
-                  ./tools/format_code.sh ./cpl-parser.c; \
-                  ./tools/generate_token_to_string.rb < ./cpl-parser.h > ./cpl-token-to-string.h""")
+                  """
+cd src/currentia/query/;
+./tools/lemon/lemon cpl-parser.y T=./tools/lemon/lempar-currentia.c;
+./tools/format_code.sh ./cpl-parser.c;
+./tools/generate_token_to_string.rb < ./cpl-parser.h > ./cpl-token-to-string.h
+""")
 
 def generate_lexer_parser(bld):
-    generate_parser(bld)
     generate_lexer(bld)
+    generate_parser(bld)
