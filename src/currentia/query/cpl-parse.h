@@ -7,6 +7,9 @@
 #include "currentia/query/cpl-parser.c"
 
 namespace currentia {
+    // TODO: This method should create `Stream` instances into
+    // SchemaManager, not into CPLQueryContainer (current
+    // implementation).
     CPLQueryContainer::ptr_t parse_cpl(CPLLexer* lexer) {
         lemon::yyParser* yy_parser = reinterpret_cast<lemon::yyParser*>(lemon::CPLParseAlloc(malloc));
         CPLQueryContainer* query_container = new CPLQueryContainer();
