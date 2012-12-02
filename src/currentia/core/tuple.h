@@ -20,6 +20,7 @@
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
 #include <sys/time.h>
+#include "currentia/util/timeval.h"
 #endif
 
 namespace currentia {
@@ -166,23 +167,7 @@ namespace currentia {
 #endif
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
-            ss << "<";
-
-            struct tm *date;
-            int year, month, day;
-            int hour, minute, second, msec;
-
-            date   = localtime(&real_arrived_time_.tv_sec);
-            year   = date->tm_year + 1900;
-            month  = date->tm_mon + 1;
-            day    = date->tm_mday;
-            hour   = date->tm_hour;
-            minute = date->tm_min;
-            second = date->tm_sec;
-            msec   = real_arrived_time_.tv_usec / 1000;
-
-            ss << year << "/" << month << "/" << day << " " << hour << ":" << minute << ":" << second << "(" << msec << ")";
-            ss << ">";
+            timeval::output_timeval_to_stream(get_real_arrived_time(), ss);
 #endif
 
             return ss.str();
@@ -214,24 +199,6 @@ namespace currentia {
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
         const struct timeval& get_real_arrived_time() const {
             return real_arrived_time_;
-        }
-
-        long real_arrived_time_difference(const struct timeval& origin_time) const {
-            return timeval_difference_msec(real_arrived_time_, origin_time);
-        }
-
-        static long timeval_difference_msec(const struct timeval& time_a,
-                                            const struct timeval& time_b) {
-            // From eglibc's timersub implementation
-            long difference_msec = (time_a.tv_sec - time_b.tv_sec) * 1000;
-            suseconds_t difference_usec = time_a.tv_usec - time_b.tv_usec;
-
-            if (difference_usec < 0) {
-                difference_msec--;
-                difference_usec += 1000 * 1000;
-            }
-
-            return difference_msec + (difference_usec / 1000);
         }
 #endif
 

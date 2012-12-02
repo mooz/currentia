@@ -57,7 +57,7 @@ namespace currentia {
             Synopsis::const_iterator iter = begin();
 
             int i = 0;
-            for (; iter < end(); ++iter) {
+            for (; iter != end(); ++iter) {
                 ss << "[" << i++ << "] " << (*iter)->toString() << std::endl;
             }
 
@@ -247,7 +247,7 @@ namespace currentia {
     };
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
-#define COMPARE_TIME(A, CMP, B) ((A)->real_arrived_time_difference((B)) CMP 0)
+#define COMPARE_TIME(A, CMP, B) (timeval::timeval_difference_msec((A), (B)) CMP 0)
     class TimeBaseSynopsis: private NonCopyable<TimeBaseSynopsis>,
                             public Synopsis {
     private:
@@ -266,42 +266,6 @@ namespace currentia {
         }
 
         void reset() {
-        }
-
-        void enqueue(const Tuple::ptr_t& input_tuple) {
-            thread::ScopedLock lock(&mutex_);
-
-            if (!initialized_) {
-                // For the first enqueue call
-                initialized_ = true;
-                window_beginning_time_ = input_tuple->get_real_arrived_time();
-                sync_window_end_time_with_beginning_time_();
-            }
-
-            if (COMPARE_TIME(input_tuple, <=, window_end_time_)) {
-                // (1) input_tuple is in the current window
-                tuples_.push_back(input_tuple);
-            } else {
-                // (2) input_tuple isn't in the current window
-                // Evaluate sliding windows that doesn't include the input_tuple.
-                do {
-                    // TODO: operator may be evaluated multiple times
-                    // this may break the correctness of the constraint-scheduler
-                    if (begin() != end()) {
-                        // When at least one tuple exists in the current window, evaluate the operator
-                        acceptance_notification_();
-                    }
-                    slide_window_();
-                    evict_expired_tuples_();
-                } while (COMPARE_TIME(input_tuple, >, window_end_time_));
-                // Then, push the input_tuple. If windows are
-                // landmark-windows (slide > width), the input_tuple
-                // may not be contained in the next window.
-                if (COMPARE_TIME(input_tuple, >=, window_beginning_time_)) {
-                    tuples_.push_back(input_tuple);
-                }
-                evict_expired_tuples_();
-            }
         }
 
         Synopsis::const_iterator begin() const {
@@ -324,18 +288,53 @@ namespace currentia {
             return "(TIME-BASE)" + Synopsis::toString();
         }
 
-        static void timeval_add_msec(struct timeval* time, long msec) {
-            time->tv_usec += msec * 1000;
-            if (time->tv_usec >= 1000 * 1000) {
-                time->tv_sec++;
-                time->tv_usec -= 1000 * 1000;
+        void enqueue(const Tuple::ptr_t& input_tuple) {
+            thread::ScopedLock lock(&mutex_);
+
+            if (!initialized_) {
+                // For the first enqueue call
+                initialized_ = true;
+                window_beginning_time_ = input_tuple->get_real_arrived_time();
+                sync_window_end_time_with_beginning_time_();
+            }
+
+            std::clog << "<COMPARE>: " << timeval::timeval_to_string(input_tuple->get_real_arrived_time())
+                      << " with " << timeval::timeval_to_string(window_end_time_)
+                      << std::endl;
+
+            if (COMPARE_TIME(input_tuple->get_real_arrived_time(), <=, window_end_time_)) {
+                // (1) input_tuple is in the current window
+                tuples_.push_back(input_tuple);
+            } else {
+                // (2) input_tuple isn't in the current window
+                // Evaluate sliding windows that doesn't include the input_tuple.
+                do {
+                    // TODO: operator may be evaluated multiple times
+                    // this may break the correctness of the constraint-scheduler
+                    if (begin() != end()) {
+                        // When at least one tuple exists in the current window, evaluate the operator
+                        acceptance_notification_();
+                    }
+                    slide_window_();
+                    evict_expired_tuples_();
+                } while (COMPARE_TIME(input_tuple->get_real_arrived_time(), >, window_end_time_));
+                // Then, push the input_tuple. If windows are
+                // landmark-windows (slide > width), the input_tuple
+                // may not be contained in the next window.
+                if (COMPARE_TIME(input_tuple->get_real_arrived_time(), >=, window_beginning_time_)) {
+                    tuples_.push_back(input_tuple);
+                }
+                evict_expired_tuples_();
             }
         }
 
     private:
         void sync_window_end_time_with_beginning_time_() {
             window_end_time_ = window_beginning_time_;
-            timeval_add_msec(&window_end_time_, window_.width);
+            std::clog << "window_.width: " << window_.width << std::endl;
+            timeval::timeval_add_msec(&window_end_time_, window_.width);
+            std::clog << "window begin: " << timeval::timeval_to_string(window_beginning_time_) << std::endl;
+            std::clog << "window end: " << timeval::timeval_to_string(window_end_time_) << std::endl;
         }
 
         void set_window_beginning_time_(const struct timeval& new_beginning_time) {
@@ -344,14 +343,14 @@ namespace currentia {
         }
 
         void slide_window_() {
-            timeval_add_msec(&window_beginning_time_, window_.stride);
+            timeval::timeval_add_msec(&window_beginning_time_, window_.stride);
             sync_window_end_time_with_beginning_time_();
         }
 
         void evict_expired_tuples_() {
-            for (Synopsis::iterator iter = tuples_.begin();
-                 iter < tuples_.end();) {
-                if ((*iter)->real_arrived_time_difference(window_beginning_time_) < 0) {
+            for (auto iter = tuples_.begin(); iter != tuples_.end();) {
+                if (COMPARE_TIME((*iter)->get_real_arrived_time(), <, window_beginning_time_)) {
+                    std::clog << "Evicted!" << std::endl;
                     iter = tuples_.erase(iter);
                 } else {
                     ++iter;
