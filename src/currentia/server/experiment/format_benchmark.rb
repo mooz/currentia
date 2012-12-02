@@ -45,6 +45,12 @@ class ResultAnalyser
     if consistent_match
       response[:redo_count] = consistent_match[1]
     end
+    # relation join
+    relation_join_match = result.match(/Relation-Join:(.*)times$/)
+    if relation_join_match
+      response[:relation_join_count] = relation_join_match[1]
+    end
+
     response
   end
 

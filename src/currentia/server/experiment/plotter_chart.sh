@@ -25,6 +25,26 @@ optimistic_label="Optimistic"
 lock_label="S2PL"
 snapshot_label="Snapshot"
 
+# Dim
+naive_color="#202020"
+optimistic_color="#174479"
+lock_color="#781744"
+snapshot_color="#447817"
+
+# Pop
+naive_color="#343434"
+optimistic_color="#c23ea1"
+lock_color="#3ea1c2"
+snapshot_color="#a0c13e"
+
+# Middle
+naive_color="#343434"
+optimistic_color="#a6368a"
+lock_color="#8aa637"
+snapshot_color="#378aa6"
+
+#9ac225
+
 (cat <<EOF
 # ${logscale}
 
@@ -32,26 +52,33 @@ snapshot_label="Snapshot"
 # Line style
 # ------------------------------------ #
 
-#131313
-set style line 1 lt 1 lc rgbcolor "#202020" lw ${line_width} pt 5 ps ${point_size} # Naive
-set style line 2 lt 1 lc rgbcolor "#174479" lw ${line_width} pt 7 ps ${point_size} # Optimistic
-set style line 3 lt 1 lc rgbcolor "#781744" lw ${line_width} pt 9 ps ${point_size} # S2PL
-set style line 4 lt 1 lc rgbcolor "#447817" lw ${line_width} pt 13 ps ${point_size} # Snapshot
+set style line 1 lt 1 lc rgbcolor "${naive_color}"      lw ${line_width} pt 5 ps ${point_size} # Naive
+set style line 2 lt 1 lc rgbcolor "${optimistic_color}" lw ${line_width} pt 7 ps ${point_size} # Optimistic
+set style line 3 lt 1 lc rgbcolor "${lock_color}"       lw ${line_width} pt 9 ps ${point_size} # S2PL
+set style line 4 lt 1 lc rgbcolor "${snapshot_color}"   lw ${line_width} pt 13 ps ${point_size} # Snapshot
 
 # ------------------------------------ #
 # Key (凡例) settings
 # ------------------------------------ #
 
 set key outside center horizontal top reverse Left
+set key font "Times New Roman,26"
 # set key box
 # set key below
+
+# ------------------------------------ #
+# Tics (目盛)
+# ------------------------------------ #
+
+set tics font "Times New Roman,15"
 
 # ------------------------------------ #
 # Label
 # ------------------------------------ #
 
-set xlabel "${xlabel}"
-set ylabel "${ylabel}"
+set xlabel "${xlabel}" offset 0, 0 font "Times New Roman,28"
+set ylabel "${ylabel}" offset 2 font "Times New Roman,28T"
+# [xoffset] [,yoffset]
 
 # ------------------------------------ #
 # Output format

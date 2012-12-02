@@ -25,7 +25,11 @@ assert_dir_exist() {
 # Make result dirs
 # -------------------------------------------------- #
 
-RESULT_DIR=result
+if [ -z $1 ]; then
+    RESULT_DIR=result
+else
+    RESULT_DIR=$1
+fi
 assert_dir_exist $RESULT_DIR
 
 QUERY_VS_UPDATE_DIR=${RESULT_DIR}/query_vs_update
@@ -114,10 +118,12 @@ do_bench_update_vs_window() {
     method=$1
     window_size=$2
     window_slide=$(expr ${window_size} / 2)
+    # window_slide=$(expr ${window_size} - 1)
+    # window_slide=$(expr ${window_size})
 
     file_name=${method}_${window_size}.txt
 
-    purchase_interval=0
+    purchase_interval=$(interval_to_rate 20000)
     update_interval=$(interval_to_rate 10000)
 
     echo "---------------------------------------------------------"
@@ -132,11 +138,11 @@ do_bench_update_vs_window() {
         2>&1 | tee ${UPDATE_VS_WINDOW_DIR}/${file_name}
 }
 
-for method in ${METHODS}; do
-    for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
-        do_bench_query_vs_update ${method} ${rate}
-    done
-done
+# for method in ${METHODS}; do
+#     for rate in 1 3.1622776601683795 10 31.622776601683793 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
+#         do_bench_query_vs_update ${method} ${rate}
+#     done
+# done
 
 # for method in ${METHODS}; do
 #     for rate in 100 316.22776601683796 1000 3162.2776601683786 10000 31622.77660168381 100000; do
