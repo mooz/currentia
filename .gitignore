@@ -7,7 +7,8 @@ TAGS
 .unittest-gtest
 *.pyc
 stub/
-src/currentia/server/experiment/*
+src/currentia/server/experiment/result/*
+src/currentia/server/experiment/result*
 src/currentia/query/stub/*
 src/currentia/query/ast/stub/*
 *.svg
