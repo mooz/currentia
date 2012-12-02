@@ -298,10 +298,6 @@ namespace currentia {
                 sync_window_end_time_with_beginning_time_();
             }
 
-            std::clog << "<COMPARE>: " << timeval::timeval_to_string(input_tuple->get_real_arrived_time())
-                      << " with " << timeval::timeval_to_string(window_end_time_)
-                      << std::endl;
-
             if (COMPARE_TIME(input_tuple->get_real_arrived_time(), <=, window_end_time_)) {
                 // (1) input_tuple is in the current window
                 tuples_.push_back(input_tuple);
@@ -331,10 +327,7 @@ namespace currentia {
     private:
         void sync_window_end_time_with_beginning_time_() {
             window_end_time_ = window_beginning_time_;
-            std::clog << "window_.width: " << window_.width << std::endl;
             timeval::timeval_add_msec(&window_end_time_, window_.width);
-            std::clog << "window begin: " << timeval::timeval_to_string(window_beginning_time_) << std::endl;
-            std::clog << "window end: " << timeval::timeval_to_string(window_end_time_) << std::endl;
         }
 
         void set_window_beginning_time_(const struct timeval& new_beginning_time) {
@@ -350,7 +343,6 @@ namespace currentia {
         void evict_expired_tuples_() {
             for (auto iter = tuples_.begin(); iter != tuples_.end();) {
                 if (COMPARE_TIME((*iter)->get_real_arrived_time(), <, window_beginning_time_)) {
-                    std::clog << "Evicted!" << std::endl;
                     iter = tuples_.erase(iter);
                 } else {
                     ++iter;
