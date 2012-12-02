@@ -50,22 +50,22 @@ namespace currentia {
                 throw input_tuple->get_lwm();
             }
 #endif
-            synopsis_.enqueue(input_tuple);
+            synopsis_->enqueue(input_tuple);
         }
 
         void reset() {
             committed_ = false;
-            synopsis_.reset();
+            synopsis_->reset();
         }
 
     private:
         void calculate_mean_() {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             // Eviction
-            time_t lwm = synopsis_.get_lwm();
+            time_t lwm = synopsis_->get_lwm();
 
             if (cc_mode_ == OPTIMISTIC) {
-                if (is_commit_operator() && !synopsis_.has_reference_consistency()) {
+                if (is_commit_operator() && !synopsis_->has_reference_consistency()) {
                     // redo
                     throw TraitAggregationOperator::LOST_CONSISTENCY;
                 } else {
@@ -74,14 +74,14 @@ namespace currentia {
                 }
             } else {
                 total_output_++;
-                if (is_commit_operator() && synopsis_.has_reference_consistency())
+                if (is_commit_operator() && synopsis_->has_reference_consistency())
                     consistent_output_++;
             }
 
 #endif
         Object sum_ = Object(0.0);
-            Synopsis::const_iterator iter = synopsis_.begin();
-            Synopsis::const_iterator iter_end = synopsis_.end();
+            Synopsis::const_iterator iter = synopsis_->begin();
+            Synopsis::const_iterator iter_end = synopsis_->end();
 
             for (; iter != iter_end; ++iter) {
                 sum_ = operations::operation_add(

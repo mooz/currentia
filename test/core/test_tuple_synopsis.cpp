@@ -11,7 +11,7 @@ using namespace currentia;
 class TestSynopsis : public ::testing::Test {
 protected:
     Window window;
-    Synopsis synopsis;
+    Synopsis::ptr_t synopsis;
     Schema::ptr_t schema;
     Relation::ptr_t dummy_relation;
 
@@ -21,7 +21,7 @@ protected:
 
     TestSynopsis():
         window(3, 3),
-        synopsis(window),
+        synopsis(create_synopsis_from_window(window)),
         schema(new Schema()) {
         schema->add_attribute("foo", Object::INT);
         schema->freeze();
@@ -44,11 +44,13 @@ TEST_F (TestSynopsis, has_consistency) {
     tuple_b->set_referenced_version_number(dummy_relation, 2);
     tuple_c->set_referenced_version_number(dummy_relation, 2);
 
-    synopsis.enqueue(tuple_a);
-    synopsis.enqueue(tuple_b);
-    synopsis.enqueue(tuple_c);
+    synopsis->enqueue(tuple_a);
+    synopsis->enqueue(tuple_b);
+    synopsis->enqueue(tuple_c);
 
-    EXPECT_TRUE(synopsis.has_reference_consistency());
+    std::clog << tuple_c->toString() << std::endl;
+
+    EXPECT_TRUE(synopsis->has_reference_consistency());
 }
 
 TEST_F (TestSynopsis, not_has_consistency) {
@@ -58,11 +60,11 @@ TEST_F (TestSynopsis, not_has_consistency) {
     tuple_b->set_referenced_version_number(dummy_relation, 2);
     tuple_c->set_referenced_version_number(dummy_relation, 3);
 
-    synopsis.enqueue(tuple_a);
-    synopsis.enqueue(tuple_b);
-    synopsis.enqueue(tuple_c);
+    synopsis->enqueue(tuple_a);
+    synopsis->enqueue(tuple_b);
+    synopsis->enqueue(tuple_c);
 
-    EXPECT_FALSE(synopsis.has_reference_consistency());
+    EXPECT_FALSE(synopsis->has_reference_consistency());
 }
 
 TEST_F (TestSynopsis, multiple_relation) {
@@ -78,11 +80,11 @@ TEST_F (TestSynopsis, multiple_relation) {
     tuple_b->set_referenced_version_number(another_relation, 1);
     tuple_c->set_referenced_version_number(another_relation, 1);
 
-    synopsis.enqueue(tuple_a);
-    synopsis.enqueue(tuple_b);
-    synopsis.enqueue(tuple_c);
+    synopsis->enqueue(tuple_a);
+    synopsis->enqueue(tuple_b);
+    synopsis->enqueue(tuple_c);
 
-    EXPECT_TRUE(synopsis.has_reference_consistency());
+    EXPECT_TRUE(synopsis->has_reference_consistency());
 }
 
 TEST_F (TestSynopsis, multiple_relation_inconsistent) {
@@ -98,11 +100,11 @@ TEST_F (TestSynopsis, multiple_relation_inconsistent) {
     tuple_b->set_referenced_version_number(another_relation, 2);
     tuple_c->set_referenced_version_number(another_relation, 1);
 
-    synopsis.enqueue(tuple_a);
-    synopsis.enqueue(tuple_b);
-    synopsis.enqueue(tuple_c);
+    synopsis->enqueue(tuple_a);
+    synopsis->enqueue(tuple_b);
+    synopsis->enqueue(tuple_c);
 
-    EXPECT_FALSE(synopsis.has_reference_consistency());
+    EXPECT_FALSE(synopsis->has_reference_consistency());
 }
 
 TEST_F (TestSynopsis, multiple_relation_difference_state) {
@@ -119,9 +121,9 @@ TEST_F (TestSynopsis, multiple_relation_difference_state) {
     tuple_b->set_referenced_version_number(another_relation, 3);
     tuple_c->set_referenced_version_number(another_relation, 3);
 
-    synopsis.enqueue(tuple_a);
-    synopsis.enqueue(tuple_b);
-    synopsis.enqueue(tuple_c);
+    synopsis->enqueue(tuple_a);
+    synopsis->enqueue(tuple_b);
+    synopsis->enqueue(tuple_c);
 
-    EXPECT_TRUE(synopsis.has_reference_consistency());
+    EXPECT_TRUE(synopsis->has_reference_consistency());
 }

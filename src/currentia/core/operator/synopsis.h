@@ -3,7 +3,7 @@
 #ifndef CURRENTIA_SYNOPSIS_H_
 #define CURRENTIA_SYNOPSIS_H_
 
-#include <vector>
+#include <deque>
 #include <assert.h>
 #include <functional>
 
@@ -13,96 +13,51 @@
 #include "currentia/core/tuple.h"
 #include "currentia/core/window.h"
 #include "currentia/trait/non-copyable.h"
+#include "currentia/trait/pointable.h"
 #include "currentia/trait/show.h"
 
 namespace currentia {
     class Synopsis: private NonCopyable<Synopsis>,
+                    public Pointable<Synopsis>,
                     public Show {
     public:
-        typedef std::vector<Tuple::ptr_t>::const_iterator const_iterator;
         typedef std::function<void(void)> callback_t;
+        typedef std::deque<Tuple::ptr_t>::const_iterator const_iterator;
+        typedef std::deque<Tuple::ptr_t>::iterator iterator;
 
-    private:
+    protected:
         pthread_mutex_t mutex_;
         pthread_cond_t reader_wait_;
 
         Window window_;
-        long index_;
-        long newcomer_count_;
-
         callback_t on_accept_;
 
-        std::vector<Tuple::ptr_t> tuples_;
-        std::vector<Tuple::ptr_t> newcomer_tuples_;
-
-        bool window_filled_;
-        int window_beginning_;
-
-    public:
         Synopsis(Window &window):
             window_(window),
-            on_accept_(NULL),
-            tuples_(window.width),
-            newcomer_tuples_(window.width) {
-            reset();
+            on_accept_(NULL) {
             pthread_mutex_init(&mutex_, NULL);
             pthread_cond_init(&reader_wait_, NULL);
         }
 
-        void reset() {
-            index_ = 0;
-            newcomer_count_ = 0;
-            window_filled_ = false;
-            window_beginning_ = 0;
-        }
+    public:
+        virtual ~Synopsis() = 0;
 
-        void enqueue(const Tuple::ptr_t& input_tuple) {
-            switch (window_.type) {
-            case Window::TUPLE_BASE:
-                return enqueue_logical(input_tuple);
-            case Window::TIME_BASE:
-                assert(false);  // TODO: implement physical operator
-                break;
-            }
-        }
+        virtual void reset() = 0;
 
-        // Keep tuples in `newcomer_tuples_` until the count of
-        // newcomers reaches the stride of window. If the count
-        // reaches, evict n-oldest tuples (n = window_.stride)
-        // from `tuples_` and enqueue the tuples in
-        // `newcomer_tuples_`.  After that, call `on_accept`
-        // handler to execute specific action (e.g., window-join,
-        // aggregation).
-        void enqueue_logical(const Tuple::ptr_t& input_tuple) {
-            thread::ScopedLock lock(&mutex_);
+        virtual void enqueue(const Tuple::ptr_t& input_tuple) = 0;
 
-            newcomer_tuples_[newcomer_count_++] = input_tuple;
+        virtual Synopsis::const_iterator begin() const = 0;
+        virtual Synopsis::const_iterator end() const = 0;
 
-            if (window_filled_) { // Branch prediction, please!
-                if (newcomer_count_ == window_.stride) {
-                    accept_newcomers_logical_(newcomer_count_);
-                }
-            } else {
-                if (newcomer_count_ == window_.width) {
-                    accept_newcomers_logical_(newcomer_count_);
-                }
-            }
-        }
-
-        inline std::vector<Tuple::ptr_t>::const_iterator begin() const {
-            return tuples_.begin();
-        }
-
-        inline std::vector<Tuple::ptr_t>::const_iterator end() const {
-            return tuples_.end();
-        }
+        virtual Tuple::ptr_t get_window_beginning_tuple() const = 0;
+        virtual Tuple::ptr_t get_latest_tuple() const = 0;
 
         std::string toString() const {
             std::stringstream ss;
-            std::vector<Tuple::ptr_t>::const_iterator iter = tuples_.begin();
+            Synopsis::const_iterator iter = begin();
 
             int i = 0;
-            for (; iter < tuples_.end(); ++iter) {
+            for (; iter < end(); ++iter) {
                 ss << "[" << i++ << "] " << (*iter)->toString() << std::endl;
             }
 
@@ -127,7 +82,7 @@ namespace currentia {
                 auto first_version_iter = first_tuple->referenced_version_numbers_begin();
                 auto first_version_iter_end = first_tuple->referenced_version_numbers_end();
 
-                // For all rerations in first tuple's lineage, check
+                // For all relations in first tuple's lineage, check
                 // if the reference consistency is same for all other
                 // relations.
                 for (; first_version_iter != first_version_iter_end; ++first_version_iter) {
@@ -155,10 +110,6 @@ namespace currentia {
             }
 
             return lwm;
-        }
-
-        Tuple::ptr_t get_window_beginning_tuple() const {
-            return tuples_[window_beginning_];
         }
 
         std::string get_versions_string() {
@@ -193,12 +144,80 @@ namespace currentia {
             return ss.str();
         }
 
-        Tuple::ptr_t get_latest_tuple() {
+    protected:
+        void acceptance_notification_() {
+            if (on_accept_)
+                on_accept_();
+        }
+    };
+    Synopsis::~Synopsis() {}
+
+    class TupleBaseSynopsis: private NonCopyable<TupleBaseSynopsis>,
+                             public Synopsis {
+    private:
+        long index_;
+        long newcomer_count_;
+
+        std::deque<Tuple::ptr_t> tuples_;
+        std::deque<Tuple::ptr_t> newcomer_tuples_;
+
+        bool window_filled_;
+        int window_beginning_;
+
+    public:
+        TupleBaseSynopsis(Window &window):
+            Synopsis(window),
+            tuples_(window.width),
+            newcomer_tuples_(window.width) {
+            reset();
+        }
+
+        void reset() {
+            index_ = 0;
+            newcomer_count_ = 0;
+            window_filled_ = false;
+            window_beginning_ = 0;
+        }
+
+        void enqueue(const Tuple::ptr_t& input_tuple) {
+            thread::ScopedLock lock(&mutex_);
+
+            newcomer_tuples_[newcomer_count_++] = input_tuple;
+
+            if (window_filled_) { // Branch prediction, please!
+                if (newcomer_count_ == window_.stride) {
+                    accept_newcomers_logical_(newcomer_count_);
+                }
+            } else {
+                if (newcomer_count_ == window_.width) {
+                    accept_newcomers_logical_(newcomer_count_);
+                }
+            }
+        }
+
+        Synopsis::const_iterator begin() const {
+            return tuples_.begin();
+        }
+
+        Synopsis::const_iterator end() const {
+            return tuples_.end();
+        }
+
+        Tuple::ptr_t get_window_beginning_tuple() const {
+            return tuples_[window_beginning_];
+        }
+
+        Tuple::ptr_t get_latest_tuple() const {
             return tuples_[index_];
+        }
+
+        std::string toString() const {
+            return "(TUPLE-BASE)" + Synopsis::toString();
         }
 
     private:
 
+        // Logical (Tuple-base window)
         void accept_newcomers_logical_(long number_of_newcomer) {
             // TODO: this breaks the order of tuples in `tuples_`
             int current_window_beginning = peek_current_index_() - window_.width;
@@ -213,8 +232,7 @@ namespace currentia {
             newcomer_count_ = 0;
             window_filled_ = true;
 
-            if (on_accept_)
-                on_accept_();
+            acceptance_notification_();
         }
 
         inline long get_current_index_and_increment_() {
@@ -227,6 +245,135 @@ namespace currentia {
             return index_;
         }
     };
+
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+#define COMPARE_TIME(A, CMP, B) ((A)->real_arrived_time_difference((B)) CMP 0)
+    class TimeBaseSynopsis: private NonCopyable<TimeBaseSynopsis>,
+                            public Synopsis {
+    private:
+        struct timeval window_beginning_time_;
+        struct timeval window_end_time_;
+
+        bool initialized_;
+
+        std::deque<Tuple::ptr_t> tuples_;
+
+    public:
+        TimeBaseSynopsis(Window &window):
+            Synopsis(window),
+            initialized_(false) {
+            reset();
+        }
+
+        void reset() {
+        }
+
+        void enqueue(const Tuple::ptr_t& input_tuple) {
+            thread::ScopedLock lock(&mutex_);
+
+            if (!initialized_) {
+                // For the first enqueue call
+                initialized_ = true;
+                window_beginning_time_ = input_tuple->get_real_arrived_time();
+                sync_window_end_time_with_beginning_time_();
+            }
+
+            if (COMPARE_TIME(input_tuple, <=, window_end_time_)) {
+                // (1) input_tuple is in the current window
+                tuples_.push_back(input_tuple);
+            } else {
+                // (2) input_tuple isn't in the current window
+                // Evaluate sliding windows that doesn't include the input_tuple.
+                do {
+                    // TODO: operator may be evaluated multiple times
+                    // this may break the correctness of the constraint-scheduler
+                    if (begin() != end()) {
+                        // When at least one tuple exists in the current window, evaluate the operator
+                        acceptance_notification_();
+                    }
+                    slide_window_();
+                    evict_expired_tuples_();
+                } while (COMPARE_TIME(input_tuple, >, window_end_time_));
+                // Then, push the input_tuple. If windows are
+                // landmark-windows (slide > width), the input_tuple
+                // may not be contained in the next window.
+                if (COMPARE_TIME(input_tuple, >=, window_beginning_time_)) {
+                    tuples_.push_back(input_tuple);
+                }
+                evict_expired_tuples_();
+            }
+        }
+
+        Synopsis::const_iterator begin() const {
+            return tuples_.begin();
+        }
+
+        Synopsis::const_iterator end() const {
+            return tuples_.end();
+        }
+
+        Tuple::ptr_t get_window_beginning_tuple() const {
+            return *begin();
+        }
+
+        Tuple::ptr_t get_latest_tuple() const {
+            return *(end() - 1);
+        }
+
+        std::string toString() const {
+            return "(TIME-BASE)" + Synopsis::toString();
+        }
+
+        static void timeval_add_msec(struct timeval* time, long msec) {
+            time->tv_usec += msec * 1000;
+            if (time->tv_usec >= 1000 * 1000) {
+                time->tv_sec++;
+                time->tv_usec -= 1000 * 1000;
+            }
+        }
+
+    private:
+        void sync_window_end_time_with_beginning_time_() {
+            window_end_time_ = window_beginning_time_;
+            timeval_add_msec(&window_end_time_, window_.width);
+        }
+
+        void set_window_beginning_time_(const struct timeval& new_beginning_time) {
+            window_beginning_time_ = new_beginning_time;
+            sync_window_end_time_with_beginning_time_();
+        }
+
+        void slide_window_() {
+            timeval_add_msec(&window_beginning_time_, window_.stride);
+            sync_window_end_time_with_beginning_time_();
+        }
+
+        void evict_expired_tuples_() {
+            for (Synopsis::iterator iter = tuples_.begin();
+                 iter < tuples_.end();) {
+                if ((*iter)->real_arrived_time_difference(window_beginning_time_) < 0) {
+                    iter = tuples_.erase(iter);
+                } else {
+                    ++iter;
+                }
+            }
+        }
+    };
+#undef COMPARE_TIME
+#endif
+
+    Synopsis::ptr_t create_synopsis_from_window(Window& window) {
+        switch (window.type) {
+        case Window::TUPLE_BASE:
+            return Synopsis::ptr_t(new TupleBaseSynopsis(window));
+        case Window::TIME_BASE:
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+            return Synopsis::ptr_t(new TimeBaseSynopsis(window));
+#else
+            throw "Time-based windows are not enabled. Specify -DCURRENTIA_ENABLE_TIME_BASED_WINDOW.";
+#endif
+        }
+    }
 }
 
 #endif  /* ! CURRENTIA_SYNOPSIS_H_ */

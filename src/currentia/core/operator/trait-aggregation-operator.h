@@ -19,7 +19,7 @@ namespace currentia {
 
     protected:
         Window window_;
-        Synopsis synopsis_;
+        Synopsis::ptr_t synopsis_;
 
         Synopsis::callback_t on_accept_;
 
@@ -27,22 +27,22 @@ namespace currentia {
         TraitAggregationOperator(Window window,
                                  const Synopsis::callback_t& on_accept):
             window_(window),
-            synopsis_(window),
+            synopsis_(create_synopsis_from_window(window)),
             on_accept_(on_accept) {
             // Setup handler
-            synopsis_.set_on_accept(std::bind(&TraitAggregationOperator::on_accept_wrapper_, this));
+            synopsis_->set_on_accept(std::bind(&TraitAggregationOperator::on_accept_wrapper_, this));
         }
 
         virtual ~TraitAggregationOperator() = 0;
 
         time_t get_window_beginning_lwm() const {
             // print_synopsis_lwm();
-            return synopsis_.get_window_beginning_tuple()->get_lwm();
+            return synopsis_->get_window_beginning_tuple()->get_lwm();
         }
 
         void print_synopsis_lwm() const {
-            auto iter = synopsis_.begin();
-            auto iter_end = synopsis_.end();
+            auto iter = synopsis_->begin();
+            auto iter_end = synopsis_->end();
             for (; iter != iter_end; ++iter) {
                 std::clog << (*iter)->get_lwm() << ", ";
             }

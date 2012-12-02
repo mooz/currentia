@@ -39,7 +39,7 @@ namespace currentia {
 
     private:
         void elect_tuple_() {
-            output_tuple(*synopsis_.begin());
+            output_tuple(*synopsis_->begin());
         }
     };
 }

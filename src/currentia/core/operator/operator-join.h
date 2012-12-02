@@ -27,8 +27,8 @@ namespace currentia {
             left_window_(left_window),
             right_window_(right_window),
             // init synopsises
-            left_synopsis_(left_window_),
-            right_synopsis_(right_window_),
+            left_synopsis_(create_synopsis_from_window(left_window_)),
+            right_synopsis_(create_synopsis_from_window(right_window_)),
             // set join condition
             join_condition_(join_condition) {
             // build new schema and index
@@ -36,8 +36,8 @@ namespace currentia {
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
             // set callbacks
             Synopsis::callback_t on_accept = std::bind(&OperatorJoin::join_synopsis_, this);
-            left_synopsis_.set_on_accept(on_accept);
-            right_synopsis_.set_on_accept(on_accept);
+            left_synopsis_->set_on_accept(on_accept);
+            right_synopsis_->set_on_accept(on_accept);
             // obey schema
             join_condition->obey_schema(
                 parent_left_operator_ptr->get_output_stream()->get_schema(),
@@ -46,24 +46,24 @@ namespace currentia {
         }
 
         void process_left_input(Tuple::ptr_t input) {
-            left_synopsis_.enqueue(input);
+            left_synopsis_->enqueue(input);
         }
 
         void process_right_input(Tuple::ptr_t input) {
-            right_synopsis_.enqueue(input);
+            right_synopsis_->enqueue(input);
         }
 
         void reset() {
-            left_synopsis_.reset();
-            right_synopsis_.reset();
+            left_synopsis_->reset();
+            right_synopsis_->reset();
         }
 
     private:
         Window left_window_;
         Window right_window_;
 
-        Synopsis left_synopsis_;
-        Synopsis right_synopsis_;
+        Synopsis::ptr_t left_synopsis_;
+        Synopsis::ptr_t right_synopsis_;
 
         Condition::ptr_t join_condition_;
 
@@ -78,22 +78,22 @@ namespace currentia {
 
         inline void
         join_synopsis_() {
-            Synopsis::const_iterator left_iter = left_synopsis_.begin();
-            Synopsis::const_iterator right_iter = right_synopsis_.begin();
+            Synopsis::const_iterator left_iter = left_synopsis_->begin();
+            Synopsis::const_iterator right_iter = right_synopsis_->begin();
 
-            Synopsis::const_iterator left_iter_end = left_synopsis_.end();
-            Synopsis::const_iterator right_iter_end = right_synopsis_.end();
+            Synopsis::const_iterator left_iter_end = left_synopsis_->end();
+            Synopsis::const_iterator right_iter_end = right_synopsis_->end();
 
 #if 0
-            std::cout << "Left Synopsis\n" << left_synopsis_.toString() << std::endl;
-            std::cout << "Right Synopsis\n" << right_synopsis_.toString() << std::endl;
+            std::cout << "Left Synopsis\n" << left_synopsis_->toString() << std::endl;
+            std::cout << "Right Synopsis\n" << right_synopsis_->toString() << std::endl;
             std::cout.flush();
 #endif
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             // decide lwm
-            time_t lwm = std::min(left_synopsis_.get_lwm(),
-                                  right_synopsis_.get_lwm());
+            time_t lwm = std::min(left_synopsis_->get_lwm(),
+                                  right_synopsis_->get_lwm());
 #endif
 
             // For now, just conduct a nested-loop join

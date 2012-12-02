@@ -18,6 +18,10 @@
 #include <unordered_map>
 #endif
 
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+#include <sys/time.h>
+#endif
+
 namespace currentia {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         // (Since relation.h refers tuple.h, we cannot include
@@ -43,7 +47,11 @@ namespace currentia {
 
         Schema::ptr_t schema_ptr_;
         data_t data_;
-        time_t arrived_time_; // system timestamp
+        time_t arrived_time_; // system timestamp (logical one)
+
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+        struct timeval real_arrived_time_;
+#endif
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         time_t lwm_; // low water mark
@@ -88,6 +96,9 @@ namespace currentia {
             arrived_time_(arrived_time) {
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             set_lwm(arrived_time);
+#endif
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+            gettimeofday(&real_arrived_time_, NULL);
 #endif
         }
 
@@ -151,7 +162,27 @@ namespace currentia {
                 ss << ", ";
             }
             ss << "]";
-            ss << get_lwm() << std::endl;
+            ss << get_lwm();
+#endif
+
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+            ss << "<";
+
+            struct tm *date;
+            int year, month, day;
+            int hour, minute, second, msec;
+
+            date   = localtime(&real_arrived_time_.tv_sec);
+            year   = date->tm_year + 1900;
+            month  = date->tm_mon + 1;
+            day    = date->tm_mday;
+            hour   = date->tm_hour;
+            minute = date->tm_min;
+            second = date->tm_sec;
+            msec   = real_arrived_time_.tv_usec / 1000;
+
+            ss << year << "/" << month << "/" << day << " " << hour << ":" << minute << ":" << second << "(" << msec << ")";
+            ss << ">";
 #endif
 
             return ss.str();
@@ -176,10 +207,33 @@ namespace currentia {
             return new_data;
         }
 
-        inline
         time_t get_arrived_time() const {
             return arrived_time_;
         }
+
+#ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
+        const struct timeval& get_real_arrived_time() const {
+            return real_arrived_time_;
+        }
+
+        long real_arrived_time_difference(const struct timeval& origin_time) const {
+            return timeval_difference_msec(real_arrived_time_, origin_time);
+        }
+
+        static long timeval_difference_msec(const struct timeval& time_a,
+                                            const struct timeval& time_b) {
+            // From eglibc's timersub implementation
+            long difference_msec = (time_a.tv_sec - time_b.tv_sec) * 1000;
+            suseconds_t difference_usec = time_a.tv_usec - time_b.tv_usec;
+
+            if (difference_usec < 0) {
+                difference_msec--;
+                difference_usec += 1000 * 1000;
+            }
+
+            return difference_msec + (difference_usec / 1000);
+        }
+#endif
 
         const Schema::ptr_t get_schema() {
             return schema_ptr_;
