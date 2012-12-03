@@ -9,10 +9,8 @@
 namespace currentia {
     class Show {
     public:
-        virtual ~Show() = 0;
-        virtual std::string toString() const = 0;
+        std::string toString() const { return "Unknown Show Type"; }
     };
-    Show::~Show() {}
 }
 
 std::ostream& operator<<(std::ostream& stream, const currentia::Show& show) {
