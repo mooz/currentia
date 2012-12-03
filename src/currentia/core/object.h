@@ -13,11 +13,13 @@
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
-    // copyable
     class Object : public Pointable<Object>,
                    public Show {
     public:
-        friend class Operations;
+        friend class Operation;
+
+        typedef std::string* string_ptr_t;
+        typedef char* blob_ptr_t;
 
         enum Type {
             INT,
@@ -28,12 +30,20 @@ namespace currentia {
             UNKNOWN
         };
 
-        // typedef int int_number_t;
-        // typedef double double_number_t;
-        typedef std::shared_ptr<std::string> string_ptr_t;
-        typedef std::shared_ptr<char*> blob_ptr_t;
+        union Holder {
+            int          int_number;
+            double       float_number;
+            string_ptr_t string_ptr;
+            blob_ptr_t   blob_ptr;
+        };
 
-        enum Type type;         // TODO: make it const (immutable)
+        enum Type get_type() const {
+            return type_;
+        }
+
+    private:
+        enum Type type_;
+        Holder holder_;
 
     private:
         template <typename T>
@@ -56,59 +66,110 @@ namespace currentia {
             }
         }
 
-    public:
-        // TODO: union is preferred, but smart pointers are not allowed in `union`
-        // (such objects who have constructor and destructor in union are supproted from C++11)
-        struct Holder {
-            int          int_number;
-            double       float_number;
-            string_ptr_t string_ptr;
-            blob_ptr_t   blob_ptr;
-        } holder_;
-
-        Object(int int_number): type(INT) {
+        void set_int_number_(int int_number) {
             holder_.int_number = int_number;
         }
 
-        Object(long int_number): type(INT) {
-            holder_.int_number = int_number;
-        }
-
-        Object(double float_number): type(FLOAT) {
+        void set_float_number_(double float_number) {
             holder_.float_number = float_number;
         }
 
-        Object(string_ptr_t string_ptr): type(STRING) {
+        void set_string_ptr_(string_ptr_t string_ptr) {
             holder_.string_ptr = string_ptr;
         }
 
-        Object(const std::string& string): type(STRING) {
-            holder_.string_ptr = string_ptr_t(new std::string(string));
-        }
-
-        Object(const char* raw_string): type(STRING) {
-            holder_.string_ptr = string_ptr_t(new std::string(raw_string));
-        }
-
-        Object(blob_ptr_t blob_ptr): type(BLOB) {
+        void set_blob_ptr_(blob_ptr_t blob_ptr) {
             holder_.blob_ptr = blob_ptr;
+        }
+
+    public:
+        int get_int_number() const {
+            return holder_.int_number;
+        }
+
+        double get_float_number() const {
+            return holder_.float_number;
+        }
+
+        string_ptr_t get_string_ptr() const {
+            return holder_.string_ptr;
+        }
+
+        blob_ptr_t get_blob_ptr() const {
+            return holder_.blob_ptr;
+        }
+
+        ~Object() {
+            // No custom deleter
+            switch (get_type()) {
+            case INT:
+                break;
+            case FLOAT:
+                break;
+            case STRING:
+                if (get_string_ptr())
+                    delete get_string_ptr();
+                break;
+            case BLOB:
+                if (get_blob_ptr())
+                    delete get_blob_ptr();
+                break;
+            case UNKNOWN:
+                break;
+            }
+        }
+
+        Object(int int_number): type_(INT) {
+            set_int_number_(int_number);
+        }
+
+        Object(long int_number): type_(INT) {
+            set_int_number_(int_number);
+        }
+
+        Object(double float_number): type_(FLOAT) {
+            set_float_number_(float_number);
+        }
+
+        // Users have to free a string they try to wrap with Object in
+        // the user side (Object class retains a copy of the given
+        // string and do not touch with the original pointer)
+        Object(string_ptr_t string_ptr): type_(STRING) {
+            set_string_ptr_(string_ptr_t(new std::string(*string_ptr)));
+        }
+
+        Object(const std::string& string): type_(STRING) {
+            set_string_ptr_(string_ptr_t(new std::string(string)));
+        }
+
+        Object(const char* raw_string): type_(STRING) {
+            set_string_ptr_(string_ptr_t(new std::string(raw_string)));
+        }
+
+        // If you do not want to your object to be replicated,
+        // consider using BLOB. BLOB retains the original pointer, and
+        // frees up the memory it points when the BLOB Object is
+        // destructed (You cannot choose custom deleter for
+        // now. Always 'delete' is tried to the pointer).
+        Object(blob_ptr_t blob_ptr): type_(BLOB) {
+            set_blob_ptr_(blob_ptr);
         }
 
         std::string toString() const {
             std::stringstream ss;
 
-            switch (type) {
+            switch (get_type()) {
             case INT:
-                ss << "INT(" << holder_.int_number << ")";
+                ss << "INT(" << get_int_number() << ")";
                 break;
             case FLOAT:
-                ss << "FLOAT(" << holder_.float_number << ")";
+                ss << "FLOAT(" << get_float_number() << ")";
                 break;
             case STRING:
-                ss << "STRING(\"" << *holder_.string_ptr  << "\")";
+                ss << "STRING(\"" << *get_string_ptr()  << "\")";
                 break;
             case BLOB:
-                ss << "BLOB(<#" << holder_.blob_ptr << ">)";
+                ss << "BLOB(<#" << get_blob_ptr() << ">)";
                 break;
             default:
                 ss << "UNKNOWN()";
@@ -121,19 +182,19 @@ namespace currentia {
         bool compare(const Object& target, Comparator::Type comparator) const {
             bool comparison_result = false;
 
-            if (type != target.type) {
+            if (get_type() != target.get_type()) {
                 std::cerr << "Warning: comparing imcompatible type \""
-                          << type_to_string(type)
+                          << type_to_string(get_type())
                           << "\" and \""
-                          << type_to_string(target.type) << "\" " << std::endl;
+                          << type_to_string(target.get_type()) << "\" " << std::endl;
                 // TODO: implement smart casting
                 return false;
             }
 
-            switch (type) {
+            switch (get_type()) {
             case INT:
-                comparison_result = generic_compare_(holder_.int_number,
-                                                     target.holder_.int_number,
+                comparison_result = generic_compare_(get_int_number(),
+                                                     target.get_int_number(),
                                                      comparator);
                 break;
             case FLOAT:

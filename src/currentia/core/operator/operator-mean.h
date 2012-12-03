@@ -84,7 +84,7 @@ namespace currentia {
             Synopsis::const_iterator iter_end = synopsis_->end();
 
             for (; iter != iter_end; ++iter) {
-                sum_ = operations::operation_add(
+                sum_ = Operation::add(
                     sum_,
                     (*iter)->get_value_by_attribute_name(target_attribute_name_) // TODO: build index
                 );
@@ -92,7 +92,7 @@ namespace currentia {
 
             Tuple::ptr_t mean_tuple = Tuple::create_easy(
                 get_output_schema_ptr(),
-                operations::operation_divide(sum_, window_width_object_)
+                Operation::divide(sum_, window_width_object_)
             );
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             mean_tuple->set_lwm(lwm);

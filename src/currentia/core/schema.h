@@ -134,11 +134,11 @@ namespace currentia {
 
             int attr_number = 0;
             for (; data_iter != data.end(); ++data_iter, ++attr_iter) {
-                if (data_iter->type != attr_iter->type) {
+                if (data_iter->get_type() != attr_iter->type) {
                     std::cerr <<
                         "schema expected '" << Object::type_to_string(attr_iter->type) <<
                         "' for column " << attr_number <<
-                        ", but got '" << Object::type_to_string(data_iter->type) << "'." << std::endl;
+                        ", but got '" << Object::type_to_string(data_iter->get_type()) << "'." << std::endl;
                     return false;
                 }
                 attr_number++;
