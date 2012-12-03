@@ -161,6 +161,26 @@ namespace currentia {
             return this->compare(target, Comparator::EQUAL);
         }
 
+        bool operator !=(const Object& target) const {
+            return this->compare(target, Comparator::NOT_EQUAL);
+        }
+
+        bool operator <(const Object& target) const {
+            return this->compare(target, Comparator::LESS_THAN);
+        }
+
+        bool operator <=(const Object& target) const {
+            return this->compare(target, Comparator::LESS_THAN_EQUAL);
+        }
+
+        bool operator >(const Object& target) const {
+            return this->compare(target, Comparator::GREATER_THAN);
+        }
+
+        bool operator >=(const Object& target) const {
+            return this->compare(target, Comparator::GREATER_THAN_EQUAL);
+        }
+
         static std::string type_to_string(Object::Type type) {
             switch (type) {
             case INT:
