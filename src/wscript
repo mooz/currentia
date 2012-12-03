@@ -1,6 +1,6 @@
 # -*- python -*-
 
-subdirs = "currentia"
+subdirs = "currentia profile"
 
 def options(opt):
     opt.recurse(subdirs)
