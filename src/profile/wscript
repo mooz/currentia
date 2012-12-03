@@ -1,0 +1,17 @@
+# -*- python -*-
+
+subdirs = ""
+
+def options(opt):
+    opt.recurse(subdirs)
+
+def configure(conf):
+    conf.recurse(subdirs)
+
+def build(bld):
+    bld.program(
+        source   = 'object_performance.cpp',
+        includes = '../',
+        target   = 'object_performance',
+    )
+    bld.recurse(subdirs)
