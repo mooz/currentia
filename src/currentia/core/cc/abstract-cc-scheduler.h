@@ -18,8 +18,6 @@ namespace currentia {
     // Concurrenty Control Scheduler
     class AbstractCCScheduler : public AbstractScheduler {
     protected:
-
-        OperatorVisitorSerializer serializer_;
         std::vector<Operator*> operators_;
         int current_operator_index_;
 
@@ -43,8 +41,9 @@ namespace currentia {
         AbstractCCScheduler(Operator::ptr_t root_operator, Operator::CCMode cc_mode):
             AbstractScheduler(root_operator),
             current_operator_index_(0) {
-            serializer_.dispatch(root_operator.get());
-            operators_ = serializer_.get_sorted_operators();
+            OperatorVisitorSerializer serializer;
+            serializer.dispatch(root_operator.get());
+            operators_ = serializer.get_sorted_operators();
             std::for_each(operators_.begin(), operators_.end(), SetCCMode(cc_mode));
 
             // Concurrency Control
