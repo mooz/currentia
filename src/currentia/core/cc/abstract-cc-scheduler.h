@@ -41,18 +41,20 @@ namespace currentia {
         AbstractCCScheduler(Operator::ptr_t root_operator, Operator::CCMode cc_mode):
             AbstractScheduler(root_operator),
             current_operator_index_(0) {
+            // Serialize operator
             OperatorVisitorSerializer serializer;
             serializer.dispatch(root_operator.get());
             operators_ = serializer.get_sorted_operators();
             std::for_each(operators_.begin(), operators_.end(), SetCCMode(cc_mode));
 
-            // Concurrency Control
+            // Find commit operator
             CommitOperatorFinder finder(root_operator.get());
             commit_operator_ = finder.get_commit_operator();
             commit_operator_->set_is_commit_operator(true);
             if (!dynamic_cast<OperatorMean*>(commit_operator_))
                 throw "Commit operator can only be OperatorMean for now";
 
+            // Find redo area and redo stream
             RedoArea redo_area(root_operator.get());
             redo_operators_ = redo_area.get_redo_operators();
             redo_streams_ = redo_area.get_redo_streams();
