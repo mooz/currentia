@@ -5,11 +5,16 @@
 #include "currentia/core/operator/operator-selection.h"
 #include "currentia/core/operator/operator-simple-relation-join.h"
 #include "currentia/core/relation.h"
+
+#include "currentia/core/scheduler/policy/scheduling-policy.h"
+#include "currentia/core/scheduler/policy/scheduling-policy-round-robin.h"
+
 #include "currentia/core/scheduler/abstract-scheduler.h"
-#include "currentia/core/scheduler/round-robin-scheduler.h"
+#include "currentia/core/cc/without-cc-scheduler.h"
 #include "currentia/core/cc/optimistic-cc-scheduler.h"
 #include "currentia/core/cc/lock-cc-scheduler.h"
 #include "currentia/core/cc/snapshot-cc-scheduler.h"
+
 #include "currentia/core/stream.h"
 #include "currentia/core/thread.h"
 #include "thirdparty/cmdline.h"
@@ -200,16 +205,18 @@ void initialize(const cmdline::parser& cmd_parser)
     result_stream = parse_result->get_stream_by_name("result");
     query_ptr = parse_result->get_root_operator_for_stream(result_stream);
 
+    SchedulingPolicyFactory::ptr_t scheduling_policy_factory(new RoundRobinPolicyFactory());
+
     std::string cc_method = cmd_parser.get<std::string>("method");
     int txn_joint_count = cmd_parser.get<int>("txn-joint-count");
     if (cc_method == "optimistic")
-        scheduler = new OptimisticCCScheduler(query_ptr);
+        scheduler = new OptimisticCCScheduler(query_ptr, scheduling_policy_factory);
     else if (cc_method == "2pl")
-        scheduler = new LockCCScheduler(query_ptr, txn_joint_count);
+        scheduler = new LockCCScheduler(query_ptr, scheduling_policy_factory, txn_joint_count);
     else if (cc_method == "snapshot")
-        scheduler = new SnapshotCCScheduler(query_ptr, txn_joint_count);
+        scheduler = new SnapshotCCScheduler(query_ptr, scheduling_policy_factory, txn_joint_count);
     else
-        scheduler = new RoundRobinScheduler(query_ptr);
+        scheduler = new WithoutCCScheduler(query_ptr, scheduling_policy_factory);
 }
 
 void set_parameters_from_option(cmdline::parser& cmd_parser)
@@ -393,8 +400,8 @@ int main(int argc, char **argv)
         TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
         std::clog << "Window: " << op->get_window() << std::endl;
     }
-    // TODO: Create common ancestor class for AbstractCCScheduler and RoundRobinScheduler
-    if (RoundRobinScheduler* rcc = dynamic_cast<RoundRobinScheduler*>(scheduler)) {
+    // TODO: Create common ancestor class for AbstractCCScheduler and WithoutCCScheduler
+    if (WithoutCCScheduler* rcc = dynamic_cast<WithoutCCScheduler*>(scheduler)) {
         std::clog << "Consistent Rate: " << rcc->get_consistent_rate() << std::endl;
         TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(rcc->get_commit_operator());
         std::clog << "Window: " << op->get_window() << std::endl;

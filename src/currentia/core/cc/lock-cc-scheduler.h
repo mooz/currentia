@@ -9,8 +9,11 @@ namespace currentia {
     // Concurrenty Control Scheduler with 2-Phase Locking Protocol
     class LockCCScheduler : public AbstractPessimisticCCScheduler {
     public:
-        LockCCScheduler(Operator::ptr_t root_operator, int txn_joint_count = 1):
+        LockCCScheduler(const Operator::ptr_t& root_operator,
+                        const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory,
+                        int txn_joint_count = 1):
             AbstractPessimisticCCScheduler(root_operator,
+                                           scheduling_policy_factory,
                                            Operator::PESSIMISTIC_2PL,
                                            txn_joint_count) {
         }

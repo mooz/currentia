@@ -6,10 +6,11 @@
 #include "currentia/core/operator/operator-abstract-visitor.h"
 
 namespace currentia {
-    template <typename T> class VisitableOperator {
+    template <typename T>
+    class VisitableOperator {
     public:
         void accept(OperatorAbstractVisitor* const visitor) {
-            visitor->visit(*reinterpret_cast<T*>(this));
+            visitor->visit(reinterpret_cast<T*>(this));
         }
     };
 }

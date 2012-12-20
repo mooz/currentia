@@ -10,6 +10,6 @@
     class OPERATOR;
 
 #define CURRENTIA_OPERATOR_DEFINE_VISIT(OPERATOR)       \
-    virtual void visit(OPERATOR& op) = 0;
+    virtual void visit(OPERATOR* op) = 0;
 
 #endif  /* ! CURRENTIA_OPERATOR_FORWARD_DECLARATION_H_ */

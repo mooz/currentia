@@ -20,10 +20,11 @@ namespace currentia {
         std::deque<TraitResourceReferenceOperator*> reference_operators_;
 
     public:
-        AbstractPessimisticCCScheduler(Operator::ptr_t root_operator,
+        AbstractPessimisticCCScheduler(const Operator::ptr_t& root_operator,
+                                       const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory,
                                        Operator::CCMode cc_mode,
                                        int txn_joint_count = 1):
-            AbstractCCScheduler(root_operator, cc_mode),
+            AbstractCCScheduler(root_operator, scheduling_policy_factory, cc_mode),
             txn_joint_count_(txn_joint_count),
             commit_count_(0) {
             // Extract operator relation-join

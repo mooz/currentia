@@ -11,6 +11,8 @@
 #include "currentia/core/cc/commit-operator-finder.h"
 #include "currentia/core/cc/redo-area.h"
 
+#include "currentia/core/scheduler/policy/scheduling-policy.h"
+
 #include "currentia/core/operator/dump-operator-tree.h"
 #include "currentia/util/print.h"
 
@@ -18,61 +20,44 @@ namespace currentia {
     // Concurrenty Control Scheduler
     class AbstractCCScheduler : public AbstractScheduler {
     protected:
-        std::vector<Operator*> operators_;
-        int current_operator_index_;
-
-        // Concurrency Control
         Operator* commit_operator_;
         std::deque<Operator*> redo_operators_;
         std::deque<Stream::ptr_t> redo_streams_;
 
-        // Functor
-        struct SetCCMode {
-            Operator::CCMode cc_mode;
-            SetCCMode(Operator::CCMode cc_mode): cc_mode(cc_mode) {
-            }
-            void operator()(Operator* op) {
-                op->set_cc_mode(cc_mode);
-            }
-        };
-
     public:
-        // @Changed
-        AbstractCCScheduler(Operator::ptr_t root_operator, Operator::CCMode cc_mode):
-            AbstractScheduler(root_operator),
-            current_operator_index_(0) {
-            // Serialize operator
-            OperatorVisitorSerializer serializer;
-            serializer.dispatch(root_operator.get());
-            operators_ = serializer.get_sorted_operators();
-            std::for_each(operators_.begin(), operators_.end(), SetCCMode(cc_mode));
+        AbstractCCScheduler(const Operator::ptr_t& root_operator,
+                            const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory,
+                            Operator::CCMode cc_mode):
+            AbstractScheduler(root_operator, scheduling_policy_factory) {
+            // Tell concurrency-control stragety to the operators rooted by `root_operator`
+            for (auto iter = operators_.begin(), iter_end = operators_.end();
+                 iter != iter_end;
+                 ++iter) {
+                (*iter)->set_cc_mode(cc_mode);
+            }
+
+            Operator* root_operator_raw_ptr = root_operator.get();
 
             // Find commit operator
-            CommitOperatorFinder finder(root_operator.get());
+            CommitOperatorFinder finder(root_operator_raw_ptr);
             commit_operator_ = finder.get_commit_operator();
             commit_operator_->set_is_commit_operator(true);
             if (!dynamic_cast<OperatorMean*>(commit_operator_))
                 throw "Commit operator can only be OperatorMean for now";
 
             // Find redo area and redo stream
-            RedoArea redo_area(root_operator.get());
+            RedoArea redo_area(root_operator_raw_ptr);
             redo_operators_ = redo_area.get_redo_operators();
             redo_streams_ = redo_area.get_redo_streams();
 
+#ifdef CURRENTIA_DEBUG
             util::print_iterable(redo_operators_);
             util::print_iterable(redo_streams_);
-            std::clog << dump_operator_tree(root_operator.get()) << std::endl;
+            std::clog << dump_operator_tree(root_operator_raw_ptr) << std::endl;
+#endif
         }
 
         virtual ~AbstractCCScheduler() = 0;
-
-        static bool is_aggregation_operator(const Operator* op) {
-            return !!dynamic_cast<const TraitAggregationOperator*>(op);
-        }
-
-        static bool is_resource_reference_operator(const Operator* op) {
-            return !!dynamic_cast<const TraitResourceReferenceOperator*>(op);
-        }
 
         double get_consistent_rate() const {
             return dynamic_cast<OperatorMean*>(commit_operator_)->get_consistent_rate();
@@ -83,12 +68,8 @@ namespace currentia {
         }
 
     protected:
-        Operator* get_next_operator_() {
-            return operators_[get_next_operator_index_()];
-        }
-
-        int get_next_operator_index_() {
-            return current_operator_index_++ % operators_.size();
+        Operator* get_next_operator_() const {
+            return scheduling_policy_->get_next_operator();
         }
 
         void reset_operators_() {

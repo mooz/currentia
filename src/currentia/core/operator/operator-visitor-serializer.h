@@ -12,7 +12,7 @@
 #include "currentia/core/pointer.h"
 
 namespace currentia {
-    // Serialize a operator tree by sorting topological sort algorithm
+    // Serialize a operator tree by topological sort algorithm
     class OperatorVisitorSerializer : public OperatorAbstractVisitor,
                                       public Pointable<OperatorVisitorSerializer> {
         std::vector<Operator*> operators_;
@@ -23,26 +23,35 @@ namespace currentia {
         OperatorVisitorSerializer() {
         }
 
-        const std::vector<Operator*>& get_sorted_operators() {
+        static std::vector<Operator*>
+        serialize_tree(const Operator::ptr_t& root_operator_ptr) {
+            return serialize_tree(root_operator_ptr.get());
+        }
+
+        static std::vector<Operator*>
+        serialize_tree(Operator* root_operator_ptr) {
+            OperatorVisitorSerializer serializer;
+            serializer.dispatch(root_operator_ptr);
+            return serializer.get_sorted_operators();
+        }
+
+        std::vector<Operator*> get_sorted_operators() const {
             return operators_;
         }
 
-        void visit(SingleInputOperator& op) {
-            std::clog << "Visit Single Operator: " << op.toString() << std::endl;
-            dispatch(op.get_parent_operator().get());
-            operators_.push_back(&op);
+        void visit(SingleInputOperator* op) {
+            dispatch(op->get_parent_operator().get());
+            operators_.push_back(op);
         }
 
-        void visit(DoubleInputOperator& op) {
-            std::clog << "Visit Binary Operator: " << op.toString() << std::endl;
-            dispatch(op.get_parent_left_operator().get());
-            dispatch(op.get_parent_right_operator().get());
-            operators_.push_back(&op);
+        void visit(DoubleInputOperator* op) {
+            dispatch(op->get_parent_left_operator().get());
+            dispatch(op->get_parent_right_operator().get());
+            operators_.push_back(op);
         }
 
-        void visit(OperatorStreamAdapter& op) {
-            std::clog << "Visit Stream Adapter: " << op.toString() << std::endl;
-            operators_.push_back(&op);
+        void visit(OperatorStreamAdapter* op) {
+            operators_.push_back(op);
         }
 
         void dispatch(Operator* op) {

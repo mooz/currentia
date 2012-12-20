@@ -10,8 +10,9 @@ namespace currentia {
         int redo_counts_;
 
     public:
-        OptimisticCCScheduler(Operator::ptr_t root_operator):
-            AbstractCCScheduler(root_operator, Operator::OPTIMISTIC),
+        OptimisticCCScheduler(const Operator::ptr_t& root_operator,
+                              const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory):
+            AbstractCCScheduler(root_operator, scheduling_policy_factory, Operator::OPTIMISTIC),
             redo_counts_(0) {
         }
 
@@ -47,7 +48,7 @@ namespace currentia {
             // Reset streams and operators only (not do eviction)
             reset_streams_();
             reset_operators_();
-            current_operator_index_ = 0;
+            scheduling_policy_->reset();
         }
 
         void commit_() {
