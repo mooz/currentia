@@ -77,7 +77,7 @@ namespace currentia {
             is_commit_operator_ = is_commit_operator;
         }
 
-        bool is_commit_operator() {
+        bool is_commit_operator() const {
             return is_commit_operator_;
         }
 
@@ -86,17 +86,17 @@ namespace currentia {
             cc_mode_ = cc_mode;
         }
 
-        enum CCMode get_cc_mode() {
+        enum CCMode get_cc_mode() const {
             return cc_mode_;
         }
 
-        bool in_pessimistic_cc() {
+        bool in_pessimistic_cc() const {
             return cc_mode_ & PESSIMISTIC_MASK;
         }
 #endif
 
         // Returns the schema of this operator's output stream
-        Schema::ptr_t get_output_schema_ptr() {
+        Schema::ptr_t get_output_schema_ptr() const {
             return get_output_stream()->get_schema();
         }
 
@@ -104,7 +104,7 @@ namespace currentia {
             output_stream_ = output_stream;
         }
 
-        Stream::ptr_t get_output_stream() {
+        Stream::ptr_t get_output_stream() const {
             return output_stream_;
         }
 
