@@ -6,6 +6,7 @@
 // TODO: more portable (platform independent)
 #include <pthread.h>
 #include <sched.h>
+#include <thread>
 
 namespace currentia {
     namespace thread {
@@ -34,6 +35,21 @@ namespace currentia {
         int scheduler_yield() {
             return sched_yield();
         }
+
+        class Runnable {
+        public:
+            virtual void run() = 0;
+
+            std::thread create_thread() {
+                return std::thread(run_runnable, this);
+            }
+
+        private:
+            static
+            void run_runnable(thread::Runnable* runnable) {
+                runnable->run();
+            }
+        };
     }
 }
 
