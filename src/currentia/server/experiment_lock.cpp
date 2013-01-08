@@ -25,7 +25,8 @@
 
 #include "currentia/util/time.h"
 
-#include <boost/thread.hpp>
+#include <thread>
+
 #include <iostream>
 
 using namespace currentia;
@@ -54,7 +55,7 @@ static useconds_t UPDATE_INTERVAL;
 static useconds_t UPDATE_TIME;
 
 static int updated_status_count;
-void* update_status_thread_body(void* argument)
+void update_status_thread_body()
 {
     updated_status_count = 0;
 
@@ -73,10 +74,9 @@ void* update_status_thread_body(void* argument)
         updated_status_count++;
     }
 
-    return NULL;
 }
 
-void* consume_output_stream_thread_body(void* argument)
+void consume_output_stream_thread_body()
 {
     try {
         while (true) {
@@ -89,12 +89,10 @@ void* consume_output_stream_thread_body(void* argument)
     }
 
     end_time = time::get_current_time_in_seconds();
-
-    return NULL;
 }
 
 AbstractScheduler *scheduler;
-void* process_stream_thread_body(void* argument)
+void process_stream_thread_body()
 {
     try {
         while (true) {
@@ -104,13 +102,11 @@ void* process_stream_thread_body(void* argument)
     } catch (const char* error_message) {
         std::cerr << "Error while processing stream: " << error_message << std::endl;
     }
-
-    return NULL;
 }
 
 // Send purchase data
 static useconds_t PURCHASE_STREAM_INTERVAL;
-void* stream_sending_thread_body(void* argument)
+void stream_sending_thread_body()
 {
     try {
         begin_time = time::get_current_time_in_seconds();
@@ -136,8 +132,6 @@ void* stream_sending_thread_body(void* argument)
     } catch (const char* error_message) {
         std::cerr << "Error while sending data stream: " << error_message << std::endl;
     }
-
-    return NULL;
 }
 
 // }}} ========================================================
@@ -285,19 +279,13 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    typedef void* (*pthread_body_t)(void*);
-    pthread_t update_status_thread, process_stream_thread, consume_output_stream_thread, stream_sending_thread;
+    std::thread update_status_thread(update_status_thread_body);
+    std::thread process_stream_thread(process_stream_thread_body);
+    std::thread consume_output_stream_thread(consume_output_stream_thread_body);
+    std::thread stream_sending_thread(stream_sending_thread_body);
 
-    pthread_create(&update_status_thread, NULL, reinterpret_cast<pthread_body_t>(update_status_thread_body), NULL);
-    pthread_create(&process_stream_thread, NULL, reinterpret_cast<pthread_body_t>(process_stream_thread_body), NULL);
-    pthread_create(&consume_output_stream_thread, NULL, reinterpret_cast<pthread_body_t>(consume_output_stream_thread_body), NULL);
-    pthread_create(&stream_sending_thread, NULL, reinterpret_cast<pthread_body_t>(stream_sending_thread_body), NULL);
-
-    pthread_join(consume_output_stream_thread, NULL);
-    pthread_join(stream_sending_thread, NULL);
-
-    // pthread_cancel(process_stream_thread);
-    // pthread_cancel(update_status_thread);
+    consume_output_stream_thread.join();
+    stream_sending_thread.join();
 
     double elapsed_seconds = end_time - begin_time;
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
