@@ -8,7 +8,7 @@
 #include "currentia/core/schema.h"
 
 namespace currentia {
-    class StreamSender {
+    class StreamSender : public thread::Runnable {
     protected:
         Stream::ptr_t stream_;
         Schema::ptr_t schema_;
@@ -20,12 +20,12 @@ namespace currentia {
     public:
         StreamSender(const Stream::ptr_t& stream,
                      long total_tuples,
-                     long send_interval_):
+                     long send_interval):
             stream_(stream),
             schema_(stream->get_schema()),
             send_count_(0),
-            send_interval_(0),
-            total_tuples_(total_tuples_) {
+            send_interval_(send_interval),
+            total_tuples_(total_tuples) {
         }
 
         virtual ~StreamSender() = 0;
