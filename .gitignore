@@ -13,3 +13,9 @@ src/currentia/query/stub/*
 src/currentia/query/ast/stub/*
 *.svg
 *.eps
+
+.cproject
+.project
+.settings/*
+
+pip-log.txt
