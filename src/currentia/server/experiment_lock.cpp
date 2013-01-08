@@ -20,6 +20,9 @@
 #include "thirdparty/cmdline.h"
 #include "currentia/query/cpl-parse.h"
 
+#include "currentia/server/stream-sender.h"
+#include "currentia/server/relation-updater.h"
+
 #include "currentia/util/time.h"
 
 #include <boost/thread.hpp>
@@ -242,73 +245,6 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     // Finish!
     cmd_parser.parse_check(argc, argv);
 }
-
-class StreamSender {
-protected:
-    Stream::ptr_t stream_;
-    Schema::ptr_t schema_;
-
-    long send_count_;
-    long send_interval_;
-    long total_tuples_;
-
-public:
-    StreamSender(const Stream::ptr_t& stream,
-                 long total_tuples,
-                 long send_interval_):
-        stream_(stream),
-        schema_(stream->get_schema()),
-        send_count_(0),
-        send_interval_(0),
-        total_tuples_(total_tuples_) {
-    }
-
-    virtual ~StreamSender() = 0;
-
-    void run() {
-        // boost::thread thread(&StreamSender::run, this);
-        for (int i = 0; i < total_tuples_; ++i) {
-            stream_->enqueue(get_next(i));
-            if (send_interval_ > 0)
-                usleep(send_interval_);
-        }
-        purchase_stream->enqueue(Tuple::create_eos());
-    }
-
-    virtual Tuple::ptr_t get_next(long i) {
-        return Tuple::create_easy(schema_, i % GOODS_COUNT, rand());
-    }
-};
-StreamSender::~StreamSender() {}
-
-class RelationUpdater {
-    Relation::ptr_t relation_;
-
-    long update_count_;
-    long update_interval_;
-
-public:
-    RelationUpdater(const Relation::ptr_t& relation):
-        relation_(relation),
-        update_count_(0),
-        update_interval_(0) {
-    }
-
-    void run() {
-        while (true) {
-            // randomly select a tuple and update it
-            if (update_interval_ > 0)
-                usleep(update_interval_);
-
-            relation_->read_write_lock();
-            relation_->update();
-            usleep(update_interval_);
-            relation_->unlock();
-
-            update_count_++;
-        }
-    }
-};
 
 class PurchaseSender : public StreamSender {
     int goods_count_;
