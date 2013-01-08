@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef CURRENTIA_TIMEVAL_H_
-#define CURRENTIA_TIMEVAL_H_
+#ifndef CURRENTIA_TIME_H_
+#define CURRENTIA_TIME_H_
 
 #include <iostream>
 #include <string>
@@ -13,7 +13,7 @@
 #include "currentia/util/log.h"
 
 namespace currentia {
-    namespace timeval {
+    namespace time {
         template <typename Stream>
         void output_timeval_to_stream(const struct timeval& time, Stream& stream) {
             struct tm *date;
@@ -75,7 +75,17 @@ namespace currentia {
                 time->tv_usec -= 1000 * 1000;
             }
         }
+
+        double usec_to_sec(useconds_t usec) {
+            return static_cast<double>(usec) * 0.001 * 0.001;
+        }
+
+        double get_current_time_in_seconds() {
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+            return static_cast<double>(tv.tv_sec) + usec_to_sec(tv.tv_usec);
+        }
     }
 }
 
-#endif  /* ! CURRENTIA_TIMEVAL_H_ */
+#endif  /* ! CURRENTIA_TIME_H_ */

@@ -20,7 +20,7 @@
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
 #include <sys/time.h>
-#include "currentia/util/timeval.h"
+#include "currentia/util/time.h"
 #endif
 
 namespace currentia {
@@ -167,7 +167,7 @@ namespace currentia {
 #endif
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
-            timeval::output_timeval_to_stream(get_real_arrived_time(), ss);
+            time::output_timeval_to_stream(get_real_arrived_time(), ss);
 #endif
 
             return ss.str();

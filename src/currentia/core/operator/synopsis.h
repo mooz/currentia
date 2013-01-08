@@ -247,7 +247,7 @@ namespace currentia {
     };
 
 #ifdef CURRENTIA_ENABLE_TIME_BASED_WINDOW
-#define COMPARE_TIME(A, CMP, B) (timeval::timeval_difference_msec((A), (B)) CMP 0)
+#define COMPARE_TIME(A, CMP, B) (time::timeval_difference_msec((A), (B)) CMP 0)
     class TimeBaseSynopsis: private NonCopyable<TimeBaseSynopsis>,
                             public Synopsis {
     private:
@@ -327,7 +327,7 @@ namespace currentia {
     private:
         void sync_window_end_time_with_beginning_time_() {
             window_end_time_ = window_beginning_time_;
-            timeval::timeval_add_msec(&window_end_time_, window_.width);
+            time::timeval_add_msec(&window_end_time_, window_.width);
         }
 
         void set_window_beginning_time_(const struct timeval& new_beginning_time) {
@@ -336,7 +336,7 @@ namespace currentia {
         }
 
         void slide_window_() {
-            timeval::timeval_add_msec(&window_beginning_time_, window_.stride);
+            time::timeval_add_msec(&window_beginning_time_, window_.stride);
             sync_window_end_time_with_beginning_time_();
         }
 

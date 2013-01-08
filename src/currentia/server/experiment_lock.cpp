@@ -20,38 +20,21 @@
 #include "thirdparty/cmdline.h"
 #include "currentia/query/cpl-parse.h"
 
+#include "currentia/util/time.h"
+
 #include <boost/thread.hpp>
-#include <sys/time.h>
 #include <iostream>
 
 using namespace currentia;
 
 #define LOG(x) std::cout << x << std::endl
 
-double get_current_time_in_seconds() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 0.001 * 0.001;
-}
 
 static Stream::ptr_t purchase_stream;
 static Relation::ptr_t goods_relation;
 
 Operator::ptr_t query_ptr;
 static Stream::ptr_t result_stream;
-
-// ============================================================
-// Begin Helpers
-// ======================================================== {{{
-
-double interval_to_rate(useconds_t interval)
-{
-    return 1.0 / (static_cast<double>(interval) * 0.001 * 0.001);
-}
-
-// }}} ========================================================
-// End Helpers
-// ============================================================
 
 // ============================================================
 // Begin Body
@@ -102,7 +85,7 @@ void* consume_output_stream_thread_body(void* argument)
         std::cerr << "Error while consuming output stream: " << error_message << std::endl;
     }
 
-    end_time = get_current_time_in_seconds();
+    end_time = time::get_current_time_in_seconds();
 
     return NULL;
 }
@@ -127,7 +110,7 @@ static useconds_t PURCHASE_STREAM_INTERVAL;
 void* stream_sending_thread_body(void* argument)
 {
     try {
-        begin_time = get_current_time_in_seconds();
+        begin_time = time::get_current_time_in_seconds();
 
         Schema::ptr_t schema_ptr = purchase_stream->get_schema();
         std::clog << "purchase_stream: " << purchase_stream << std::endl;
@@ -387,8 +370,8 @@ int main(int argc, char **argv)
     std::clog
         << "Tuples: " << PURCHASE_COUNT << std::endl
         << "Elapsed: " << elapsed_seconds << " secs" << std::endl
-        << "Stream Rate: " << interval_to_rate(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
-        << "Update Rate: " << interval_to_rate(UPDATE_INTERVAL) << " qps" << std::endl
+        << "Stream Rate: " << 1.0 / time::usec_to_sec(PURCHASE_STREAM_INTERVAL) << " tps" << std::endl
+        << "Update Rate: " << 1.0 / time::usec_to_sec(UPDATE_INTERVAL) << " qps" << std::endl
         << "Query Throughput: " << throughput_query << " tps" << std::endl
         << "Update Throughput: " << throughput_update << " qps" << std::endl;
 
