@@ -23,6 +23,13 @@ def build(bld):
       lib      = ["pthread"],
     )
 
+    bld.program(
+      source   = "experiment_scheduling.cpp",
+      target   = "experiment_scheduling",
+      includes = ". ../../",
+      lib      = ["pthread"],
+    )
+
     # bld.program(
     #   source   = "experiment_versioning.cpp",
     #   target   = "experiment_versioning",
