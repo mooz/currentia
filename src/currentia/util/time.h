@@ -85,6 +85,29 @@ namespace currentia {
             gettimeofday(&tv, NULL);
             return static_cast<double>(tv.tv_sec) + usec_to_sec(tv.tv_usec);
         }
+
+#define TIME_IT(ELAPSED_TIME_VARIABLE)                                  \
+        double ELAPSED_TIME_VARIABLE = 0;                               \
+        if (time::AutoTimer autotimer = time::AutoTimer(ELAPSED_TIME_VARIABLE))
+
+        class AutoTimer {
+            double begin_time_;
+            double& elapsed_time_var_ref_;
+
+        public:
+            AutoTimer(double& elapsed_time_var_ref):
+                elapsed_time_var_ref_(elapsed_time_var_ref) {
+                begin_time_ = get_current_time_in_seconds();
+            }
+
+            ~AutoTimer() {
+                elapsed_time_var_ref_ = get_current_time_in_seconds() - begin_time_;
+            }
+
+            operator bool() const {
+                return true;
+            }
+        };
     }
 }
 
