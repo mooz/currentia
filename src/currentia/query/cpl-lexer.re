@@ -144,7 +144,7 @@ namespace currentia {
 
               'SELECT' 'ION'?   { return TOKEN_SELECT; }
               'PROJECT' 'ION'?  { return TOKEN_PROJECT; }
-              'COMBINE'         { return TOKEN_COMBINE; }
+              'COMBINE' | 'INJECT' { return TOKEN_COMBINE; }
 
               'FROM'            { return TOKEN_FROM; }
 

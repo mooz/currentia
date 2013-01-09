@@ -41,6 +41,7 @@
                             "combine"
                             "day"
                             "elect"
+                            "inject"
                             "from"
                             "hour"
                             "mean"
