@@ -46,6 +46,11 @@ namespace currentia {
 
                 int target_attribute_index_in_original_schema =
                     old_schema_ptr_->get_attribute_index_by_name(target_attribute_name);
+                if (target_attribute_index_in_original_schema < 0) {
+                    std::stringstream ss;
+                    ss << "Requested attribute \"" << target_attribute_name << "\" is not found in specified schema: " << old_schema_ptr_->toString();
+                    throw ss.str();
+                }
                 target_attribute_indices_.push_back(target_attribute_index_in_original_schema);
 
                 Attribute original_attribute =
