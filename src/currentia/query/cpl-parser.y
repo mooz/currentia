@@ -27,7 +27,7 @@
 }
 
 %parse_accept {
-    std::cerr << "Parse accept!!" << std::endl;
+    std::cerr << "Parse accepted" << std::endl;
 }
 
 %token_destructor {

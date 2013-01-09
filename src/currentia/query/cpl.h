@@ -100,6 +100,7 @@ namespace currentia {
                                std::list<Attribute*>* attributes_ptr):
             relation_name(relation_name),
             attributes_ptr(attributes_ptr) {
+            std::cout << "Defined: New Relation [" << relation_name << "]" << std::endl;
         }
 
         Relation::ptr_t get_relation(CPLQueryContainer* query_container) {
@@ -142,7 +143,7 @@ namespace currentia {
                      std::list<Attribute*>* attributes_ptr):
             stream_name(stream_name),
             attributes_ptr(attributes_ptr) {
-            std::cout << "New Stream " << stream_name << std::endl;
+            std::cout << "Defined: New Stream [" << stream_name << "]" << std::endl;
         }
 
         ~CPLNewStream() {
