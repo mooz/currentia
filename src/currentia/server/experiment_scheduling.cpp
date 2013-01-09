@@ -152,7 +152,9 @@ namespace currentia {
             if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
                 std::clog << "Consistent Rate: " << acc->get_consistent_rate() << std::endl;
                 TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
-                std::clog << "Window: " << op->get_window().toString() << std::endl;
+                if (op) {
+                    std::clog << "Window: " << op->get_window().toString() << std::endl;
+                }
             }
 
             result_ios << "Method: " << cmd_parser_.get<std::string>("method") << std::endl;
@@ -185,9 +187,19 @@ int main(int argc, char **argv)
         auto experiment = currentia::ExperimentScheduling(std::cin, cmd_parser);
         experiment.run();
     } catch (const std::string& error) {
-        std::cerr << "Failed to initialize: " << error << std::endl;
+        std::cerr << "Failed: " << error << std::endl;
+        return 1;
+    } catch (char* error) {
+        std::cerr << "Failed: " << error << std::endl;
+        return 1;
+    } catch (const char* error) {
+        std::cerr << "Failed: " << error << std::endl;
         return 1;
     }
+    // catch (...) {
+    //     std::cerr << "Failed: Unknown Error" << std::endl;
+    //     return 1;
+    // }
 
     return 0;
 }
