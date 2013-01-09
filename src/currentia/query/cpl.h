@@ -28,7 +28,8 @@
 namespace currentia {
     class CPLStreamDeclaration;
 
-    struct CPLQueryContainer : public Pointable<CPLQueryContainer> {
+    struct CPLQueryContainer : public Pointable<CPLQueryContainer>,
+                               private NonCopyable<CPLQueryContainer> {
         enum ParseState {
             ERROR,
             NEUTRAL
