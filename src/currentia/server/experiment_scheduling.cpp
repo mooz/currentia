@@ -104,6 +104,7 @@ namespace currentia {
         void run(std::ostream& result_ios = std::cout) {
             long total_events = cmd_parser_.get<int>("total-events");
             useconds_t update_interval = cmd_parser_.get<useconds_t>("update-interval");
+            useconds_t update_duration = cmd_parser_.get<useconds_t>("update-duration");
 
             auto relation = query_container_->get_relation_by_name("R");
             insert_tuples_to_relation(relation, total_events);
@@ -115,7 +116,7 @@ namespace currentia {
 
             ConcreteStreamSender stream_sender(query_container_->get_adapter_input_stream_by_name("InputStream"), total_events);
             StreamConsumer stream_consumer(query_container_->get_stream_by_name("ResultStream"));
-            RelationUpdater relation_updater(query_container_->get_relation_by_name("R"), update_interval);
+            RelationUpdater relation_updater(query_container_->get_relation_by_name("R"), update_interval, update_duration);
             QueryProcessor query_processor(scheduler);
             TIME_IT(elapsed_seconds) {
                 stream_sender.start();

@@ -18,10 +18,11 @@ namespace currentia {
     public:
         RelationUpdater(const Relation::ptr_t& relation,
                         useconds_t update_interval = 1000,
-                        useconds_t update_duration = 1000):
+                        useconds_t update_duration = 10):
             relation_(relation),
             update_count_(0),
-            update_interval_(update_interval) {
+            update_interval_(update_interval),
+            update_duration_(update_duration) {
         }
 
         void set_update_interval(long update_interval) {
