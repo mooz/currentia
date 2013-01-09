@@ -66,7 +66,7 @@ namespace currentia {
         void make_operator_output_stream_backedup(Operator* op) {
             redo_streams_.push_back(op->get_output_stream());
 #if CURRENTIA_DEBUG
-            std::clog << "Make operator " << op->get_name() << "'s input backup" << std::endl;
+            std::clog << "Make operator " << op->get_name() << "'s output backup" << std::endl;
 #endif
             op->get_output_stream()->set_backup_state(true);
         }
