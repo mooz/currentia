@@ -47,7 +47,9 @@ namespace currentia {
                 update_count_++;
             }
 
+#ifdef CURRENTIA_DEBUG
             std::cout << "RelationUpdater Finished" << std::endl;
+#endif
         }
     };
 }

@@ -25,7 +25,9 @@ namespace currentia {
                 consume_tuple(next_tuple);
             }
 
+#ifdef CURRENTIA_DEBUG
             std::cout << "StreamConsumer Finished" << std::endl;
+#endif
         }
 
         virtual void consume_tuple(const Tuple::ptr_t& tuple) {

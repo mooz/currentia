@@ -17,12 +17,13 @@ namespace currentia {
 
         void run() {
             while (!stopped()) {
-                // std::cout << "Wake up scheduler" << std::endl;
                 scheduler_->wake_up();
                 thread::scheduler_yield();
             }
 
+#ifdef CURRENTIA_DEBUG
             std::cout << "QueryProcessor Finished" << std::endl;
+#endif
         }
     };
 }

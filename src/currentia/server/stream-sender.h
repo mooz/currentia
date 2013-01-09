@@ -38,7 +38,9 @@ namespace currentia {
             }
             stream_->enqueue(Tuple::create_eos());
 
+#ifdef CURRENTIA_DEBUG
             std::cout << "StreamSender Finished" << std::endl;
+#endif
         }
 
         virtual Tuple::ptr_t get_next(long i) = 0;
