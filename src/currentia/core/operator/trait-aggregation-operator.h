@@ -53,6 +53,10 @@ namespace currentia {
             return window_;
         }
 
+        virtual double get_consistent_rate() {
+            return 0;
+        }
+
     private:
         void on_accept_wrapper_() {
             on_accept_();

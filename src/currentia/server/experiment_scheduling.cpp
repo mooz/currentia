@@ -147,10 +147,10 @@ namespace currentia {
                 std::clog << "Redo: " << occ->get_redo_counts() << " times" << std::endl;
             }
             if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
-                std::clog << "Consistent Rate: " << acc->get_consistent_rate() << std::endl;
-                TraitAggregationOperator* op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
-                if (op) {
-                    std::clog << "Window: " << op->get_window().toString() << std::endl;
+                TraitAggregationOperator* commit_op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
+                if (commit_op) {
+                    std::clog << "Consistent Rate: " << commit_op->get_consistent_rate() << std::endl;
+                    std::clog << "Window: " << commit_op->get_window().toString() << std::endl;
                 }
             }
 

@@ -60,7 +60,8 @@ namespace currentia {
         virtual ~AbstractCCScheduler() = 0;
 
         double get_consistent_rate() const {
-            return dynamic_cast<OperatorMean*>(commit_operator_)->get_consistent_rate();
+            assert(commit_operator_ != NULL);
+            return dynamic_cast<TraitAggregationOperator*>(commit_operator_)->get_consistent_rate();
         }
 
         Operator* get_commit_operator() const {
