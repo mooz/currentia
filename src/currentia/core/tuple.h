@@ -139,10 +139,14 @@ namespace currentia {
             case DATA:
                 if (data_.size() > 0) {
                     ss << "\n";
+                    int column = 0;
                     for (data_t::const_iterator it = data_.begin();
                          it != data_.end();
-                         ++it) {
-                        ss << "  " << it->toString() << "\n";
+                         ++it, ++column) {
+                        ss << "  "
+                           << get_schema()->get_attribute_by_index(column).toString()
+                           << ": "
+                           << it->toString() << "\n";
                     }
                 }
                 break;
