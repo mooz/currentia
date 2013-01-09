@@ -39,13 +39,16 @@ namespace currentia {
             }
         }
 
-        void wake_up() {
+        bool wake_up() {
             Operator* next_operator = get_next_operator_();
+            if (!next_operator)
+                return false;
+
             if (next_operator != commit_operator_) {
-                next_operator->process_next();
+                process_operator_batch_(next_operator);
             } else {
                 try {
-                    next_operator->process_next();
+                    next_operator->process_next(); // one time
                 } catch (TraitAggregationOperator::Message x) {
                     switch (x) {
                     case TraitAggregationOperator::COMMIT:
@@ -62,6 +65,7 @@ namespace currentia {
                     }
                 }
             }
+            return true;
         }
 
     protected:

@@ -37,7 +37,23 @@ namespace currentia {
         }
 
         virtual ~AbstractScheduler() = 0;
-        virtual void wake_up() = 0;
+        virtual bool wake_up() = 0;
+
+    protected:
+        Operator* get_next_operator_() {
+            return scheduling_policy_->get_next_operator();
+        }
+
+        bool process_operator_batch_(Operator* next_operator) {
+            if (!next_operator)
+                return false;
+
+            for (int i = 0; i < batch_count_; ++i) {
+                next_operator->process_next();
+            }
+
+            return true;
+        }
     };
 
     AbstractScheduler::~AbstractScheduler() {};

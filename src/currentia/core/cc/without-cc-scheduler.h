@@ -15,9 +15,8 @@ namespace currentia {
                                 Operator::NONE) {
         }
 
-        void wake_up() {
-            Operator* next_operator = get_next_operator_();
-            next_operator->process_next();
+        bool wake_up() {
+            return process_operator_batch_(get_next_operator_());
         }
     };
 }

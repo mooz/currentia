@@ -68,10 +68,6 @@ namespace currentia {
         }
 
     protected:
-        Operator* get_next_operator_() const {
-            return scheduling_policy_->get_next_operator();
-        }
-
         void reset_operators_() {
             auto iter = redo_operators_.begin();
             auto iter_end = redo_operators_.end();
