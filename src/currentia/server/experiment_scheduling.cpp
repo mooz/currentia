@@ -114,7 +114,7 @@ namespace currentia {
 
             OperatorVisualizeDot::output_tree_as_dot(query_ptr, result_ios);
 
-            ConcreteStreamSender stream_sender(query_container_->get_stream_by_name("InputStream"), total_events);
+            ConcreteStreamSender stream_sender(query_container_->get_adapter_input_stream_by_name("InputStream"), total_events);
             StreamConsumer stream_consumer(query_container_->get_stream_by_name("ResultStream"));
             RelationUpdater relation_updater(query_container_->get_relation_by_name("R"), update_interval);
             QueryProcessor query_processor(scheduler);

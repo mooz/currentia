@@ -72,7 +72,8 @@ namespace currentia {
             return it->second;
         }
 
-        Stream::ptr_t get_input_stream_by_name(const std::string& stream_name) {
+        // To get OperatorStreamAdapter's input stream (To get operator tree leave queues)
+        Stream::ptr_t get_adapter_input_stream_by_name(const std::string& stream_name) {
             Operator::ptr_t op = get_root_operator_by_stream_name(stream_name);
             if (OperatorStreamAdapter* adapter = dynamic_cast<OperatorStreamAdapter*>(op.get())) {
                 return adapter->get_input_stream();

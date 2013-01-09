@@ -175,7 +175,7 @@ void initialize(const cmdline::parser& cmd_parser)
     CPLQueryContainer::ptr_t parse_result = parse_cpl(&std::cin);
 
     // Setup input stream
-    purchase_stream = parse_result->get_input_stream_by_name("purchases");
+    purchase_stream = parse_result->get_adapter_input_stream_by_name("purchases");
 
     // Setup relation
     goods_relation = parse_result->get_relation_by_name("goods");
