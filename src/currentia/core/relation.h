@@ -65,10 +65,6 @@ namespace currentia {
             return current_version_number;
         }
 
-        thread::ScopedLock get_scoped_lock() {
-            return thread::ScopedLock(&read_mutex_);
-        }
-
         // TODO: implement read_lock() and write_lock()
         void read_lock() {
             pthread_mutex_lock(&read_mutex_);

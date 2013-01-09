@@ -8,9 +8,11 @@
 #include <sched.h>
 #include <thread>
 
+#include "currentia/trait/non-copyable.h"
+
 namespace currentia {
     namespace thread {
-        class ScopedLock {
+        class ScopedLock : private NonCopyable<ScopedLock> {
             pthread_mutex_t* read_mutex_;
 
         public:
