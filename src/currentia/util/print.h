@@ -12,7 +12,7 @@ namespace currentia {
         void print_iterable(Iterator iter,
                             Iterator iter_end,
                             std::string delimiter = ", ") {
-            for (;;) {
+            for (; iter != iter_end;) {
                 std::clog << *iter;
                 if (++iter == iter_end)
                     break;
@@ -29,7 +29,7 @@ namespace currentia {
         void print_iterable_string(Iterator iter,
                                    Iterator iter_end,
                                    std::string delimiter = ", ") {
-            for (;;) {
+            for (; iter != iter_end;) {
                 std::clog << (*iter)->toString();
                 if (++iter == iter_end)
                     break;
