@@ -47,7 +47,6 @@ namespace currentia {
             return Tuple::create_easy(
                 stream_->get_schema(),
                 id,
-                "abcdefghijklmnop",
                 get_next_age()
             );
         }
