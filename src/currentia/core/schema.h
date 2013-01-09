@@ -207,8 +207,11 @@ namespace currentia {
 
     private:
         void assert_has_attribute_(int index) const {
-            if (index < 0 || static_cast<unsigned int>(index) >= attributes_.size())
-                throw "This schema does not have a requested attribute";
+            if (index < 0 || static_cast<unsigned int>(index) >= attributes_.size()) {
+                std::stringstream ss;
+                ss << "Requested \"" << index << "\"-th attribute (which is invalid) for " << this->toString();
+                throw ss.str();
+            }
         }
     };
 }
