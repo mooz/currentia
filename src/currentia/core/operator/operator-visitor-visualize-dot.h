@@ -20,6 +20,7 @@ namespace currentia {
     class OperatorVisualizeDot : public OperatorAbstractVisitor,
                                  public Pointable<OperatorVisualizeDot> {
         std::vector<Operator*> operator_stack_;
+        std::map<std::string, int> duplication_count_map_;
         std::ostream& dot_output_;
 
     public:
@@ -39,24 +40,39 @@ namespace currentia {
             dot_output << "}" << std::endl;
         }
 
-        void visit(SingleInputOperator* op) {
+        void push_operator(Operator* op) {
             operator_stack_.push_back(op);
-            dispatch(op->get_parent_operator().get());
+
+            std::string op_name = op->get_name();
+            if (duplication_count_map_.find(op_name) == duplication_count_map_.end()) {
+                duplication_count_map_[op_name] = 0;
+            } else {
+                duplication_count_map_[op_name] = duplication_count_map_[op_name] + 1;
+            }
+        }
+
+        void pop_operator() {
             operator_stack_.pop_back();
+        }
+
+        void visit(SingleInputOperator* op) {
+            push_operator(op);
+            dispatch(op->get_parent_operator().get());
+            pop_operator();
         }
 
         void visit(DoubleInputOperator* op) {
-            operator_stack_.push_back(op);
+            push_operator(op);
             dispatch(op->get_parent_left_operator().get());
             dispatch(op->get_parent_right_operator().get());
-            operator_stack_.pop_back();
+            pop_operator();
         }
 
         void visit(OperatorStreamAdapter* op) {
-            operator_stack_.push_back(op);
+            push_operator(op);
             // Leaf node. Output current stack.
             print_operator_stack();
-            operator_stack_.pop_back();
+            pop_operator();
         }
 
         void print_operator_stack() {
@@ -64,7 +80,13 @@ namespace currentia {
             auto iter_end = operator_stack_.rend();
             dot_output_ << "  ";
             for (; iter != iter_end;) {
-                dot_output_ << boost::algorithm::replace_all_copy((*iter)->get_name(), "-", "");
+                std::string op_name = (*iter)->get_name();
+                dot_output_ << boost::algorithm::replace_all_copy(op_name, "-", "");
+                int duplication_count = duplication_count_map_[op_name];
+                if (duplication_count > 0) {
+                    dot_output_ << duplication_count + 1;
+                }
+
                 if (++iter == iter_end)
                     break;
                 dot_output_ << " -> ";
