@@ -41,9 +41,9 @@ namespace currentia {
             // Find commit operator
             CommitOperatorFinder finder(root_operator_raw_ptr);
             commit_operator_ = finder.get_commit_operator();
-            commit_operator_->set_is_commit_operator(true);
-            if (!dynamic_cast<OperatorMean*>(commit_operator_))
-                throw "Commit operator can only be OperatorMean for now";
+            if (commit_operator_) {
+                commit_operator_->set_is_commit_operator(true);
+            }
 
             // Find redo area and redo stream
             RedoArea redo_area(root_operator_raw_ptr);
