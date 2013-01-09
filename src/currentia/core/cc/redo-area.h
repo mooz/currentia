@@ -14,7 +14,8 @@
 namespace currentia {
 #define is_instance(name, klass) !!dynamic_cast<klass*>(name)
 
-    class RedoArea : public Pointable<RedoArea> {
+    class RedoArea : public Pointable<RedoArea>,
+                     private NonCopyable<RedoArea> {
         Operator* root_operator_;
         std::deque<Stream::ptr_t> redo_streams_;
         std::deque<Operator*> operators_in_redo_area_;
