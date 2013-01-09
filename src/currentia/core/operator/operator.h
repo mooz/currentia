@@ -45,12 +45,14 @@ namespace currentia {
         Stream::ptr_t output_stream_;
         bool is_commit_operator_;
 
+        long evaluation_count_;
+
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         enum CCMode cc_mode_;
 #endif
 
     public:
-        Operator() {
+        Operator(): evaluation_count_(0) {
             set_is_commit_operator(false);
         }
         virtual ~Operator() = 0;
@@ -79,6 +81,10 @@ namespace currentia {
 
         bool is_commit_operator() const {
             return is_commit_operator_;
+        }
+
+        long get_evaluation_count() const {
+            return evaluation_count_;
         }
 
 #ifdef CURRENTIA_ENABLE_TRANSACTION

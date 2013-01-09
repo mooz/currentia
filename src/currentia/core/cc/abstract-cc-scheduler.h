@@ -24,11 +24,14 @@ namespace currentia {
         std::deque<Operator*> redo_operators_;
         std::deque<Stream::ptr_t> redo_streams_;
 
+        long reset_tuples_count_;
+
     public:
         AbstractCCScheduler(const Operator::ptr_t& root_operator,
                             const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory,
                             Operator::CCMode cc_mode):
-            AbstractScheduler(root_operator, scheduling_policy_factory) {
+            AbstractScheduler(root_operator, scheduling_policy_factory),
+            reset_tuples_count_(0) {
             // Tell concurrency-control stragety to the operators rooted by `root_operator`
             for (auto iter = operators_.begin(), iter_end = operators_.end();
                  iter != iter_end;
@@ -68,6 +71,22 @@ namespace currentia {
             return commit_operator_;
         }
 
+#ifdef CURRENTIA_CHECK_STATISTICS
+        long get_reset_tuples_count() const {
+            return reset_tuples_count_;
+        }
+
+        long get_total_evaluation_count() const {
+            long total_evaluation_count = 0;
+            for (auto iter = operators_.begin(), iter_end = operators_.end();
+                 iter != iter_end;
+                 ++iter) {
+                total_evaluation_count += (*iter)->get_evaluation_count();
+            }
+            return total_evaluation_count;
+        }
+#endif
+
     protected:
         void reset_operators_() {
             auto iter = redo_operators_.begin();
@@ -84,6 +103,9 @@ namespace currentia {
             auto iter = redo_streams_.begin();
             auto iter_end = redo_streams_.end();
             for (; iter != iter_end; ++iter) {
+#ifdef CURRENTIA_CHECK_STATISTICS
+                reset_tuples_count_ += (*iter)->get_tuples_count();
+#endif
                 (*iter)->clear();
                 (*iter)->recover_from_backup();
             }

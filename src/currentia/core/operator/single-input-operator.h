@@ -28,6 +28,10 @@ namespace currentia {
             if (!input_tuple)
                 return;
 
+#ifdef CURRENTIA_CHECK_STATISTICS
+            evaluation_count_++;
+#endif
+
             if (input_tuple->is_system_message()) {
                 output_tuple(input_tuple);
                 return;

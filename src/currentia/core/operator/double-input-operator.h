@@ -42,12 +42,20 @@ namespace currentia {
 
         void next_implementation() {
             Tuple::ptr_t left_input_tuple = left_input_stream_->non_blocking_dequeue();
-            if (is_concrete_input(left_input_tuple))
+            if (is_concrete_input(left_input_tuple)) {
+#ifdef CURRENTIA_CHECK_STATISTICS
+                evaluation_count_++;
+#endif
                 process_left_input(left_input_tuple);
+            }
 
             Tuple::ptr_t right_input_tuple = right_input_stream_->non_blocking_dequeue();
-            if (is_concrete_input(right_input_tuple))
+            if (is_concrete_input(right_input_tuple)) {
+#ifdef CURRENTIA_CHECK_STATISTICS
+                evaluation_count_++;
+#endif
                 process_right_input(right_input_tuple);
+            }
         }
 
         virtual void process_left_input(Tuple::ptr_t input) = 0;

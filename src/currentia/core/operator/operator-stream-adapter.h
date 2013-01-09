@@ -25,6 +25,9 @@ namespace currentia {
             Tuple::ptr_t input_tuple = input_stream_ptr_->non_blocking_dequeue();
             if (!input_tuple)
                 return;
+#ifdef CURRENTIA_CHECK_STATISTICS
+                evaluation_count_++;
+#endif
             output_tuple(input_tuple);
         }
 

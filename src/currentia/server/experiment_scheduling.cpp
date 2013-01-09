@@ -152,6 +152,11 @@ namespace currentia {
                     std::clog << "Consistent Rate: " << commit_op->get_consistent_rate() << std::endl;
                     std::clog << "Window: " << commit_op->get_window().toString() << std::endl;
                 }
+
+#ifdef CURRENTIA_CHECK_STATISTICS
+                std::clog << "# of Reset Tuples: " << acc->get_reset_tuples_count() << std::endl;
+                std::clog << "# of Operator Evaluation Count: " << acc->get_total_evaluation_count() << std::endl;
+#endif
             }
 
             result_ios << "Method: " << cmd_parser_.get<std::string>("method") << std::endl;
