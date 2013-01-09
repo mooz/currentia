@@ -13,6 +13,7 @@
 #include "currentia/trait/pointable.h"
 
 namespace currentia {
+    // Should be NonCopyable?
     class Object : public Pointable<Object>,
                    public Show {
     public:
@@ -111,10 +112,30 @@ namespace currentia {
                     delete get_string_ptr();
                 break;
             case BLOB:
-                if (get_blob_ptr())
-                    delete get_blob_ptr();
+                // BLOB is not deleted by the object itself
                 break;
             case UNKNOWN:
+                break;
+            }
+        }
+
+        // Copy constructor
+        Object(const Object& object):
+            type_(object.get_type()) {
+            switch (this->get_type()) {
+            case INT:
+                holder_.int_number = object.get_int_number();
+                break;
+            case FLOAT:
+                holder_.float_number = object.get_float_number();
+                break;
+            case STRING:
+                holder_.string_ptr = new std::string(*object.get_string_ptr());
+                break;
+            case BLOB:
+                holder_.blob_ptr = object.get_blob_ptr();
+                break;
+            default:
                 break;
             }
         }
