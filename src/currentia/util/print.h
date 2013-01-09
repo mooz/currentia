@@ -11,36 +11,40 @@ namespace currentia {
         template <typename Iterator>
         void print_iterable(Iterator iter,
                             Iterator iter_end,
-                            std::string delimiter = ", ") {
+                            std::string delimiter = ", ",
+                            std::ostream& out = std::clog) {
             for (; iter != iter_end;) {
-                std::clog << *iter;
+                out << *iter;
                 if (++iter == iter_end)
                     break;
-                std::clog << delimiter;
+                out << delimiter;
             }
-            std::clog << std::endl;
+            out << std::endl;
         }
         template <typename Iterable>
         void print_iterable(const Iterable& iterable,
-                            std::string delimiter = ", ") {
-            print_iterable(iterable.begin(), iterable.end(), delimiter);
+                            std::string delimiter = ", ",
+                            std::ostream& out = std::clog) {
+            print_iterable(iterable.begin(), iterable.end(), delimiter, out);
         }
         template <typename Iterator>
         void print_iterable_string(Iterator iter,
                                    Iterator iter_end,
-                                   std::string delimiter = ", ") {
+                                   std::string delimiter = ", ",
+                                   std::ostream& out = std::clog) {
             for (; iter != iter_end;) {
-                std::clog << (*iter)->toString();
+                out << (*iter)->toString();
                 if (++iter == iter_end)
                     break;
-                std::clog << delimiter;
+                out << delimiter;
             }
-            std::clog << std::endl;
+            out << std::endl;
         }
         template <typename Iterable>
         void print_iterable_string(const Iterable& iterable,
-                                   std::string delimiter = ", ") {
-            print_iterable_string(iterable.begin(), iterable.end(), delimiter);
+                                   std::string delimiter = ", ",
+                                   std::ostream& out = std::clog) {
+            print_iterable_string(iterable.begin(), iterable.end(), delimiter, out);
         }
     }
 }
