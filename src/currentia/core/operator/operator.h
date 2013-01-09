@@ -58,8 +58,8 @@ namespace currentia {
         virtual ~Operator() = 0;
 
         // get next tuple from input stream and process
-        void process_next() {
-            next_implementation();
+        void process_next(int batch_count = 1) {
+            next_implementation(batch_count);
 
             // if (!after_process_hook.empty()) {
             //     for (std::list<process_hook_t>::iterator process_iterator = after_process_hook.begin();

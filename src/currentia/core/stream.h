@@ -111,6 +111,11 @@ namespace currentia {
             return schema_ptr_;
         }
 
+        size_t get_tuples_count() const {
+            thread::ScopedLock lock(&mutex_);
+            return tuple_ptrs_.size();
+        }
+
         void clear() {
             thread::ScopedLock lock(&mutex_);
 
@@ -196,6 +201,10 @@ namespace currentia {
         void set_backup_state(bool backup) {
             thread::ScopedLock lock(&mutex_);
             do_backup_ = backup;
+        }
+
+        bool is_backed_up() const {
+            return do_backup_;
         }
 
         void recover_from_backup() {
