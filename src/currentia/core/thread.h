@@ -38,12 +38,45 @@ namespace currentia {
             return sched_yield();
         }
 
-        class Runnable {
+        class Runnable : private NonCopyable<Runnable> {
+            std::thread thread_;
+            bool stopped_;      // atomic
+
         public:
+            Runnable(): stopped_(true) {
+            }
+
+            virtual ~Runnable() {
+                if (thread_.joinable()) {
+                    thread_.detach();
+                }
+            }
+
             virtual void run() = 0;
 
-            std::thread create_thread() {
+            void start() {
+                stopped_ = false;
+                thread_ = launch_thread();
+            }
+
+            std::thread launch_thread() {
                 return std::thread(run_runnable, this);
+            }
+
+            bool stopped() {
+                return stopped_;
+            }
+
+            void stop() {
+                if (thread_.joinable())
+                    thread_.detach();
+                stopped_ = true;
+            }
+
+            void wait() {
+                if (thread_.joinable())
+                    thread_.join();
+                stopped_ = true;
             }
 
         private:
