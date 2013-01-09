@@ -31,12 +31,14 @@ namespace currentia {
         virtual ~StreamSender() = 0;
 
         void run() {
-            for (int i = 0; i < total_tuples_; ++i) {
+            for (int i = 0; i < total_tuples_ && !stopped(); ++i) {
                 stream_->enqueue(get_next(i));
                 if (send_interval_ > 0)
                     usleep(send_interval_);
             }
             stream_->enqueue(Tuple::create_eos());
+
+            std::cout << "StreamSender Finished" << std::endl;
         }
 
         virtual Tuple::ptr_t get_next(long i) = 0;

@@ -14,7 +14,6 @@ namespace currentia {
         long update_count_;
         useconds_t update_interval_;
         useconds_t update_duration_;
-        bool is_runnable_;
 
     public:
         RelationUpdater(const Relation::ptr_t& relation,
@@ -22,8 +21,7 @@ namespace currentia {
                         useconds_t update_duration = 1000):
             relation_(relation),
             update_count_(0),
-            update_interval_(update_interval),
-            is_runnable_(true) {
+            update_interval_(update_interval) {
         }
 
         void set_update_interval(long update_interval) {
@@ -35,7 +33,7 @@ namespace currentia {
         }
 
         void run() {
-            while (is_runnable_) {
+            while (!stopped()) {
                 // randomly select a tuple and update it
                 if (update_interval_ > 0)
                     usleep(update_interval_);
@@ -47,10 +45,8 @@ namespace currentia {
 
                 update_count_++;
             }
-        }
 
-        void stop() {
-            is_runnable_ = false;
+            std::cout << "RelationUpdater Finished" << std::endl;
         }
     };
 }

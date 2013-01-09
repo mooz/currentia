@@ -11,18 +11,18 @@ namespace currentia {
         AbstractScheduler* scheduler_;
 
     public:
-        QueryProcessor(AbstractScheduler* scheduler_) {
+        explicit QueryProcessor(AbstractScheduler* scheduler):
+            scheduler_(scheduler) {
         }
 
         void run() {
-            try {
-                while (true) {
-                    scheduler_->wake_up();
-                    thread::scheduler_yield();
-                }
-            } catch (const char* error_message) {
-                std::cerr << "Error while processing stream: " << error_message << std::endl;
+            while (!stopped()) {
+                // std::cout << "Wake up scheduler" << std::endl;
+                scheduler_->wake_up();
+                thread::scheduler_yield();
             }
+
+            std::cout << "QueryProcessor Finished" << std::endl;
         }
     };
 }
