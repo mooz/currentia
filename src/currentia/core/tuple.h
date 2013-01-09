@@ -187,7 +187,7 @@ namespace currentia {
             return get_value_by_index(attribute_index);
         }
 
-        data_t get_concatenated_data(const Tuple::ptr_t& target) {
+        data_t get_concatenated_data(const Tuple::ptr_t& target) const {
             data_t new_data;
 
             new_data.insert(new_data.end(), data_.begin(), data_.end());
@@ -206,19 +206,19 @@ namespace currentia {
         }
 #endif
 
-        const Schema::ptr_t get_schema() {
+        const Schema::ptr_t get_schema() const {
             return schema_ptr_;
         }
 
-        Type get_type() {
+        Type get_type() const {
             return type_;
         }
 
-        bool is_system_message() {
+        bool is_system_message() const {
             return type_ != DATA;
         }
 
-        bool is_eos() {
+        bool is_eos() const {
             return type_ == EOS;
         }
 
