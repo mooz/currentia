@@ -32,6 +32,8 @@
 
 #include <thread>
 #include <iostream>
+#include <fstream>
+#include <cstdlib>
 
 namespace currentia {
     class ConcreteStreamSender : public StreamSender {
@@ -113,16 +115,29 @@ namespace currentia {
             auto query_ptr = query_container_->get_root_operator_by_stream_name("ResultStream");
             std::shared_ptr<AbstractScheduler> scheduler(create_scheduler(query_ptr));
 
-            OperatorVisualizeDot::output_tree_as_dot(query_ptr, result_ios);
+            if (cmd_parser_.exist("efficient-scheduling")) {
+                scheduler->set_efficient_scheduling_enabled(true);
+            }
 
-            ConcreteStreamSender stream_sender(query_container_->get_adapter_input_stream_by_name("InputStream"), total_events);
+            if (cmd_parser_.exist("output-dot")) {
+                std::ofstream dot_ofs("/tmp/query_tree.dot", std::ios::out | std::ios::trunc);
+                OperatorVisualizeDot::output_tree_as_dot(query_ptr, dot_ofs);
+                dot_ofs.close();
+                ::system("dot -Tpng /tmp/query_tree.dot -o /tmp/query_tree.png && pkill eog ; eog /tmp/query_tree.png &");
+            }
+
             StreamConsumer stream_consumer(query_container_->get_stream_by_name("ResultStream"));
             RelationUpdater relation_updater(query_container_->get_relation_by_name("R"), update_interval, update_duration);
             QueryProcessor query_processor(scheduler);
 
             // First, insert whole streams
+            ConcreteStreamSender stream_sender(query_container_->get_adapter_input_stream_by_name("InputStream"), total_events);
             stream_sender.start();
             stream_sender.wait();
+
+            ConcreteStreamSender stream_sender2(query_container_->get_adapter_input_stream_by_name("InputStream2"), total_events);
+            stream_sender2.start();
+            stream_sender2.wait();
 
             std::cout << "Finished inserting" << std::endl;
 
@@ -142,14 +157,21 @@ namespace currentia {
             double throughput_update = relation_updater.get_update_count() / elapsed_seconds;
 
 #define OUTPUT_ENTRY(key, value)                                        \
-            result_ios << ansi::bold << ansi::cyan << key << ansi::reset \
-                       << ": " << ansi::bold << ansi::yellow << value << ansi::reset << std::endl
+            if (cmd_parser_.exist("no-color")) {                        \
+                result_ios << key << ": " << value << std::endl;        \
+            } else {                                                    \
+                result_ios << ansi::bold << ansi::cyan << key << ansi::reset \
+                           << ": " << ansi::bold << ansi::yellow << value << ansi::reset << std::endl; \
+            }
 
+            OUTPUT_ENTRY("Efficient Scheduling", scheduler->efficient_scheduling_enabled());
             OUTPUT_ENTRY("Events", total_events);
             OUTPUT_ENTRY("Elapsed", elapsed_seconds << " secs");
             OUTPUT_ENTRY("Update Rate", 1.0 / time::usec_to_sec(update_interval) << " qps");
             OUTPUT_ENTRY("Query Throughput", throughput_query << " tps");
             OUTPUT_ENTRY("Update Throughput", throughput_update << " qps");
+
+            OUTPUT_ENTRY("Scheduler Batch Process Count", cmd_parser_.get<int>("max-events-n-consume") << " tuples");
 
             if (auto occ = std::dynamic_pointer_cast<OptimisticCCScheduler>(scheduler)) {
                 OUTPUT_ENTRY("Redo", occ->get_redo_counts() << " times");
@@ -168,6 +190,12 @@ namespace currentia {
             }
 
             OUTPUT_ENTRY("Method", cmd_parser_.get<std::string>("method"));
+
+#ifdef CURRENTIA_DEBUG
+            std::cout << "Leave run method!" << std::endl;
+#endif
+
+            exit(0);
         }
     };
 }
@@ -184,6 +212,10 @@ void parse_option(cmdline::parser& cmd_parser, int argc, char** argv)
     cmd_parser.add<useconds_t>("update-interval", '\0', "update interval", false, 1000);
     cmd_parser.add<useconds_t>("update-duration", '\0', "time needed to update a relation", false, 10);
     cmd_parser.add<int>("total-events", '\0', "Events count", false, 1000);
+
+    cmd_parser.add("output-dot", '\0', "Output operator tree as a dot file");
+    cmd_parser.add("no-color", '\0', "Suppress colored output");
+    cmd_parser.add("efficient-scheduling", '\0', "Enable efficient scheduling mode (constraint)");
 
     cmd_parser.parse_check(argc, argv);
 }
