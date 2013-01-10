@@ -152,6 +152,10 @@ namespace currentia {
             set_float_number_(float_number);
         }
 
+        Object(float float_number): type_(FLOAT) {
+            set_float_number_(static_cast<double>(float_number));
+        }
+
         // Users have to free a string they try to wrap with Object in
         // the user side (Object class retains a copy of the given
         // string and do not touch with the original pointer)
@@ -200,40 +204,71 @@ namespace currentia {
             return ss.str();
         }
 
-        bool compare(const Object& target, Comparator::Type comparator) const {
-            bool comparison_result = false;
-
-            if (get_type() != target.get_type()) {
-                std::cerr << "Warning: comparing imcompatible type \""
-                          << type_to_string(get_type())
-                          << "\" and \""
-                          << type_to_string(target.get_type()) << "\" " << std::endl;
-                // TODO: implement smart casting
-                return false;
-            }
+        Object cast_to(Type to_type) const {
+            if (get_type() == to_type)
+                return *this;
 
             switch (get_type()) {
             case INT:
-                comparison_result = generic_compare_(get_int_number(),
-                                                     target.get_int_number(),
-                                                     comparator);
+                if (to_type == FLOAT)
+                    return Object(static_cast<double>(get_int_number()));
                 break;
             case FLOAT:
-                comparison_result = generic_compare_(get_float_number(),
-                                                     target.get_float_number(),
-                                                     comparator);
+                if (to_type == INT)
+                    return Object(static_cast<int>(get_float_number()));
                 break;
             case STRING:
-                // compare deeply
-                comparison_result = generic_compare_(*(get_string_ptr()),
-                                                     *(get_string_ptr()),
-                                                     comparator);
-                break;
             case BLOB:
-                // TODO: implement BLOB object comparison
-                break;
             default:
                 break;
+            }
+
+            std::stringstream ss;
+            ss << "TypeError: cannot convert \""
+                      << type_to_string(get_type())
+                      << "\" to \""
+                      << type_to_string(to_type) << "\" " << std::endl;
+            throw ss.str();
+        }
+
+        bool compare(const Object& target, Comparator::Type comparator) const {
+            bool comparison_result = false;
+
+            if (get_type() == target.get_type()) {
+                switch (get_type()) {
+                case INT:
+                    comparison_result = generic_compare_(get_int_number(),
+                                                         target.get_int_number(),
+                                                         comparator);
+                    break;
+                case FLOAT:
+                    comparison_result = generic_compare_(get_float_number(),
+                                                         target.get_float_number(),
+                                                         comparator);
+                    break;
+                case STRING:
+                    // compare deeply
+                    comparison_result = generic_compare_(*(get_string_ptr()),
+                                                         *(get_string_ptr()),
+                                                         comparator);
+                    break;
+                case BLOB:
+                    // TODO: implement BLOB object comparison
+                    break;
+                default:
+                    break;
+                }
+            } else if (get_type() == FLOAT || target.get_type() == FLOAT) {
+                comparison_result = generic_compare_(cast_to(FLOAT).get_float_number(),
+                                                     target.cast_to(FLOAT).get_float_number(),
+                                                     comparator);
+            } else {
+                std::stringstream ss;
+                ss << "TypeError: comparing imconpatible type \""
+                   << type_to_string(get_type())
+                   << "\" to \""
+                   << type_to_string(target.get_type()) << "\" " << std::endl;
+                throw ss.str();
             }
 
             return comparison_result;
