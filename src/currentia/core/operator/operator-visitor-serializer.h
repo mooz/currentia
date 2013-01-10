@@ -54,17 +54,7 @@ namespace currentia {
             operators_.push_back(op);
         }
 
-        void dispatch(Operator* op) {
-            if (dynamic_cast<SingleInputOperator*>(op)) {
-                dynamic_cast<SingleInputOperator*>(op)->accept(this);
-            } else if (dynamic_cast<DoubleInputOperator*>(op)) {
-                dynamic_cast<DoubleInputOperator*>(op)->accept(this);
-            } else if (dynamic_cast<OperatorStreamAdapter*>(op)) {
-                dynamic_cast<OperatorStreamAdapter*>(op)->accept(this);
-            } else {
-                throw (std::string("Unhandled operator: ") + op->toString()).c_str();
-            }
-        }
+        CURRENTIA_DEFINE_OPERATOR_DISPATCHER();
     };
 }
 
