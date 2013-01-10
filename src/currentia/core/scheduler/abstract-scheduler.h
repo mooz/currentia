@@ -11,8 +11,9 @@
 
 namespace currentia {
     class AbstractScheduler : public Pointable<AbstractScheduler> {
-    public:
+    private:
         int batch_count_;       // (maximum) number of tuples to be evaluated at a chance
+        bool efficient_scheduling_enabled_;
 
     protected:
         const Operator::ptr_t root_operator_;
@@ -23,6 +24,7 @@ namespace currentia {
         AbstractScheduler(const Operator::ptr_t& root_operator,
                           const SchedulingPolicyFactory::ptr_t& scheduling_policy_factory):
             batch_count_(1),
+            efficient_scheduling_enabled_(false),
             root_operator_(root_operator),
             operators_(OperatorVisitorSerializer::serialize_tree(root_operator.get())),
             // To make scheduler free its policy in destruction phase,
@@ -38,6 +40,14 @@ namespace currentia {
             batch_count_ = batch_count;
         }
 
+        void set_efficient_scheduling_enabled(bool enabled) {
+            efficient_scheduling_enabled_ = enabled;
+        }
+
+        bool efficient_scheduling_enabled() {
+            return efficient_scheduling_enabled_;
+        }
+
         virtual ~AbstractScheduler() {};
         virtual bool wake_up() = 0;
 
@@ -50,8 +60,14 @@ namespace currentia {
             if (!next_operator)
                 return false;
 
-            for (int i = 0; i < batch_count_; ++i) {
+            if (efficient_scheduling_enabled_ &&
+                next_operator->is_redo_area_leaf()) {
                 next_operator->process_next();
+            } else {
+                // Batch!
+                for (int i = 0; i < batch_count_; ++i) {
+                    next_operator->process_next();
+                }
             }
 
             return true;
