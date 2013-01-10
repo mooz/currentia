@@ -40,7 +40,7 @@ namespace currentia {
         }
 
         double get_update_count() {
-            return update_interval_;
+            return update_count_;
         }
 
         void run() {
