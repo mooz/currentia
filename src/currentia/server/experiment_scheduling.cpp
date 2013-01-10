@@ -119,18 +119,22 @@ namespace currentia {
             StreamConsumer stream_consumer(query_container_->get_stream_by_name("ResultStream"));
             RelationUpdater relation_updater(query_container_->get_relation_by_name("R"), update_interval, update_duration);
             QueryProcessor query_processor(scheduler);
+
+            // First, insert whole streams
+            stream_sender.start();
+            stream_sender.wait();
+
+            std::cout << "Finished inserting" << std::endl;
+
+            stream_consumer.start();
+            relation_updater.start();
             TIME_IT(elapsed_seconds) {
-                stream_sender.start();
-                stream_consumer.start();
-                relation_updater.start();
                 query_processor.start();
-
-                stream_consumer.wait();
-
-                stream_sender.stop();
-                relation_updater.stop();
-                query_processor.stop();
+                stream_consumer.wait(); // wait for whole results
             }
+
+            relation_updater.stop();
+            query_processor.stop_and_wait();
 
             result_ios << "OK, finished loop" << std::endl;
 
