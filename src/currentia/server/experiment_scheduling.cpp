@@ -28,6 +28,7 @@
 #include "currentia/server/query-processor.h"
 
 #include "currentia/util/time.h"
+#include "currentia/util/ansi-color.h"
 
 #include <thread>
 #include <iostream>
@@ -136,30 +137,33 @@ namespace currentia {
             double throughput_query = total_events / elapsed_seconds;
             double throughput_update = relation_updater.get_update_count() / elapsed_seconds;
 
-            result_ios
-                << "Events: " << total_events << std::endl
-                << "Elapsed: " << elapsed_seconds << " secs" << std::endl
-                << "Update Rate: " << 1.0 / time::usec_to_sec(update_interval) << " qps" << std::endl
-                << "Query Throughput: " << throughput_query << " tps" << std::endl
-                << "Update Throughput: " << throughput_update << " qps" << std::endl;
+#define OUTPUT_ENTRY(key, value)                                        \
+            result_ios << ansi::bold << ansi::cyan << key << ansi::reset \
+                       << ": " << ansi::bold << ansi::yellow << value << ansi::reset << std::endl
+
+            OUTPUT_ENTRY("Events", total_events);
+            OUTPUT_ENTRY("Elapsed", elapsed_seconds << " secs");
+            OUTPUT_ENTRY("Update Rate", 1.0 / time::usec_to_sec(update_interval) << " qps");
+            OUTPUT_ENTRY("Query Throughput", throughput_query << " tps");
+            OUTPUT_ENTRY("Update Throughput", throughput_update << " qps");
 
             if (OptimisticCCScheduler* occ = dynamic_cast<OptimisticCCScheduler*>(scheduler)) {
-                std::clog << "Redo: " << occ->get_redo_counts() << " times" << std::endl;
+                OUTPUT_ENTRY("Redo", occ->get_redo_counts() << " times");
             }
             if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
                 TraitAggregationOperator* commit_op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
                 if (commit_op) {
-                    std::clog << "Consistent Rate: " << commit_op->get_consistent_rate() << std::endl;
-                    std::clog << "Window: " << commit_op->get_window().toString() << std::endl;
+                    OUTPUT_ENTRY("Consistent Rate", commit_op->get_consistent_rate());
+                    OUTPUT_ENTRY("Window", commit_op->get_window().toString());
                 }
 
 #ifdef CURRENTIA_CHECK_STATISTICS
-                std::clog << "# of Reset Tuples: " << acc->get_reset_tuples_count() << std::endl;
-                std::clog << "# of Operator Evaluation Count: " << acc->get_total_evaluation_count() << std::endl;
+                OUTPUT_ENTRY("# of Reset Tuples", acc->get_reset_tuples_count());
+                OUTPUT_ENTRY("# of Operator Evaluation Count", acc->get_total_evaluation_count());
 #endif
             }
 
-            result_ios << "Method: " << cmd_parser_.get<std::string>("method") << std::endl;
+            OUTPUT_ENTRY("Method", cmd_parser_.get<std::string>("method"));
         }
     };
 }
