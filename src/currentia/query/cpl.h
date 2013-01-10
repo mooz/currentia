@@ -163,7 +163,7 @@ namespace currentia {
 
         Operator::ptr_t get_operator_tree(CPLQueryContainer* query_container) {
             Stream::ptr_t stream = Stream::from_schema(Schema::from_attribute_pointers(*attributes_ptr));
-            return OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(stream));
+            return OperatorStreamAdapter::ptr_t(new OperatorStreamAdapter(stream, stream_name));
         }
 
         Stream::ptr_t get_stream(CPLQueryContainer* query_container,

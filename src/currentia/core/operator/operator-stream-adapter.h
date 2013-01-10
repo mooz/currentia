@@ -15,9 +15,11 @@ namespace currentia {
         Stream::ptr_t input_stream_ptr_;
 
     public:
-        OperatorStreamAdapter(Stream::ptr_t input_stream_ptr):
+        OperatorStreamAdapter(Stream::ptr_t input_stream_ptr,
+                              const std::string& stream_name = "Anonymous"):
             Operator(),
-            input_stream_ptr_(input_stream_ptr) {
+            input_stream_ptr_(input_stream_ptr),
+            stream_name_(stream_name) {
             set_output_stream(Stream::from_schema(input_stream_ptr->get_schema()));
         }
 
@@ -42,6 +44,10 @@ namespace currentia {
 
         std::string get_name() const {
             return std::string("Stream-Adapter");
+        }
+
+        std::string get_stream_name() const {
+            return stream_name_;
         }
     };
 }
