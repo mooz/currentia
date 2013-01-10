@@ -51,8 +51,13 @@ namespace currentia {
             }
             operator_id_map_[op] = duplication_count_map_[op_name];
 
+            // Output Real Name
+            dot_output_ << "  " << get_node_name_from_operator(op) << " [label = \"" << op_name << "\"];" << std::endl;
             if (op->is_commit_operator()) {
                 dot_output_ << "  " << get_node_name_from_operator(op) << " [style=\"filled\",color=\"yellow\"];" << std::endl;
+            }
+            if (auto adapter = dynamic_cast<OperatorStreamAdapter*>(op)) {
+                dot_output_ << "  " << get_node_name_from_operator(op) << " [label = \"" << op_name << " (" << adapter->get_stream_name() << ")\"];" << std::endl;
             }
         }
 
