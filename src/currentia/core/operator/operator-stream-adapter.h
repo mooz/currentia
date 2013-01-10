@@ -13,6 +13,7 @@ namespace currentia {
     class OperatorStreamAdapter: public Operator,
                                  public VisitableOperator<OperatorStreamAdapter> {
         Stream::ptr_t input_stream_ptr_;
+        std::string stream_name_;
 
     public:
         OperatorStreamAdapter(Stream::ptr_t input_stream_ptr,
