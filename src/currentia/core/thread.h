@@ -73,6 +73,12 @@ namespace currentia {
                 stopped_ = true;
             }
 
+            void stop_and_wait() {
+                stopped_ = true;
+                if (thread_.joinable())
+                    thread_.join();
+            }
+
             void wait() {
                 if (thread_.joinable())
                     thread_.join();
