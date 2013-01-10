@@ -93,6 +93,8 @@ namespace currentia {
                 downstream_has_window) {
                 make_operator_output_stream_backedup(op->get_parent_operator());
                 upstream_has_reference_operator = true;
+                // Mark as redo queue leaf (for efficient schedule)
+                op->set_is_redo_area_leaf(true);
             }
 
             if (upstream_has_reference_operator &&
