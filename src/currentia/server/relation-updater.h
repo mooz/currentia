@@ -25,6 +25,16 @@ namespace currentia {
             update_duration_(update_duration) {
         }
 
+        ~RelationUpdater() {
+#if CURRENTIA_DEBUG
+            std::cout << "RelationUpdater::Destructor:: release lock" << std::endl;
+#endif
+            relation_->unlock();
+#if CURRENTIA_DEBUG
+            std::cout << "RelationUpdater::Destructor:: release lock done" << std::endl;
+#endif
+        }
+
         void set_update_interval(long update_interval) {
             update_interval_ = update_interval;
         }
