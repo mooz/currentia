@@ -64,7 +64,7 @@ namespace currentia {
             auto left_upstream_has_reference_operator = find_commit_operator_(op->get_parent_left_operator().get());
             auto right_upstream_has_reference_operator = find_commit_operator_(op->get_parent_right_operator().get());
 
-            if (left_upstream_has_reference_operator &&
+            if (left_upstream_has_reference_operator ||
                 right_upstream_has_reference_operator) {
                 commit_operator_ = op;
             }
