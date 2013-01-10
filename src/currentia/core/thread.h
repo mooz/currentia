@@ -40,7 +40,7 @@ namespace currentia {
 
         class Runnable : private NonCopyable<Runnable> {
             std::thread thread_;
-            bool stopped_;      // atomic
+            volatile bool stopped_;      // atomic
 
         public:
             Runnable(): stopped_(true) {
