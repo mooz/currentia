@@ -16,9 +16,13 @@ namespace currentia {
         }
 
         void run() {
-            while (!stopped()) {
-                scheduler_->wake_up();
-                thread::scheduler_yield();
+            try {
+                while (!stopped()) {
+                    scheduler_->wake_up();
+                    thread::scheduler_yield();
+                }
+            } catch (std::string error) {
+                std::cerr << "QueryProcessor: " << error << std::endl;
             }
 
 #ifdef CURRENTIA_DEBUG
