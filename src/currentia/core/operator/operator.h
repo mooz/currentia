@@ -44,6 +44,7 @@ namespace currentia {
         // output stream.
         Stream::ptr_t output_stream_;
         bool is_commit_operator_;
+        bool is_redo_area_leaf_;
 
         long evaluation_count_;
 
@@ -52,7 +53,9 @@ namespace currentia {
 #endif
 
     public:
-        Operator(): evaluation_count_(0) {
+        Operator():
+            is_redo_area_leaf_(false),
+            evaluation_count_(0) {
             set_is_commit_operator(false);
         }
         virtual ~Operator() = 0;
@@ -81,6 +84,14 @@ namespace currentia {
 
         bool is_commit_operator() const {
             return is_commit_operator_;
+        }
+
+        void set_is_redo_area_leaf(bool is_redo_area_leaf) {
+            is_redo_area_leaf_ = is_redo_area_leaf;
+        }
+
+        bool is_redo_area_leaf() {
+            return is_redo_area_leaf_;
         }
 
         long get_evaluation_count() const {
