@@ -18,6 +18,10 @@ namespace currentia {
                                            txn_joint_count) {
         }
 
+        ~LockCCScheduler() {
+            release_all_locks_();
+        }
+
     protected:
         void commit_() {
             // Nothing
