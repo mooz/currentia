@@ -111,7 +111,7 @@ namespace currentia {
             insert_tuples_to_relation(relation, total_events);
 
             auto query_ptr = query_container_->get_root_operator_by_stream_name("ResultStream");
-            AbstractScheduler* scheduler = create_scheduler(query_ptr);
+            std::shared_ptr<AbstractScheduler> scheduler(create_scheduler(query_ptr));
 
             OperatorVisualizeDot::output_tree_as_dot(query_ptr, result_ios);
 
@@ -147,11 +147,11 @@ namespace currentia {
             OUTPUT_ENTRY("Query Throughput", throughput_query << " tps");
             OUTPUT_ENTRY("Update Throughput", throughput_update << " qps");
 
-            if (OptimisticCCScheduler* occ = dynamic_cast<OptimisticCCScheduler*>(scheduler)) {
+            if (auto occ = std::dynamic_pointer_cast<OptimisticCCScheduler>(scheduler)) {
                 OUTPUT_ENTRY("Redo", occ->get_redo_counts() << " times");
             }
-            if (AbstractCCScheduler* acc = dynamic_cast<AbstractCCScheduler*>(scheduler)) {
-                TraitAggregationOperator* commit_op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
+            if (auto acc = std::dynamic_pointer_cast<AbstractCCScheduler>(scheduler)) {
+                auto commit_op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
                 if (commit_op) {
                     OUTPUT_ENTRY("Consistent Rate", commit_op->get_consistent_rate());
                     OUTPUT_ENTRY("Window", commit_op->get_window().toString());

@@ -7,8 +7,10 @@
 #include "currentia/core/operator/operator-visitor-serializer.h"
 #include "currentia/core/scheduler/policy/scheduling-policy.h"
 
+#include "currentia/trait/pointable.h"
+
 namespace currentia {
-    class AbstractScheduler {
+    class AbstractScheduler : public Pointable<AbstractScheduler> {
     public:
         int batch_count_;       // (maximum) number of tuples to be evaluated at a chance
 
@@ -36,7 +38,7 @@ namespace currentia {
             batch_count_ = batch_count;
         }
 
-        virtual ~AbstractScheduler() = 0;
+        virtual ~AbstractScheduler() {};
         virtual bool wake_up() = 0;
 
     protected:
@@ -55,8 +57,6 @@ namespace currentia {
             return true;
         }
     };
-
-    AbstractScheduler::~AbstractScheduler() {};
 }
 
 #endif  /* ! CURRENTIA_ABSTRACT_SCHEDULER_H_ */

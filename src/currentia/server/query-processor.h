@@ -8,10 +8,10 @@
 
 namespace currentia {
     class QueryProcessor : public thread::Runnable {
-        AbstractScheduler* scheduler_;
+        AbstractScheduler::ptr_t scheduler_;
 
     public:
-        explicit QueryProcessor(AbstractScheduler* scheduler):
+        explicit QueryProcessor(const AbstractScheduler::ptr_t& scheduler):
             scheduler_(scheduler) {
         }
 
