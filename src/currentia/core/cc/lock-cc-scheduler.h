@@ -29,8 +29,10 @@ namespace currentia {
 
         void after_commit_(time_t lwm) {
             release_all_locks_();
-            evict_and_reset_streams_(lwm);
-            reset_operators_();
+            if (commit_operator_overlaps_) {
+                evict_and_reset_streams_(lwm);
+                reset_operators_();
+            }
         }
 
         void release_all_locks_() {

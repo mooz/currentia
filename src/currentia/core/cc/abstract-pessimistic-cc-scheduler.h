@@ -13,6 +13,8 @@ namespace currentia {
         int txn_joint_count_;
         int commit_count_;
 
+        bool commit_operator_overlaps_;
+
         bool commit_count_reached_limit_() {
             return commit_count_ >= txn_joint_count_;
         }
@@ -26,7 +28,8 @@ namespace currentia {
                                        int txn_joint_count = 1):
             AbstractCCScheduler(root_operator, scheduling_policy_factory, cc_mode),
             txn_joint_count_(txn_joint_count),
-            commit_count_(0) {
+            commit_count_(0),
+            commit_operator_overlaps_(false) {
             // Extract operator relation-join
             auto iter = operators_.begin();
             auto iter_end = operators_.end();
@@ -36,6 +39,10 @@ namespace currentia {
                 if (op) {
                     reference_operators_.push_back(op);
                 }
+            }
+
+            if (auto agg_op = dynamic_cast<TraitAggregationOperator*>(commit_operator_)) {
+                commit_operator_overlaps_ = agg_op->has_overlapping_window();
             }
         }
 

@@ -45,6 +45,10 @@ namespace currentia {
 
             return ss.str();
         }
+
+        bool is_overlapping_window() const {
+            return width > stride;
+        }
     };
 }
 

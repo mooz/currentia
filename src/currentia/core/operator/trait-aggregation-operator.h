@@ -57,6 +57,10 @@ namespace currentia {
             return 0;
         }
 
+        bool has_overlapping_window() const {
+            return window_.is_overlapping_window();
+        }
+
     private:
         void on_accept_wrapper_() {
             on_accept_();

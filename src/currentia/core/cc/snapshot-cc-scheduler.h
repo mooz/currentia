@@ -25,8 +25,10 @@ namespace currentia {
 
         void after_commit_(time_t lwm) {
             refresh_snapshots_();
-            evict_and_reset_streams_(lwm);
-            reset_operators_();
+            if (commit_operator_overlaps_) {
+                evict_and_reset_streams_(lwm);
+                reset_operators_();
+            }
         }
 
         void refresh_snapshots_() {
