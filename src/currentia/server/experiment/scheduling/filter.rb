@@ -16,18 +16,28 @@ test_string = STDIN.read
 # Method: 2pl
 # EOS
 
+# 1: batch count
 test_string.grep(/Scheduler Batch Process Count: (\d+)/) { |match|
   print $1
 }
 
 print " "
 
+# 2: throughput
 test_string.grep(/Query Throughput: ([\d\.]+)/) { |match|
   print $1
 }
 
 print " "
 
+# 3: evaluation count
 test_string.grep(/Evaluation Count: (\d+)/) { |match|
   print $1
+}
+
+print " "
+
+# 4: window range, 5: window slide
+test_string.grep(/Window: \[ width (\d+) \| stride (\d+) \]/) { |match|
+  print "#{$1} #{$2}"
 }
