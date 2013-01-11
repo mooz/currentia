@@ -58,14 +58,14 @@ namespace currentia {
             root_operators[stream] = root_operator;
         }
 
-        Relation::ptr_t get_relation_by_name(const std::string& relation_name) {
+        Relation::ptr_t get_relation_by_name(const std::string& relation_name) const {
             std::map<std::string, Relation::ptr_t>::const_iterator it = relations.find(relation_name);
             if (it == relations.end())
                 throw std::string("Relation ") + relation_name + " is not defined";
             return it->second;
         }
 
-        Stream::ptr_t get_stream_by_name(const std::string& stream_name) {
+        Stream::ptr_t get_stream_by_name(const std::string& stream_name) const {
             std::map<std::string, Stream::ptr_t>::const_iterator it = streams.find(stream_name);
             if (it == streams.end())
                 throw std::string("Stream ") + stream_name + " is not defined";
@@ -73,7 +73,7 @@ namespace currentia {
         }
 
         // To get OperatorStreamAdapter's input stream (To get operator tree leave queues)
-        Stream::ptr_t get_adapter_input_stream_by_name(const std::string& stream_name) {
+        Stream::ptr_t get_adapter_input_stream_by_name(const std::string& stream_name) const {
             Operator::ptr_t op = get_root_operator_by_stream_name(stream_name);
             if (OperatorStreamAdapter* adapter = dynamic_cast<OperatorStreamAdapter*>(op.get())) {
                 return adapter->get_input_stream();
@@ -82,13 +82,14 @@ namespace currentia {
         }
 
         Operator::ptr_t get_root_operator_for_stream(const Stream::ptr_t& stream) {
+        Operator::ptr_t get_root_operator_for_stream(const Stream::ptr_t& stream) const {
             std::map<Stream::ptr_t, Operator::ptr_t>::const_iterator it = root_operators.find(stream);
             if (it == root_operators.end())
                 return Operator::ptr_t();
             return it->second;
         }
 
-        Operator::ptr_t get_root_operator_by_stream_name(const std::string& name) {
+        Operator::ptr_t get_root_operator_by_stream_name(const std::string& name) const {
             return get_root_operator_for_stream(get_stream_by_name(name));
         }
     };
