@@ -44,8 +44,7 @@ namespace currentia {
             Operator* root_operator_raw_ptr = root_operator.get();
 
             // Find commit operator
-            CommitOperatorFinder finder(root_operator_raw_ptr);
-            commit_operator_ = finder.get_commit_operator();
+            commit_operator_ = CommitOperatorFinder::find_commit_operator(root_operator_raw_ptr);
             if (commit_operator_) {
                 commit_operator_->set_is_commit_operator(true);
             }
