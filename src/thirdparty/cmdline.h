@@ -117,8 +117,14 @@ std::string readable_typename()
   return demangle(typeid(T).name());
 }
 
+template <class T>
+std::string default_value(T def)
+{
+  return detail::lexical_cast<std::string>(def);
+}
+
 template <>
-std::string readable_typename<std::string>()
+inline std::string readable_typename<std::string>()
 {
   return "string";
 }
@@ -165,7 +171,7 @@ template <class T>
 struct oneof_reader{
   T operator()(const std::string &s){
     T ret=default_reader<T>()(s);
-    if (std::find(alt.begin(), alt.end(), s)==alt.end())
+    if (std::find(alt.begin(), alt.end(), ret)==alt.end())
       throw cmdline_error("");
     return ret;
   }
@@ -754,7 +760,7 @@ private:
     std::string full_description(const std::string &desc){
       return
         desc+" ("+detail::readable_typename<T>()+
-        (need?"":" [="+detail::lexical_cast<std::string>(def)+"]")
+        (need?"":" [="+detail::default_value<T>(def)+"]")
         +")";
     }
 
