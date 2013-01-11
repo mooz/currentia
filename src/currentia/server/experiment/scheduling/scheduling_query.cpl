@@ -6,7 +6,7 @@ stream ResultStream from InputStream {
     # project InputStream.age
     select InputStream.age > 20
     inject R where InputStream.age = R.r_id
-    mean R.price [recent 20 slide 5]
+    mean R.price [recent 20 slide 10]
     select R.price > 200
 }
 

@@ -35,6 +35,9 @@ clean:
 distclean:
 	$(WAF) distclean
 
+configure:
+	$(WAF) configure
+
 reconfigure: configure
 	$(WAF) reconfigure
 
