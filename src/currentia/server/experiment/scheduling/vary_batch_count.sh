@@ -1,10 +1,11 @@
 #!/bin/sh
 
+EXPERIMENT_BIN=$(git rev-parse --show-cdup)build/src/currentia/server/experiment_scheduling
+
 exec_experiment() {
     i=$1
     shift
-    (cd $(git rev-parse --show-cdup); \
-        ./build/src/currentia/server/experiment_scheduling --no-color --method=2pl --max-events-n-consume=${i} --update-interval=10000 $* < scheduling_query.cpl | tail)
+    cat scheduling_query.cpl | ${EXPERIMENT_BIN} --no-color --method=snapshot --max-events-n-consume=${i} --update-interval=10000 $*
 }
 
 for i in $(seq 1 10); do

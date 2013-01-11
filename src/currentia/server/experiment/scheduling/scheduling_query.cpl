@@ -1,0 +1,23 @@
+stream InputStream(id: int, age: int)
+stream InputStream2(id: int, age: int)
+relation R(r_id: int, price: int)
+
+stream ResultStream from InputStream {
+    # project InputStream.age
+    select InputStream.age > 20
+    inject R where InputStream.age = R.r_id
+    mean R.price [recent 20 slide 5]
+    select R.price > 200
+}
+
+# stream ResultStream from InputStream {
+#   select InputStream.id < 20
+#   select InputStream.id > 20
+#   inject R where InputStream.id = R.r_id
+#   mean R.price [recent 20 slide 5]
+#   select R.price > 500
+  # project InputStream.age
+# }
+
+  # select InputStream.age > 90
+  # inject R where InputStream.id = R.r_id
