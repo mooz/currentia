@@ -343,14 +343,16 @@ namespace currentia {
         Window window2;
 
         CPLJoinedStream(Operator::ptr_t* left_operator_ptr,
-                        Window window1,
+                        Window window1_arg,
                         Operator::ptr_t* right_operator_ptr,
-                        Window window2,
+                        Window window2_arg,
                         Condition* condition_ptr):
             CPLDerivedStream(),
             left_operator_ptr_(left_operator_ptr),
             right_operator_ptr_(right_operator_ptr),
-            condition_ptr(condition_ptr) {
+            condition_ptr(condition_ptr),
+            window1(window1_arg),
+            window2(window2_arg) {
         }
 
         ~CPLJoinedStream() {

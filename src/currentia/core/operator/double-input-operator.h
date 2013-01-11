@@ -58,8 +58,8 @@ namespace currentia {
             }
         }
 
-        virtual void process_left_input(Tuple::ptr_t input) = 0;
-        virtual void process_right_input(Tuple::ptr_t input) = 0;
+        virtual void process_left_input(const Tuple::ptr_t& input) = 0;
+        virtual void process_right_input(const Tuple::ptr_t& input) = 0;
 
     public:
         const Operator::ptr_t get_parent_left_operator() const {
