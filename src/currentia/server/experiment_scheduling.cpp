@@ -173,10 +173,8 @@ namespace currentia {
 
             OUTPUT_ENTRY("Scheduler Batch Process Count", cmd_parser_.get<int>("max-events-n-consume") << " tuples");
 
-            if (auto occ = std::dynamic_pointer_cast<OptimisticCCScheduler>(scheduler)) {
-                OUTPUT_ENTRY("Redo", occ->get_redo_counts() << " times");
-            }
             if (auto acc = std::dynamic_pointer_cast<AbstractCCScheduler>(scheduler)) {
+                OUTPUT_ENTRY("Redo", acc->get_redo_counts() << " times");
                 auto commit_op = dynamic_cast<OperatorMean*>(acc->get_commit_operator());
                 if (commit_op) {
                     OUTPUT_ENTRY("Consistent Rate", commit_op->get_consistent_rate());

@@ -73,6 +73,7 @@ namespace currentia {
         virtual void after_commit_(time_t lwm) = 0;
 
         void evict_and_reset_streams_(time_t lwm) {
+            enter_redo_();
             {
                 // Lock all streams
                 auto iter = redo_streams_.begin();
