@@ -17,8 +17,6 @@ namespace currentia {
                     public Pointable<Operator>,
                     public Show {
     public:
-        typedef void (*process_hook_t)();
-
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         // Concurrency Control Mode
         enum CCMode {
@@ -31,9 +29,6 @@ namespace currentia {
 
         static const int PESSIMISTIC_MASK = 2;
 #endif
-
-    private:
-        std::list<process_hook_t> after_process_hook;
 
     protected:
         // Since the number of input streams varies, the base class
@@ -62,15 +57,13 @@ namespace currentia {
 
         // get next tuple from input stream and process
         void process_next(int batch_count = 1) {
-            next_implementation(batch_count);
-
-            // if (!after_process_hook.empty()) {
-            //     for (std::list<process_hook_t>::iterator process_iterator = after_process_hook.begin();
-            //          process_iterator != after_process_hook.end();
-            //          ++process_iterator) {
-            //         (*process_iterator)();
-            //     }
-            // }
+            if (batch_count == 1) {
+                next_implementation();
+            } else {
+                for (int i = 0; i < batch_count; ++i) {
+                    next_implementation();
+                }
+            }
         }
 
         virtual void next_implementation() = 0;
@@ -134,11 +127,6 @@ namespace currentia {
             // } else {
             output_stream_->enqueue(tuple);
             // }
-        }
-
-        // Had been used to achieve pessimistic concurrency control (lock / versioning)
-        void add_after_process(process_hook_t hook) {
-            after_process_hook.push_back(hook);
         }
 
         virtual std::string get_name() const = 0;

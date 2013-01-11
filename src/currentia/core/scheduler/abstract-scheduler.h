@@ -62,12 +62,9 @@ namespace currentia {
 
             if (efficient_scheduling_enabled_ &&
                 next_operator->is_redo_area_leaf()) {
-                next_operator->process_next();
+                next_operator->process_next(1);
             } else {
-                // Batch!
-                for (int i = 0; i < batch_count_; ++i) {
-                    next_operator->process_next();
-                }
+                next_operator->process_next(batch_count_);
             }
 
             return true;
