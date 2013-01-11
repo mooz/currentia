@@ -14,8 +14,7 @@
 
 namespace currentia {
     // Should be NonCopyable?
-    class Object : public Pointable<Object>,
-                   public Show {
+    class Object : public Pointable<Object> {
     public:
         friend class Operation;
 
