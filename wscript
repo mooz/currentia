@@ -10,10 +10,16 @@ testdir   = "test"
 subdirs   = " ".join([sourcedir, testdir])
 
 # cxx flags
-cxxflags = ["-O3", "-Wall", "-g", "-pipe",
+cxxflags = ["-Wall", "-g", "-pipe",
             "-std=gnu++0x",
             "-DCURRENTIA_ENABLE_TRANSACTION",
-            "-DCURRENTIA_ENABLE_TIME_BASED_WINDOW"]
+            "-DCURRENTIA_CHECK_STATISTICS",
+            "-O3",
+            # "-O0",
+            # "-DCURRENTIA_DEBUG"
+            # "-DCURRENTIA_ENABLE_TIME_BASED_WINDOW"
+            ]
+
 
 def options(opt):
     opt.load("unittestt", tooldir=testdir)
