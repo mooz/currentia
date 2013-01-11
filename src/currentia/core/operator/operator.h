@@ -43,6 +43,8 @@ namespace currentia {
 
         long evaluation_count_;
 
+        long total_output_;
+
 #ifdef CURRENTIA_ENABLE_TRANSACTION
         enum CCMode cc_mode_;
 #endif
@@ -50,7 +52,8 @@ namespace currentia {
     public:
         Operator():
             is_redo_area_leaf_(false),
-            evaluation_count_(0) {
+            evaluation_count_(0),
+            total_output_(0) {
             set_is_commit_operator(false);
         }
         virtual ~Operator() = 0;
@@ -119,6 +122,7 @@ namespace currentia {
         }
 
         void output_tuple(const Tuple::ptr_t& tuple) {
+            total_output_++;
             // if (tuple->is_system_message()) {
             //     std::clog << "Operator " << get_name() << " output EOS : " << output_stream_ << std::endl;
             //     output_stream_->enqueue(tuple);
