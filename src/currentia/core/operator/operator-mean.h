@@ -79,7 +79,7 @@ namespace currentia {
             }
 
 #endif
-        Object sum_ = Object(0.0);
+            Object sum_ = Object(0.0);
             Synopsis::const_iterator iter = synopsis_->begin();
             Synopsis::const_iterator iter_end = synopsis_->end();
 
