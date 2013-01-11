@@ -76,6 +76,12 @@ namespace currentia {
 
             SchedulingPolicyFactory::ptr_t scheduling_policy_factory(new RoundRobinPolicyFactory());
 
+            if (!CommitOperatorFinder::find_commit_operator(query_ptr.get())) {
+                // When commit operator isn't available in the plan,
+                // don't enable not concurrency control mode
+                cc_method = "none";
+            }
+
             AbstractScheduler* scheduler = NULL;
             if (cc_method == "optimistic")
                 scheduler = new OptimisticCCScheduler(query_ptr, scheduling_policy_factory);
