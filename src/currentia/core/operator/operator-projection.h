@@ -72,7 +72,9 @@ namespace currentia {
                 data.push_back(target_tuple_ptr->get_value_by_index(attribute_index));
             }
 
-            auto projected_tuple = Tuple::create(new_schema_ptr_, data);
+            auto projected_tuple = Tuple::create(new_schema_ptr_,
+                                                 data,
+                                                 target_tuple_ptr->get_arrived_time());
 #ifdef CURRENTIA_ENABLE_TRANSACTION
             projected_tuple->set_lwm(target_tuple_ptr->get_lwm());
 #endif
