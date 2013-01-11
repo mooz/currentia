@@ -49,7 +49,7 @@ namespace currentia {
         }
 
         // TODO: not exception safe
-        void enqueue(Tuple::ptr_t tuple_ptr) {
+        void enqueue(const Tuple::ptr_t& tuple_ptr) {
             thread::ScopedLock lock(&mutex_);
             tuple_ptrs_.push_front(tuple_ptr);
             if (do_backup_)
@@ -80,6 +80,17 @@ namespace currentia {
             Tuple::ptr_t tuple_ptr = dequeue_a_tuple_ptr_();
 
             return tuple_ptr;
+        }
+
+        // Un-enqueue tuple
+        void unshift(const Tuple::ptr_t& tuple_ptr) {
+            thread::ScopedLock lock(&mutex_);
+            tuple_ptrs_.push_back(tuple_ptr);
+        }
+
+        bool has_tuple() const {
+            thread::ScopedLock lock(&mutex_);
+            return tuple_ptrs_.empty();
         }
 
         // Dequeue an elemen from stream. If the stream is empty, returns NULL.

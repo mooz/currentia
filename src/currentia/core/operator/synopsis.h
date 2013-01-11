@@ -185,10 +185,12 @@ namespace currentia {
             newcomer_tuples_[newcomer_count_++] = input_tuple;
 
             if (window_filled_) { // Branch prediction, please!
+                // After 1st acceptance
                 if (newcomer_count_ == window_.stride) {
                     accept_newcomers_logical_(newcomer_count_);
                 }
             } else {
+                // Before 1st acceptance
                 if (newcomer_count_ == window_.width) {
                     accept_newcomers_logical_(newcomer_count_);
                 }

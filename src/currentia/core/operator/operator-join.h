@@ -35,9 +35,8 @@ namespace currentia {
             joined_schema_ptr_ = build_joined_schema_();
             set_output_stream(Stream::from_schema(joined_schema_ptr_));
             // set callbacks
-            Synopsis::callback_t on_accept = std::bind(&OperatorJoin::join_synopsis_, this);
-            left_synopsis_->set_on_accept(on_accept);
-            right_synopsis_->set_on_accept(on_accept);
+            left_synopsis_->set_on_accept(std::bind(&OperatorJoin::left_on_accept_, this));
+            right_synopsis_->set_on_accept(std::bind(&OperatorJoin::right_on_accept_, this));
             // obey schema
             join_condition->obey_schema(
                 parent_left_operator_ptr->get_output_stream()->get_schema(),
@@ -45,11 +44,11 @@ namespace currentia {
             );
         }
 
-        void process_left_input(Tuple::ptr_t input) {
+        void process_left_input(const Tuple::ptr_t& input) {
             left_synopsis_->enqueue(input);
         }
 
-        void process_right_input(Tuple::ptr_t input) {
+        void process_right_input(const Tuple::ptr_t& input) {
             right_synopsis_->enqueue(input);
         }
 
@@ -69,11 +68,28 @@ namespace currentia {
 
         Schema::ptr_t joined_schema_ptr_;
 
+        void left_on_accept_() {
+            left_needs_tuple_ = false;
+            try_join_();
+        }
+
+        void right_on_accept_() {
+            right_needs_tuple_ = false;
+            try_join_();
+        }
+
         Schema::ptr_t build_joined_schema_() {
             return concat_schemas(
                 parent_left_operator_ptr_->get_output_schema_ptr(),
                 parent_right_operator_ptr_->get_output_schema_ptr()
             );
+        }
+
+        void try_join_() {
+            if (!left_needs_tuple_ && !right_needs_tuple_) {
+                join_synopsis_();
+                left_needs_tuple_ = right_needs_tuple_ = true;
+            }
         }
 
         inline void
@@ -102,7 +118,8 @@ namespace currentia {
                     if (join_condition_->check(*left_iter, *right_iter)) {
                         auto combined_tuple = Tuple::create(
                             joined_schema_ptr_,
-                            (*left_iter)->get_concatenated_data(*right_iter)
+                            (*left_iter)->get_concatenated_data(*right_iter),
+                            std::min((*left_iter)->get_arrived_time(), (*right_iter)->get_arrived_time())
                         );
 #ifdef CURRENTIA_ENABLE_TRANSACTION
                         combined_tuple->set_lwm(lwm);

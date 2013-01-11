@@ -16,6 +16,8 @@ namespace currentia {
         Operator::ptr_t parent_right_operator_ptr_;
         Stream::ptr_t left_input_stream_;
         Stream::ptr_t right_input_stream_;
+        bool left_needs_tuple_;
+        bool right_needs_tuple_;
 
         DoubleInputOperator(const Operator::ptr_t& parent_left_operator_ptr,
                             const Operator::ptr_t& parent_right_operator_ptr):
@@ -23,7 +25,9 @@ namespace currentia {
             parent_left_operator_ptr_(parent_left_operator_ptr),
             parent_right_operator_ptr_(parent_right_operator_ptr),
             left_input_stream_(parent_left_operator_ptr_->get_output_stream()),
-            right_input_stream_(parent_right_operator_ptr_->get_output_stream()) {
+            right_input_stream_(parent_right_operator_ptr_->get_output_stream()),
+            left_needs_tuple_(true),
+            right_needs_tuple_(true) {
         }
 
         virtual ~DoubleInputOperator() = 0;
@@ -41,20 +45,24 @@ namespace currentia {
         }
 
         void next_implementation() {
-            Tuple::ptr_t left_input_tuple = left_input_stream_->non_blocking_dequeue();
-            if (is_concrete_input(left_input_tuple)) {
+            if (left_needs_tuple_) {
+                Tuple::ptr_t left_input_tuple = left_input_stream_->non_blocking_dequeue();
+                if (is_concrete_input(left_input_tuple)) {
 #ifdef CURRENTIA_CHECK_STATISTICS
-                evaluation_count_++;
+                    evaluation_count_++;
 #endif
-                process_left_input(left_input_tuple);
+                    process_left_input(left_input_tuple);
+                }
             }
 
-            Tuple::ptr_t right_input_tuple = right_input_stream_->non_blocking_dequeue();
-            if (is_concrete_input(right_input_tuple)) {
+            if (right_needs_tuple_) {
+                Tuple::ptr_t right_input_tuple = right_input_stream_->non_blocking_dequeue();
+                if (is_concrete_input(right_input_tuple)) {
 #ifdef CURRENTIA_CHECK_STATISTICS
-                evaluation_count_++;
+                    evaluation_count_++;
 #endif
-                process_right_input(right_input_tuple);
+                    process_right_input(right_input_tuple);
+                }
             }
         }
 
