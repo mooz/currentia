@@ -1,21 +1,14 @@
 #!/bin/sh
 
-EXPERIMENT_BIN=$(git rev-parse --show-cdup)build/src/currentia/server/experiment_scheduling
+export BATCH_SIZE=1
+export WIDTH=40
+export SLIDE=20
 
-exec_experiment() {
-    i=$1
-    shift
-    cat scheduling_query.cpl | ${EXPERIMENT_BIN} --no-color --method=snapshot --max-events-n-consume=${i} --update-interval=10000 $*
-}
-
-for i in $(seq 1 10); do
-    exec_experiment $i | ./filter.rb
-    echo ""
-done
-
-echo "\n\n"
-
-for i in $(seq 1 10); do
-    exec_experiment $i --efficient-scheduling | ./filter.rb
-    echo ""
+for efficient in "" "--efficient-scheduling"; do
+    for i in $(seq 1 10); do
+        export BATCH_SIZE=${i}
+        ./runner.sh ${efficient} | ./filter.rb
+        echo ""
+    done
+    echo "\n\n"
 done
