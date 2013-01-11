@@ -25,6 +25,10 @@ namespace currentia {
             find_commit_operator_(root_operator);
         }
 
+        static Operator* find_commit_operator(Operator* root_operator) {
+            return CommitOperatorFinder(root_operator).get_commit_operator();
+        }
+
         Operator* get_commit_operator() {
             return commit_operator_;
         }
