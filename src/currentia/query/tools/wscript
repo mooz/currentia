@@ -9,4 +9,11 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
+    bld.program(
+      source   = "cpl-checker.cpp",
+      target   = "cpl-checker",
+      includes = ". ../../../",
+      lib      = "pthread"
+    )
+
     bld.recurse(subdirs)
