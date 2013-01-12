@@ -1,0 +1,43 @@
+# Man Stream 1
+STREAM InputStream(id: int, age: int)
+
+# Man Stream 2
+STREAM InputStream2(id2: int, age2: int)
+
+# Products
+RELATION R(r_id: int, price: int)
+
+# stream ResultStream from InputStream {
+#     project InputStream.age
+#     select InputStream.age > 80
+#     combine R where InputStream.age = R.r_id
+#     mean R.price [recent !range! slide !slide!]
+#     # mean InputStream.age [recent !range! slide !slide!]
+#     select R.price > 200
+# }
+
+STREAM MaleStream
+FROM InputStream
+{
+    COMBINE R where R.r_id = InputeStream.id
+}
+
+STREAM FemaleStream
+FROM InputStream2
+{
+    SELECT InputeStream2.age2 < 50
+    COMBINE R where R.r_id = InputeStream2.id2
+}
+
+STREAM ResultStream
+FROM   MaleStream[recent 10 slide 10], FemaleStream[recent 10 slide 10]
+WHERE  MaleStream.price > 9300 {
+      SELECT  MaleStream.age < 90
+      MEAN    MaleStream.age [RECENT 10 SLIDE 1]
+      SELECT  MaleStream.age > 15
+}
+
+
+
+# WHERE  MaleStream.price > 5000 -> 0.31 
+# WHERE  MaleStream.price > 8000 -> 0.15
