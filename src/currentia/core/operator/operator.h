@@ -133,6 +133,10 @@ namespace currentia {
             // }
         }
 
+        double get_selectivity() const {
+            return static_cast<double>(total_output_) / evaluation_count_;
+        }
+
         virtual std::string get_name() const = 0;
     };
 

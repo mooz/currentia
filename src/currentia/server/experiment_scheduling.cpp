@@ -206,6 +206,17 @@ namespace currentia {
 
             OUTPUT_ENTRY("Method", cmd_parser_.get<std::string>("method"));
 
+            // Selectivity
+#ifdef CURRENTIA_CHECK_STATISTICS
+            auto operators = OperatorVisitorSerializer::serialize_tree(query_ptr);
+            for (auto iter = operators.begin(), iter_end = operators.end();
+                 iter != iter_end; ++iter) {
+                auto op = (*iter);
+                double selectivity = op->get_selectivity();
+                OUTPUT_ENTRY("Selectivity" << op->get_name(), selectivity);
+            }
+#endif
+
 #ifdef CURRENTIA_DEBUG
             std::cout << "Leave run method!" << std::endl;
 #endif
