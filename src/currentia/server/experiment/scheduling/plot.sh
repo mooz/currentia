@@ -25,7 +25,7 @@ BASE_FONT_SIZE=40
 TICS_FONT_SIZE=30
 
 data_label_1="Naive"
-data_label_2="Proposed"
+data_label_2="Constraint"
 
 (cat <<EOF
 # set logscale y
