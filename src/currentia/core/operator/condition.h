@@ -99,6 +99,7 @@ namespace currentia {
                 return left_condition_->check(tuple_ptr)
                     || right_condition_->check(tuple_ptr);
             }
+            throw "Expected AND / OR";
         }
 
         bool check(Tuple::ptr_t left_tuple_ptr, Tuple::ptr_t right_tuple_ptr) const {
@@ -110,6 +111,7 @@ namespace currentia {
                 return left_condition_->check(left_tuple_ptr, right_tuple_ptr)
                     || right_condition_->check(left_tuple_ptr, right_tuple_ptr);
             }
+            throw "Expected AND / OR";
         }
 
         void obey_schema(const Schema::ptr_t& left_schema,

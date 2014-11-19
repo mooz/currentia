@@ -366,6 +366,7 @@ namespace currentia {
             throw "Time-based windows are not enabled. Specify -DCURRENTIA_ENABLE_TIME_BASED_WINDOW.";
 #endif
         }
+        throw "Unknown window type";
     }
 }
 
