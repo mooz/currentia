@@ -140,7 +140,9 @@ namespace currentia {
                 std::ofstream dot_ofs("/tmp/query_tree.dot", std::ios::out | std::ios::trunc);
                 OperatorVisualizeDot::output_tree_as_dot(query_ptr, dot_ofs);
                 dot_ofs.close();
-                ::system("dot -Tpng /tmp/query_tree.dot -o /tmp/query_tree.png && pkill eog ; eog /tmp/query_tree.png &");
+                if (::system("dot -Tpng /tmp/query_tree.dot -o /tmp/query_tree.png && pkill eog ; eog /tmp/query_tree.png &")) {
+                    std::cerr << "Failed to generate dot file" << std::endl;
+                }
             }
 
             StreamConsumer stream_consumer(query_container_->get_stream_by_name("ResultStream"));
