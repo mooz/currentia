@@ -25,6 +25,7 @@
 
 #include "currentia/util/time.h"
 
+#include <unistd.h>
 #include <thread>
 
 #include <iostream>

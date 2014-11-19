@@ -3,6 +3,8 @@
 #ifndef CURRENTIA_STREAM_SENDER_H_
 #define CURRENTIA_STREAM_SENDER_H_
 
+#include <unistd.h>
+
 #include "currentia/core/stream.h"
 #include "currentia/core/tuple.h"
 #include "currentia/core/schema.h"

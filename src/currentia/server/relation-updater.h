@@ -3,6 +3,8 @@
 #ifndef CURRENTIA_RELATION_UPDATER_H_
 #define CURRENTIA_RELATION_UPDATER_H_
 
+#include <unistd.h>
+
 #include "currentia/core/relation.h"
 #include "currentia/util/print.h"
 #include "currentia/core/thread.h"
