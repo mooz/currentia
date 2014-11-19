@@ -7,7 +7,7 @@
 #include "currentia/util/print.h"
 #include "currentia/util/log.h"
 
-#include <unistd.h>
+#include <thread>
 
 using namespace currentia;
 
@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& out, const Synopsis::const_iterator& p) {
 }
 
 void sleep_sec(double sec) {
-    usleep(static_cast<useconds_t>(sec * 1000 * 1000));
+    std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(sec * 1000 * 1000)));
 }
 
 class TestTimeSynopsis : public ::testing::Test {

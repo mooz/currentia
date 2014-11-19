@@ -36,7 +36,7 @@ namespace currentia {
             for (int i = 0; i < total_tuples_ && !stopped(); ++i) {
                 stream_->enqueue(get_next(i));
                 if (send_interval_ > 0)
-                    usleep(send_interval_);
+                    std::this_thread::sleep_for(std::chrono::microseconds(send_interval_));
             }
             stream_->enqueue(Tuple::create_eos());
 

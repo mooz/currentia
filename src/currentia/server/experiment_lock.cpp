@@ -25,7 +25,6 @@
 
 #include "currentia/util/time.h"
 
-#include <unistd.h>
 #include <thread>
 
 #include <iostream>
@@ -63,13 +62,14 @@ void update_status_thread_body()
     while (true) {
         // randomly select a tuple and update it
         if (UPDATE_INTERVAL > 0)
-            usleep(UPDATE_INTERVAL);
+            std::this_thread::sleep_for(std::chrono::microseconds(UPDATE_INTERVAL));
+        // std::this_thread::sleep_for(std::chrono::microseconds(1));
 
         // std::clog << "UPDATE: try to lock" << std::endl;
         goods_relation->read_write_lock();
         // std::clog << "UPDATE: updated" << std::endl;
         goods_relation->update();
-        usleep(UPDATE_TIME);
+        std::this_thread::sleep_for(std::chrono::microseconds(UPDATE_TIME));
         goods_relation->unlock();
 
         updated_status_count++;
@@ -120,7 +120,7 @@ void stream_sending_thread_body()
                 Tuple::create_easy(schema_ptr, i % GOODS_COUNT, rand())
             );
             if (PURCHASE_STREAM_INTERVAL > 0)
-                usleep(PURCHASE_STREAM_INTERVAL);
+                std::this_thread::sleep_for(std::chrono::microseconds(PURCHASE_STREAM_INTERVAL));
         }
 
         // std::cout << "------------------------------------------------------------" << std::endl;

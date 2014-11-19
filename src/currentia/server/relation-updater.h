@@ -3,7 +3,7 @@
 #ifndef CURRENTIA_RELATION_UPDATER_H_
 #define CURRENTIA_RELATION_UPDATER_H_
 
-#include <unistd.h>
+#include <thread>
 
 #include "currentia/core/relation.h"
 #include "currentia/util/print.h"
@@ -49,11 +49,11 @@ namespace currentia {
             while (!stopped()) {
                 // randomly select a tuple and update it
                 if (update_interval_ > 0)
-                    usleep(update_interval_);
+                    std::this_thread::sleep_for(std::chrono::microseconds(update_interval_));
 
                 relation_->read_write_lock();
                 relation_->update();
-                usleep(update_duration_);
+                std::this_thread::sleep_for(std::chrono::microseconds(update_duration_));
                 relation_->unlock();
 
                 update_count_++;
