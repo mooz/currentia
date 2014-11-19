@@ -288,6 +288,9 @@ int main(int argc, char **argv)
     consume_output_stream_thread.join();
     stream_sending_thread.join();
 
+    update_status_thread.detach();
+    process_stream_thread.detach();
+
     double elapsed_seconds = end_time - begin_time;
     double throughput_query = PURCHASE_COUNT / elapsed_seconds;
     double throughput_update = updated_status_count / elapsed_seconds;
