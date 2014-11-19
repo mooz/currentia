@@ -61,7 +61,7 @@ def generate_parser(bld):
     __run_command(bld,
                   """
 cd src/currentia/query/;
-./tools/lemon/lemon cpl-parser.y T=./tools/lemon/lempar-currentia.c;
+lemon cpl-parser.y T=./tools/lemon/lempar-currentia.c;
 ./tools/format_code.sh ./cpl-parser.c;
 ./tools/generate_token_to_string.rb < ./cpl-parser.h > ./cpl-token-to-string.h
 """)
