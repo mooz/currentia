@@ -30,7 +30,7 @@ def configure(conf):
     conf.load("compiler_cxx")
     conf.env.append_value("CXXFLAGS", cxxflags)
     conf.load("unittestt", tooldir=testdir)
-    conf.check_cxx(lib="gtest_main", uselib_store="GTEST_MAIN")
+#     conf.check_cxx(lib="gtest_main", uselib_store="GTEST_MAIN")
     conf.check_cxx(lib="pthread", uselib_store="PTHREAD")
     conf.recurse(subdirs)
 
