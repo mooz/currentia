@@ -68,9 +68,6 @@ interval_to_rate() {
 }
 
 do_bench_query_vs_update() {
-    # 更新レートを上げていったときのスループット
-    # (method, rate)
-
     method=$1
     rate=$2
 
@@ -90,9 +87,6 @@ do_bench_query_vs_update() {
 }
 
 do_bench_update_vs_stream() {
-    # ストリームレートを上げていったときの更新スループット
-    # (method, rate)
-
     method=$1
     rate=$2
 
@@ -112,9 +106,6 @@ do_bench_update_vs_stream() {
 }
 
 do_bench_update_vs_window() {
-    # ウィンドウサイズを上げていったときの更新スループット
-    # (method, rate)
-
     method=$1
     window_size=$2
     window_slide=$(expr ${window_size} / 2)
