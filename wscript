@@ -35,6 +35,7 @@ def configure(conf):
     conf.recurse(subdirs)
 
 def build(bld):
+    generate_lexer_parser(bld)
     bld.recurse(subdirs)
 
 def __run_command(bld, cmd):
